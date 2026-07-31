@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Premium Tees — Project Handbook</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+  :root {
+    --ink: #141414;
+    --muted: #555;
+    --line: #d8d8d8;
+    --bg: #fff;
+    --soft: #f6f6f4;
+    --accent: #1a3a2f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 10.5pt;
+    line-height: 1.45;
+    margin: 0;
+  }
+  .cover {
+    page-break-after: always;
+    min-height: 240mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28mm 8mm 20mm;
+    background: linear-gradient(165deg, #f7f4ef 0%, #ffffff 45%, #eef3f0 100%);
+  }
+  .cover-eyebrow {
+    font-size: 10pt;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .cover h1 {
+    font-size: 36pt;
+    line-height: 1.05;
+    margin: 18px 0 10px;
+    letter-spacing: -0.02em;
+  }
+  .cover .subtitle {
+    font-size: 13pt;
+    color: var(--muted);
+    max-width: 140mm;
+  }
+  .cover-meta {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    font-size: 9.5pt;
+    color: var(--muted);
+  }
+  .cover-meta strong { color: var(--ink); }
+  h2 {
+    font-size: 16pt;
+    margin: 22px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+    color: var(--accent);
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    margin: 16px 0 6px;
+    color: var(--ink);
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 10.5pt;
+    margin: 12px 0 4px;
+    page-break-after: avoid;
+  }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 0 0 10px; padding-left: 18px; }
+  li { margin-bottom: 3px; }
+  .toc { page-break-after: always; }
+  .toc ol { padding-left: 22px; }
+  .toc li { margin: 5px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 14px;
+    font-size: 9.2pt;
+    page-break-inside: auto;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 6px 7px;
+    vertical-align: top;
+    text-align: left;
+  }
+  th {
+    background: var(--soft);
+    font-weight: 600;
+  }
+  tr { page-break-inside: avoid; }
+  code, .path {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 8.6pt;
+    background: var(--soft);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    font-size: 8.4pt;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  .note {
+    background: #f3f7f5;
+    border-left: 3px solid var(--accent);
+    padding: 8px 10px;
+    margin: 10px 0;
+    font-size: 9.5pt;
+  }
+  .warn {
+    background: #fff7ed;
+    border-left: 3px solid #c2410c;
+    padding: 8px 10px;
+    margin: 10px 0;
+    font-size: 9.5pt;
+  }
+  .section { page-break-before: always; }
+  .section:first-of-type { page-break-before: auto; }
+  .muted { color: var(--muted); }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .card {
+    border: 1px solid var(--line);
+    padding: 10px;
+    background: #fff;
+    page-break-inside: avoid;
+  }
+  .card h4 { margin-top: 0; }
+  .footer-note {
+    margin-top: 24px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    font-size: 8.5pt;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <div>
+    <div class="cover-eyebrow">Developer &amp; Operator Handbook</div>
+    <h1>Premium Tees</h1>
+    <p class="subtitle">
+      Complete project guidelines: architecture, features, roles, payments,
+      CMS, homepage templates, components, environment setup, and future
+      maintenance tasks.
+    </p>
+  </div>
+  <div class="cover-meta">
+    <p><strong>Stack:</strong> Next.js 15 · React 19 · Prisma · Postgres · Auth.js · Razorpay (INR) · Resend · Vercel</p>
+    <p><strong>Live:</strong> https://premium-tees.vercel.app</p>
+    <p><strong>Repo:</strong> https://github.com/AnishWebDev/premium-tees</p>
+    <p><strong>Document date:</strong> 31 July 2026 · Version aligned with commit series including homepage template redesign</p>
+  </div>
+</section>
+
+<!-- TOC -->
+<section class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li>Project overview</li>
+    <li>Tech stack &amp; scripts</li>
+    <li>Local &amp; production setup</li>
+    <li>Environment variables</li>
+    <li>Demo accounts &amp; roles</li>
+    <li>Feature inventory (storefront)</li>
+    <li>Feature inventory (admin)</li>
+    <li>Checkout, payments &amp; fulfillment</li>
+    <li>Email &amp; notifications</li>
+    <li>CMS &amp; site content</li>
+    <li>Theme system</li>
+    <li>Homepage templates</li>
+    <li>Home building blocks</li>
+    <li>Effects library</li>
+    <li>Component map (where to change what)</li>
+    <li>App routes &amp; API map</li>
+    <li>Database models</li>
+    <li>Accessibility &amp; Lighthouse guidelines</li>
+    <li>Pending / recommended tasks</li>
+    <li>How-to recipes (common edits)</li>
+    <li>Git &amp; deployment notes</li>
+  </ol>
+</section>
+
+<!-- 1 -->
+<section>
+  <h2>1. Project overview</h2>
+  <p>
+    Premium Tees is a production-oriented apparel e-commerce app focused on the
+    Indian market (INR, Razorpay). It includes a public storefront, customer
+    accounts, and a role-gated admin CMS for catalog, orders, returns, content,
+    and visual style.
+  </p>
+  <div class="grid-2">
+    <div class="card">
+      <h4>What it sells</h4>
+      <p>Premium t-shirts / apparel with variants (size, color), inventory, reviews, wishlist, and coupons.</p>
+    </div>
+    <div class="card">
+      <h4>What makes it configurable</h4>
+      <p>CMS JSON content, theme presets, and SuperAdmin-selectable homepage templates that reuse shared blocks.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="section">
+  <h2>2. Tech stack &amp; scripts</h2>
+  <table>
+    <tr><th>Layer</th><th>Technology</th></tr>
+    <tr><td>Framework</td><td>Next.js 15.5 (App Router, Turbopack in dev)</td></tr>
+    <tr><td>UI</td><td>React 19, Tailwind CSS 4, Radix UI, Lucide icons</td></tr>
+    <tr><td>Language</td><td>TypeScript 5</td></tr>
+    <tr><td>Database</td><td>PostgreSQL (Neon in production) + Prisma 6</td></tr>
+    <tr><td>Auth</td><td>Auth.js / NextAuth v5 (JWT), credentials + optional Google</td></tr>
+    <tr><td>Payments</td><td>Razorpay (UPI / cards), demo checkout fallback</td></tr>
+    <tr><td>Email</td><td>Resend (invoices, shipped, returns)</td></tr>
+    <tr><td>Media</td><td>Cloudinary (optional admin uploads) or external image URLs</td></tr>
+    <tr><td>State</td><td>Zustand (cart), TanStack Query</td></tr>
+    <tr><td>Forms</td><td>react-hook-form + Zod</td></tr>
+    <tr><td>Motion</td><td>framer-motion (effects / reveals)</td></tr>
+    <tr><td>Hosting</td><td>Vercel</td></tr>
+  </table>
+
+  <h3>npm scripts</h3>
+  <table>
+    <tr><th>Script</th><th>Purpose</th></tr>
+    <tr><td><code>npm run dev</code></td><td>Local development server</td></tr>
+    <tr><td><code>npm run build</code></td><td>prisma generate + next build</td></tr>
+    <tr><td><code>npm run db:generate</code></td><td>Generate Prisma client</td></tr>
+    <tr><td><code>npm run db:push</code></td><td>Push schema to database</td></tr>
+    <tr><td><code>npm run db:seed</code></td><td>Seed products, users, content</td></tr>
+    <tr><td><code>npm run db:studio</code></td><td>Prisma Studio</td></tr>
+  </table>
+</section>
+
+<!-- 3 -->
+<section class="section">
+  <h2>3. Local &amp; production setup</h2>
+  <h3>Local</h3>
+  <pre>cp .env.example .env
+# fill DATABASE_URL, AUTH_SECRET, and either Razorpay test keys or DEMO_CHECKOUT=true
+npm install
+npm run db:push
+npm run db:seed
+npm run dev</pre>
+
+  <h3>Production (Vercel)</h3>
+  <ol>
+    <li>Connect the GitHub repo to Vercel.</li>
+    <li>Set all required env vars (see §4). Use live Razorpay keys for real customers.</li>
+    <li>Set <code>DEMO_CHECKOUT=false</code> and <code>NEXT_PUBLIC_DEMO_CHECKOUT=false</code>.</li>
+    <li>Run schema push + seed once against production Postgres if empty.</li>
+    <li>Configure Razorpay webhook → <code>https://your-domain.com/api/webhooks/razorpay</code> (event: <code>payment.captured</code>).</li>
+    <li>Verify Resend sender domain for invoices.</li>
+  </ol>
+
+  <h3>One-time price conversion</h3>
+  <p>If seeded prices still look USD-like (~38–85), run:</p>
+  <pre>DATABASE_URL="..." npx tsx scripts/convert-prices-to-inr.ts</pre>
+</section>
+
+<!-- 4 -->
+<section class="section">
+  <h2>4. Environment variables</h2>
+  <p>Canonical template: <span class="path">.env.example</span></p>
+  <table>
+    <tr><th>Variable</th><th>Required</th><th>Notes</th></tr>
+    <tr><td><code>DATABASE_URL</code></td><td>Yes</td><td>Postgres connection string</td></tr>
+    <tr><td><code>AUTH_SECRET</code></td><td>Yes</td><td><code>openssl rand -base64 32</code></td></tr>
+    <tr><td><code>AUTH_URL</code></td><td>Recommended</td><td>App origin, no trailing slash</td></tr>
+    <tr><td><code>NEXT_PUBLIC_APP_URL</code></td><td>Recommended</td><td>Public site URL</td></tr>
+    <tr><td><code>RAZORPAY_KEY_ID</code></td><td>Live pay</td><td>Must start with <code>rzp_</code></td></tr>
+    <tr><td><code>RAZORPAY_KEY_SECRET</code></td><td>Live pay</td><td>Server secret</td></tr>
+    <tr><td><code>NEXT_PUBLIC_RAZORPAY_KEY_ID</code></td><td>Live pay</td><td>Same as key id (client)</td></tr>
+    <tr><td><code>RAZORPAY_WEBHOOK_SECRET</code></td><td>Live pay</td><td>Webhook HMAC</td></tr>
+    <tr><td><code>RESEND_API_KEY</code></td><td>Emails</td><td>Invoices / shipped / returns</td></tr>
+    <tr><td><code>EMAIL_FROM</code></td><td>Emails</td><td>Verified sender</td></tr>
+    <tr><td><code>ORDER_NOTIFY_EMAIL</code></td><td>Recommended</td><td>BCC of every invoice</td></tr>
+    <tr><td><code>DEMO_CHECKOUT</code></td><td>Dev</td><td><code>true</code> allows paid demo without Razorpay</td></tr>
+    <tr><td><code>NEXT_PUBLIC_DEMO_CHECKOUT</code></td><td>Dev</td><td>Shows demo UI banner</td></tr>
+    <tr><td><code>CLOUDINARY_*</code></td><td>Optional</td><td>Admin image uploads</td></tr>
+    <tr><td><code>NEXT_PUBLIC_APP_NAME</code></td><td>Optional</td><td>Defaults to “Premium Tees”</td></tr>
+    <tr><td><code>AUTH_GOOGLE_ID/SECRET</code></td><td>Optional</td><td>Supported in code; not listed in .env.example</td></tr>
+  </table>
+  <div class="warn">
+    <strong>Production warning:</strong> Never leave <code>DEMO_CHECKOUT=true</code> on a live store.
+    Without Razorpay and with demo off, checkout returns 503.
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="section">
+  <h2>5. Demo accounts &amp; roles</h2>
+  <p>Created by <span class="path">npm run db:seed</span>. Role enum: <code>USER</code> | <code>ADMIN</code> | <code>SUPERADMIN</code>.</p>
+  <table>
+    <tr><th>Role</th><th>Email</th><th>Password</th><th>Access</th></tr>
+    <tr>
+      <td>SuperAdmin</td>
+      <td><code>superadmin@premiumtees.com</code></td>
+      <td><code>SuperAdmin123!</code></td>
+      <td>All admin + staff roles, hard-delete products, homepage template picker, system status</td>
+    </tr>
+    <tr>
+      <td>Admin</td>
+      <td><code>admin@premiumtees.com</code></td>
+      <td><code>Admin123!</code></td>
+      <td>Catalog, orders, returns, content, theme/style (no staff / hard delete / template switch)</td>
+    </tr>
+    <tr>
+      <td>Guest (USER)</td>
+      <td><code>guest@premiumtees.com</code></td>
+      <td><code>Guest1234!</code></td>
+      <td>Shop, cart, checkout, wishlist, orders, return requests</td>
+    </tr>
+  </table>
+
+  <h3>Where roles are enforced</h3>
+  <ul>
+    <li><span class="path">src/middleware.ts</span> — gates <code>/admin/*</code>, <code>/profile/*</code>, <code>/orders/*</code></li>
+    <li><span class="path">src/lib/roles.ts</span> + <span class="path">src/lib/auth.ts</span> — <code>requireAdmin()</code>, <code>requireSuperAdmin()</code></li>
+    <li>Homepage template mutation — SuperAdmin only (API + content editor)</li>
+  </ul>
+</section>
+
+<!-- 6 -->
+<section class="section">
+  <h2>6. Feature inventory (storefront)</h2>
+  <table>
+    <tr><th>Feature</th><th>Description</th><th>Primary paths</th></tr>
+    <tr><td>Homepage templates</td><td>5 distinct layouts selectable in CMS</td><td><code>/</code>, <code>src/components/home/templates/</code></td></tr>
+    <tr><td>Shop / catalog</td><td>Filter, sort, category browse</td><td><code>/shop</code>, <code>/collections</code></td></tr>
+    <tr><td>Product detail</td><td>Gallery, variants, reviews, related, recently viewed</td><td><code>/product/[slug]</code></td></tr>
+    <tr><td>Cart</td><td>Zustand cart with inventory-aware lines</td><td><code>/cart</code>, <code>src/lib/stores/cart-store.ts</code></td></tr>
+    <tr><td>Checkout</td><td>Guest or signed-in; coupons; India shipping; Razorpay / demo</td><td><code>/checkout</code></td></tr>
+    <tr><td>Wishlist</td><td>Auth-required save for later</td><td><code>/wishlist</code></td></tr>
+    <tr><td>Account orders</td><td>History, detail, return request</td><td><code>/orders</code></td></tr>
+    <tr><td>Content pages</td><td>About, FAQ, contact, shipping, privacy, terms</td><td><code>/about</code>, <code>/faq</code>, …</td></tr>
+    <tr><td>Newsletter</td><td>Email capture → Newsletter model</td><td>Home blocks / footer</td></tr>
+    <tr><td>Theme application</td><td>CSS variables from CMS theme</td><td><code>ThemeStyle</code></td></tr>
+  </table>
+
+  <h3>Shipping (INR)</h3>
+  <p>Configured in <span class="path">src/lib/constants.ts</span> — example tiers: ₹79 / ₹149 / ₹249, free shipping threshold typically ₹1999.</p>
+</section>
+
+<!-- 7 -->
+<section class="section">
+  <h2>7. Feature inventory (admin)</h2>
+  <table>
+    <tr><th>Area</th><th>URL</th><th>Capabilities</th></tr>
+    <tr><td>Dashboard</td><td><code>/admin</code></td><td>Overview stats</td></tr>
+    <tr><td>Products</td><td><code>/admin/products</code></td><td>CRUD, featured/bestseller/new flags, images, variants</td></tr>
+    <tr><td>Categories</td><td><code>/admin/categories</code></td><td>Manage collections</td></tr>
+    <tr><td>Inventory</td><td><code>/admin/inventory</code></td><td>Stock levels / low stock</td></tr>
+    <tr><td>Orders</td><td><code>/admin/orders</code></td><td>Status, tracking, packing slip print</td></tr>
+    <tr><td>Returns</td><td><code>/admin/returns</code></td><td>Approve / reject / refund workflow</td></tr>
+    <tr><td>Customers</td><td><code>/admin/customers</code></td><td>Customer list</td></tr>
+    <tr><td>Coupons</td><td><code>/admin/coupons</code></td><td>Percent / fixed discounts</td></tr>
+    <tr><td>Reports</td><td><code>/admin/reports</code></td><td>Analytics</td></tr>
+    <tr><td>Site content</td><td><code>/admin/content</code></td><td>Hero, home, about, FAQ, IG, newsletter, template</td></tr>
+    <tr><td>Settings / style</td><td><code>/admin/settings</code></td><td>Theme editor, password, system status</td></tr>
+    <tr><td>Staff</td><td><code>/admin/staff</code></td><td>SuperAdmin role management</td></tr>
+  </table>
+</section>
+
+<!-- 8 -->
+<section class="section">
+  <h2>8. Checkout, payments &amp; fulfillment</h2>
+  <h3>Flow</h3>
+  <ol>
+    <li>Client posts cart to <code>POST /api/checkout</code>.</li>
+    <li>Server creates <code>Order</code> with status <code>PENDING</code>, currency <code>inr</code>.</li>
+    <li><strong>Demo path:</strong> if <code>DEMO_CHECKOUT=true</code> and Razorpay keys missing → invent demo payment IDs, call <code>fulfillOrder</code>, redirect to success.</li>
+    <li><strong>Live path:</strong> create Razorpay order (paise), return key + order id to Checkout.js.</li>
+    <li>Client verifies signature via <code>/api/checkout/verify</code> → <code>fulfillOrder</code>.</li>
+    <li>Webhook <code>payment.captured</code> is a backup fulfillment path.</li>
+  </ol>
+
+  <h3>Key files</h3>
+  <ul>
+    <li><span class="path">src/lib/razorpay.ts</span></li>
+    <li><span class="path">src/lib/fulfill-order.ts</span> — mark PAID, decrement inventory, coupon use, invoice email</li>
+    <li><span class="path">src/components/checkout/checkout-form.tsx</span></li>
+    <li><span class="path">src/app/api/checkout/</span>, <span class="path">src/app/api/webhooks/razorpay/</span></li>
+  </ul>
+
+  <h3>Ops after payment</h3>
+  <ul>
+    <li><strong>Packing slip:</strong> Admin → Orders → Pack / print page</li>
+    <li><strong>Shipped email:</strong> set status Shipped + carrier/tracking</li>
+    <li><strong>Returns:</strong> customer requests from order detail; admin reviews at <code>/admin/returns</code></li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section class="section">
+  <h2>9. Email &amp; notifications</h2>
+  <table>
+    <tr><th>Email</th><th>Trigger</th><th>File</th></tr>
+    <tr><td>Order invoice / confirmation</td><td>Payment fulfilled</td><td><code>src/lib/email/order-confirmation.ts</code></td></tr>
+    <tr><td>Shipped notification</td><td>Admin marks shipped</td><td><code>src/lib/email/shipped-notification.ts</code></td></tr>
+    <tr><td>Return updates</td><td>Return status changes</td><td><code>src/lib/email/return-notification.ts</code></td></tr>
+  </table>
+  <div class="note">Without Resend keys, fulfillment still succeeds; emails are skipped with a console warning.</div>
+</section>
+
+<!-- 10 -->
+<section class="section">
+  <h2>10. CMS &amp; site content</h2>
+  <p>
+    Content is stored in Prisma model <code>SiteContent</code> as JSON keyed blobs.
+    Defaults live in <span class="path">src/lib/site-content.ts</span> (<code>DEFAULT_SITE_CONTENT</code>).
+    Admin UI: <span class="path">src/components/admin/site-content-editor.tsx</span> at <code>/admin/content</code>.
+  </p>
+  <table>
+    <tr><th>Key</th><th>Fields / purpose</th></tr>
+    <tr><td><code>site</code></td><td>name, description</td></tr>
+    <tr><td><code>hero</code></td><td>brand, headline, subheadline, imageUrl, videoUrl, CTAs</td></tr>
+    <tr><td><code>home</code></td><td>template, marqueeItems, essentials, story, bestSellers, newArrivals, categories</td></tr>
+    <tr><td><code>about</code></td><td>story paragraphs, values, CTA</td></tr>
+    <tr><td><code>testimonials</code></td><td>title, subtitle, items</td></tr>
+    <tr><td><code>faq</code></td><td>title, Q&amp;A items</td></tr>
+    <tr><td><code>instagram</code></td><td>title, profileUrl, images[]</td></tr>
+    <tr><td><code>newsletter</code></td><td>title, subtitle</td></tr>
+    <tr><td><code>theme</code></td><td>full ThemeData object</td></tr>
+  </table>
+  <div class="note">
+    Mid-page story copy is always CMS-driven via <code>home.story</code>. Templates choose how to present it
+    (parallax band, sticky split, mission statement, etc.), not different copy sources.
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="section">
+  <h2>11. Theme system</h2>
+  <p>Files: <span class="path">src/lib/theme.ts</span>, <span class="path">src/components/theme/theme-style.tsx</span>, <span class="path">src/components/admin/theme-editor.tsx</span>, <span class="path">src/lib/fonts.ts</span>.</p>
+  <p>Theme writes CSS variables (<code>--background</code>, <code>--foreground</code>, button/link vars, font families).</p>
+  <h3>Presets</h3>
+  <p><code>studio</code>, <code>editorial</code>, <code>slate</code>, <code>olive</code>, <code>noir</code>, <code>ink-gold</code></p>
+  <h3>Editable fields</h3>
+  <ul>
+    <li>Colors: background, foreground, muted, border, accent, ring</li>
+    <li>Fonts: sans + display (from FONT_CATALOG)</li>
+    <li>Buttons: radius (pill/rounded/square), style (solid/outline/soft), weight</li>
+    <li>Links: underline / accent / subtle / bold</li>
+  </ul>
+  <div class="note">Theme affects the whole storefront chrome. Homepage templates change layout/density, not necessarily the color preset (unless you also change Theme).</div>
+</section>
+
+<!-- 12 -->
+<section class="section">
+  <h2>12. Homepage templates</h2>
+  <p>
+    Registry: <span class="path">src/lib/home-templates.ts</span><br />
+    Router: <span class="path">src/components/home/templates/index.tsx</span><br />
+    Page data loader: <span class="path">src/app/(store)/page.tsx</span>
+  </p>
+  <table>
+    <tr><th>ID</th><th>Name</th><th>Density</th><th>Inspired by</th><th>Structure summary</th></tr>
+    <tr>
+      <td><code>parallax</code></td><td>Parallax</td><td>sparse</td><td>Apple / campaigns</td>
+      <td>Cinematic hero → marquee → chapter bands → look tiles. No newsletter.</td>
+    </tr>
+    <tr>
+      <td><code>simple</code></td><td>Simple</td><td>balanced</td><td>Everlane</td>
+      <td>Static split hero → value pillars → 4-up grid → text categories → mission → testimonials → light signup.</td>
+    </tr>
+    <tr>
+      <td><code>editorial</code></td><td>Editorial</td><td>sparse</td><td>SSENSE</td>
+      <td>Type masthead → feature drop → quote → product rows → sticky story → FAQ → band newsletter.</td>
+    </tr>
+    <tr>
+      <td><code>lookbook</code></td><td>Lookbook</td><td>balanced</td><td>Aritzia</td>
+      <td>Carousel → mosaic → stacked panels → oversized looks → Instagram. Image-first, no newsletter.</td>
+    </tr>
+    <tr>
+      <td><code>commerce</code></td><td>Commerce</td><td>dense</td><td>Nike</td>
+      <td>Media hero → promo → pills → bestsellers shelf → featured grid → new arrivals → categories → IG → signup.</td>
+    </tr>
+  </table>
+
+  <h3>How to switch template</h3>
+  <ol>
+    <li>Sign in as SuperAdmin.</li>
+    <li>Go to <strong>Admin → Site content → Home</strong>.</li>
+    <li>Pick a template card (shows density + inspiration).</li>
+    <li>Save content.</li>
+  </ol>
+
+  <h3>How to add a new template</h3>
+  <ol>
+    <li>Add id to <code>HOME_TEMPLATE_IDS</code> and metadata in <span class="path">src/lib/home-templates.ts</span>.</li>
+    <li>Create <span class="path">src/components/home/templates/your-home.tsx</span> accepting <code>HomeTemplateProps</code>.</li>
+    <li>Register it in <span class="path">src/components/home/templates/index.tsx</span>.</li>
+    <li>Reuse blocks from <span class="path">src/components/home/blocks/</span> and effects from <span class="path">src/components/effects/</span>.</li>
+    <li>Keep a11y: headings, focus rings, contrast overlays, reduced motion.</li>
+  </ol>
+</section>
+
+<!-- 13 -->
+<section class="section">
+  <h2>13. Home building blocks</h2>
+  <p>Directory: <span class="path">src/components/home/blocks/</span></p>
+  <table>
+    <tr><th>Component</th><th>File</th><th>Use when</th></tr>
+    <tr><td>StaticHero</td><td>static-hero.tsx</td><td>Calm split hero, no parallax/video</td></tr>
+    <tr><td>MediaHero</td><td>media-hero.tsx</td><td>Shorter commerce media hero ± video</td></tr>
+    <tr><td>EditorialMasthead</td><td>editorial-masthead.tsx</td><td>Type-only hero (no image)</td></tr>
+    <tr><td>ChapterBand</td><td>chapter-band.tsx</td><td>Full-viewport cinematic chapter</td></tr>
+    <tr><td>ValuePillars</td><td>value-pillars.tsx</td><td>3 text value columns</td></tr>
+    <tr><td>MissionStatement</td><td>mission-statement.tsx</td><td>Plain-text mission (no image)</td></tr>
+    <tr><td>FeatureDrop</td><td>feature-drop.tsx</td><td>One oversized product feature</td></tr>
+    <tr><td>ProductShelf</td><td>product-shelf.tsx</td><td>Horizontal product shelf</td></tr>
+    <tr><td>ProductRowList</td><td>product-row-list.tsx</td><td>Magazine product index rows</td></tr>
+    <tr><td>CategoryPills</td><td>category-pills.tsx</td><td>Quick category nav</td></tr>
+    <tr><td>PromoBanner</td><td>promo-banner.tsx</td><td>High-contrast promo strip</td></tr>
+    <tr><td>LookTile</td><td>look-tile.tsx</td><td>Image-first look (minimal price chrome)</td></tr>
+    <tr><td>ImageMosaic</td><td>image-mosaic.tsx</td><td>Asymmetric collage</td></tr>
+    <tr><td>StackedPanels</td><td>stacked-panels.tsx</td><td>Full-bleed stacked collection panels</td></tr>
+    <tr><td>InlineNewsletter</td><td>inline-newsletter.tsx</td><td>Compact light/band signup</td></tr>
+  </table>
+
+  <h3>Shared home components (still used)</h3>
+  <ul>
+    <li><span class="path">hero.tsx</span> — cinematic parallax/video hero</li>
+    <li><span class="path">home-story.tsx</span> — parallax or sticky-split story</li>
+    <li><span class="path">featured-products.tsx</span>, <span class="path">categories-section.tsx</span></li>
+    <li><span class="path">testimonials.tsx</span>, <span class="path">instagram-gallery.tsx</span>, <span class="path">newsletter-section.tsx</span></li>
+  </ul>
+</section>
+
+<!-- 14 -->
+<section class="section">
+  <h2>14. Effects library</h2>
+  <p>Barrel: <span class="path">src/components/effects/index.ts</span></p>
+  <table>
+    <tr><th>Effect</th><th>File</th><th>Notes</th></tr>
+    <tr><td>Carousel</td><td>carousel.tsx</td><td>ARIA carousel; pauses on hover/focus; respects reduced motion</td></tr>
+    <tr><td>ParallaxImage / ParallaxSection</td><td>parallax.tsx</td><td>Scroll-linked background motion</td></tr>
+    <tr><td>VideoBackground</td><td>video-background.tsx</td><td>Muted loop; poster fallback when reduced motion</td></tr>
+    <tr><td>Reveal</td><td>reveal.tsx</td><td>In-view fade/slide</td></tr>
+    <tr><td>Marquee</td><td>marquee.tsx</td><td>Ticker; SR-friendly; motion-safe animation</td></tr>
+    <tr><td>StickySplit</td><td>sticky-split.tsx</td><td>Sticky image + scrolling copy</td></tr>
+    <tr><td>HorizontalScroll</td><td>horizontal-scroll.tsx</td><td>Snap scroller with keyboard focus region</td></tr>
+  </table>
+</section>
+
+<!-- 15 -->
+<section class="section">
+  <h2>15. Component map — where to change what</h2>
+  <table>
+    <tr><th>If you want to…</th><th>Change / add here</th></tr>
+    <tr><td>Edit homepage layout structure</td><td><code>src/components/home/templates/*-home.tsx</code></td></tr>
+    <tr><td>Add a reusable home section</td><td><code>src/components/home/blocks/</code></td></tr>
+    <tr><td>Change hero copy / image / video</td><td>Admin → Content → Hero (or <code>site-content.ts</code> defaults)</td></tr>
+    <tr><td>Change site colors / fonts / buttons</td><td>Admin → Settings theme editor (<code>theme.ts</code>)</td></tr>
+    <tr><td>Change product card look</td><td><code>src/components/product/product-card.tsx</code></td></tr>
+    <tr><td>Change header / nav / footer</td><td><code>src/components/layout/header.tsx</code>, <code>footer.tsx</code></td></tr>
+    <tr><td>Change checkout UX</td><td><code>src/components/checkout/checkout-form.tsx</code></td></tr>
+    <tr><td>Change shipping rates</td><td><code>src/lib/constants.ts</code></td></tr>
+    <tr><td>Change roles / access</td><td><code>src/lib/roles.ts</code>, middleware, admin staff UI</td></tr>
+    <tr><td>Change fulfillment / inventory side-effects</td><td><code>src/lib/fulfill-order.ts</code></td></tr>
+    <tr><td>Change email HTML</td><td><code>src/lib/email/*</code></td></tr>
+    <tr><td>Add admin page</td><td><code>src/app/(admin)/admin/…</code> + sidebar in <code>admin-sidebar.tsx</code></td></tr>
+    <tr><td>Add API endpoint</td><td><code>src/app/api/…</code></td></tr>
+    <tr><td>Change DB schema</td><td><code>prisma/schema.prisma</code> then <code>db:push</code></td></tr>
+    <tr><td>Seed demo data</td><td><code>prisma/seed.ts</code>, <code>scripts/*</code></td></tr>
+  </table>
+
+  <h3>Major folders</h3>
+  <pre>src/app/(store)/          Public storefront pages
+src/app/(account)/        Profile &amp; orders
+src/app/(auth)/           Login / register
+src/app/(admin)/admin/    Admin UI
+src/app/api/              Route handlers
+src/components/           UI by domain (home, product, admin, effects…)
+src/lib/                  Business logic, CMS, theme, auth, email
+prisma/                   Schema + seed
+scripts/                  One-off maintenance scripts
+docs/                     This handbook</pre>
+</section>
+
+<!-- 16 -->
+<section class="section">
+  <h2>16. App routes &amp; API map</h2>
+  <h3>Storefront routes</h3>
+  <p><code>/</code>, <code>/shop</code>, <code>/product/[slug]</code>, <code>/collections</code>, <code>/cart</code>, <code>/checkout</code>, <code>/checkout/success</code>, <code>/wishlist</code>, <code>/about</code>, <code>/contact</code>, <code>/faq</code>, <code>/shipping</code>, <code>/privacy</code>, <code>/terms</code></p>
+  <h3>Account</h3>
+  <p><code>/profile</code>, <code>/orders</code>, <code>/orders/[id]</code></p>
+  <h3>Auth</h3>
+  <p><code>/login</code>, <code>/register</code></p>
+  <h3>Admin</h3>
+  <p><code>/admin</code>, products, categories, inventory, orders (+ print), returns, customers, staff, coupons, reports, content, settings</p>
+  <h3>Key APIs</h3>
+  <ul>
+    <li>Auth: <code>/api/auth/[...nextauth]</code>, <code>/api/auth/register</code></li>
+    <li>Catalog: products, categories, reviews, coupons, wishlist, upload, newsletter</li>
+    <li>Checkout: <code>/api/checkout</code>, <code>/api/checkout/verify</code>, <code>/api/webhooks/razorpay</code></li>
+    <li>Orders / returns: <code>/api/orders</code>, <code>/api/orders/[id]/return</code></li>
+    <li>Admin: products, categories, orders, returns, customers, staff, coupons, content, analytics, password</li>
+  </ul>
+</section>
+
+<!-- 17 -->
+<section class="section">
+  <h2>17. Database models</h2>
+  <p>Schema: <span class="path">prisma/schema.prisma</span></p>
+  <table>
+    <tr><th>Model</th><th>Purpose</th></tr>
+    <tr><td>User / Account / Session / VerificationToken</td><td>Auth.js + roles</td></tr>
+    <tr><td>Category, Product, ProductImage, Variant, Inventory</td><td>Catalog</td></tr>
+    <tr><td>CartItem</td><td>Persisted / session cart lines</td></tr>
+    <tr><td>Order, OrderItem</td><td>Checkout + fulfillment (Razorpay ids; legacy Stripe fields unused)</td></tr>
+    <tr><td>ReturnRequest</td><td>Customer returns workflow</td></tr>
+    <tr><td>Review, WishlistItem, Address</td><td>Engagement / account</td></tr>
+    <tr><td>Coupon, Newsletter</td><td>Growth / merchandising</td></tr>
+    <tr><td>SiteContent</td><td>CMS JSON by key</td></tr>
+  </table>
+  <p>Order statuses include PENDING → PAID → … → SHIPPED / REFUNDED (see enum in schema).</p>
+</section>
+
+<!-- 18 -->
+<section class="section">
+  <h2>18. Accessibility &amp; Lighthouse guidelines</h2>
+  <p>Applied especially to homepage templates / effects. Follow these when adding UI:</p>
+  <ul>
+    <li>One clear <code>h1</code> per page; nest <code>h2</code>/<code>h3</code> logically.</li>
+    <li>Interactive elements need visible focus rings (<code>focus-visible:ring-…</code>).</li>
+    <li>Text on imagery needs dark overlays; prefer ~white/90 on dark scrims.</li>
+    <li>Decorative images: <code>alt=""</code> when adjacent text already names the content.</li>
+    <li>Respect <code>prefers-reduced-motion</code> (carousel autoplay off, video → poster, marquee animation off).</li>
+    <li>Limit <code>priority</code> images (usually hero + 1 product) to protect LCP.</li>
+    <li>Regions: use <code>aria-label</code> / <code>aria-labelledby</code> on carousels, shelves, nav groups.</li>
+    <li>Don’t hide essential CTAs behind hover-only styles (touch + SR users).</li>
+  </ul>
+</section>
+
+<!-- 19 -->
+<section class="section">
+  <h2>19. Pending / recommended tasks</h2>
+  <p>Operational and polish items that are not fully closed:</p>
+  <table>
+    <tr><th>Priority</th><th>Task</th><th>Notes</th></tr>
+    <tr><td>P0</td><td>Configure live Razorpay keys + webhook</td><td>Disable demo checkout before real traffic</td></tr>
+    <tr><td>P0</td><td>Configure Resend + verified <code>EMAIL_FROM</code></td><td>Invoices + BCC to ops inbox</td></tr>
+    <tr><td>P1</td><td>Confirm production <code>DATABASE_URL</code> backups</td><td>Neon / provider snapshots</td></tr>
+    <tr><td>P1</td><td>Cloudinary (optional) for admin uploads</td><td>Otherwise use external image URLs</td></tr>
+    <tr><td>P2</td><td>Document / wire Google OAuth env vars</td><td>Supported in auth code</td></tr>
+    <tr><td>P2</td><td>Remove unused Stripe fields on Order</td><td>Schema cleanup</td></tr>
+    <tr><td>P2</td><td>Align Address default country to IN</td><td>Schema still defaults US</td></tr>
+    <tr><td>P2</td><td>Content polish (INR language in testimonials)</td><td>Seed still has “dollar” phrasing</td></tr>
+    <tr><td>P3</td><td>Add automated tests for checkout / roles</td><td>Currently ops-validated</td></tr>
+    <tr><td>P3</td><td>Per-template CMS fields (optional)</td><td>Today templates share <code>home.*</code> copy</td></tr>
+    <tr><td>P3</td><td>Performance pass on commerce template</td><td>Most product-dense; watch image weight</td></tr>
+    <tr><td>P3</td><td>Custom domain + AUTH_URL alignment</td><td>Must match production URL</td></tr>
+  </table>
+</section>
+
+<!-- 20 -->
+<section class="section">
+  <h2>20. How-to recipes (common edits)</h2>
+
+  <h3>A. Change homepage hero image / headline</h3>
+  <ol>
+    <li>Admin → Site content → Hero</li>
+    <li>Update image URL (and optional video URL)</li>
+    <li>Edit headline / CTAs → Save</li>
+  </ol>
+
+  <h3>B. Change which products appear on home</h3>
+  <ol>
+    <li>Admin → Products → edit flags: Featured / Best seller / New arrival</li>
+    <li>Homepage queries these flags (<code>getFeaturedProducts</code>, <code>getBestSellers</code>, <code>getNewArrivals</code>)</li>
+  </ol>
+
+  <h3>C. Add a new home block and use it in Commerce</h3>
+  <ol>
+    <li>Create <code>src/components/home/blocks/my-block.tsx</code></li>
+    <li>Import into <code>commerce-home.tsx</code> and place in JSX</li>
+    <li>If copy is needed, extend <code>HomeData</code> in <code>site-content.ts</code> + admin editor fields</li>
+  </ol>
+
+  <h3>D. Add a theme preset</h3>
+  <ol>
+    <li>Append to <code>THEME_PRESETS</code> in <span class="path">src/lib/theme.ts</span></li>
+    <li>It appears automatically in the theme editor</li>
+  </ol>
+
+  <h3>E. Add an admin-only page</h3>
+  <ol>
+    <li>Add route under <code>src/app/(admin)/admin/…</code></li>
+    <li>Link it in <span class="path">src/components/admin/admin-sidebar.tsx</span></li>
+    <li>Protect mutations with <code>requireAdmin()</code> / <code>requireSuperAdmin()</code></li>
+  </ol>
+
+  <h3>F. Go live checklist</h3>
+  <ol>
+    <li><code>DEMO_CHECKOUT=false</code>, public demo flag false</li>
+    <li>Live Razorpay keys + webhook secret</li>
+    <li>Resend configured; send a test order</li>
+    <li>AUTH_URL / NEXT_PUBLIC_APP_URL match domain</li>
+    <li>Change seeded admin passwords</li>
+    <li>Smoke-test: shop → checkout → verify → packing slip → ship → return</li>
+  </ol>
+</section>
+
+<!-- 21 -->
+<section class="section">
+  <h2>21. Git &amp; deployment notes</h2>
+  <ul>
+    <li>Primary branch: <code>main</code> (auto-deploy to Vercel).</li>
+    <li>Prefer few, purposeful commits for Hobby / cleaner history.</li>
+    <li>Git author for Vercel Hobby deployments has used: <code>Anish &lt;r.s.anish88@gmail.com&gt;</code>.</li>
+    <li>Never commit secrets (<code>.env</code>, <code>.env.vercel.local</code>).</li>
+    <li>After schema changes, run <code>db:push</code> (or migrations) against the same DB Vercel uses.</li>
+  </ul>
+
+  <h3>Useful file index</h3>
+  <pre>README.md
+.env.example
+prisma/schema.prisma
+src/middleware.ts
+src/lib/auth.ts
+src/lib/roles.ts
+src/lib/razorpay.ts
+src/lib/fulfill-order.ts
+src/lib/site-content.ts
+src/lib/theme.ts
+src/lib/home-templates.ts
+src/components/effects/*
+src/components/home/blocks/*
+src/components/home/templates/*
+src/app/(store|admin|account|auth)/**
+src/app/api/**
+docs/premium-tees-project-handbook.html
+docs/Premium-Tees-Project-Handbook.pdf</pre>
+
+  <div class="footer-note">
+    End of handbook — regenerate the PDF from the HTML source if this document is updated:
+    open <code>docs/premium-tees-project-handbook.html</code> and print to PDF, or re-run the Chrome headless print command in the repo docs folder.
+  </div>
+</section>
+
+</body>
+</html>
