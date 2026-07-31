@@ -137,15 +137,15 @@ export function ProfileForm({ user, addresses, role }: ProfileFormProps) {
   return (
     <div className="grid gap-12 lg:grid-cols-2">
       <section>
-        <h2 className="font-display text-xl font-semibold text-neutral-950">
+        <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
           Profile details
         </h2>
-        <p className="mt-1 text-sm text-neutral-500">{user.email}</p>
+        <p className="mt-1 text-sm text-[var(--muted-foreground)]">{user.email}</p>
 
         {isStaff(role) && (
-          <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-            <p className="text-sm font-medium text-neutral-950">Staff access</p>
-            <p className="mt-1 text-xs text-neutral-500">
+          <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--muted)] p-4">
+            <p className="text-sm font-medium text-[var(--foreground)]">Staff access</p>
+            <p className="mt-1 text-xs text-[var(--muted-foreground)]">
               Open the admin panel to manage products, orders, and site content.
             </p>
             <Button asChild className="mt-3" size="sm">
@@ -193,7 +193,7 @@ export function ProfileForm({ user, addresses, role }: ProfileFormProps) {
 
       <section>
         <div className="flex items-center justify-between gap-4">
-          <h2 className="font-display text-xl font-semibold text-neutral-950">
+          <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
             Saved addresses
           </h2>
 

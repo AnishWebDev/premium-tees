@@ -12,7 +12,7 @@ export function FooterCredit({ credit }: FooterCreditProps) {
   const nameEl = credit.nameHref ? (
     <Link
       href={credit.nameHref}
-      className="underline underline-offset-4 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      className="underline underline-offset-4 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
       target={credit.nameHref.startsWith("http") ? "_blank" : undefined}
       rel={
         credit.nameHref.startsWith("http") ? "noopener noreferrer" : undefined

@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, Truck } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ORDER_STATUS_STYLES } from "@/lib/order-status-styles";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -12,16 +13,6 @@ import { ReturnRequestForm } from "@/components/account/return-request-form";
 
 type OrderDetailPageProps = {
   params: Promise<{ id: string }>;
-};
-
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-800",
-  PAID: "bg-blue-50 text-blue-800",
-  PROCESSING: "bg-indigo-50 text-indigo-800",
-  SHIPPED: "bg-purple-50 text-purple-800",
-  DELIVERED: "bg-green-50 text-green-800",
-  CANCELLED: "bg-neutral-100 text-neutral-600",
-  REFUNDED: "bg-red-50 text-red-700",
 };
 
 const STATUS_STEPS = ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"] as const;
@@ -69,7 +60,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     <div>
       <Link
         href="/orders"
-        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-950"
+        className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
       >
         <ChevronLeft className="h-4 w-4" />
         Back to orders
@@ -77,10 +68,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
       <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-semibold text-neutral-950">
+          <h2 className="font-display text-2xl font-semibold text-[var(--foreground)]">
             Order {order.orderNumber}
           </h2>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             Placed on {formatDate(order.createdAt)}
           </p>
         </div>
@@ -88,7 +79,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           variant="secondary"
           className={cn(
             "text-xs uppercase tracking-wider",
-            STATUS_STYLES[order.status]
+            ORDER_STATUS_STYLES[order.status]
           )}
         >
           {order.status.toLowerCase()}
@@ -98,20 +89,22 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
       {(order.status === "SHIPPED" ||
         order.status === "DELIVERED" ||
         order.trackingNumber) && (
-        <div className="mt-8 rounded-2xl border border-neutral-200 p-5 sm:p-6">
+        <div className="mt-8 rounded-2xl border border-[var(--border)] p-5 sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100">
-              <Truck className="h-4 w-4 text-neutral-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--muted)]">
+              <Truck className="h-4 w-4 text-[var(--muted-foreground)]" />
             </div>
             <div>
-              <p className="text-sm font-medium text-neutral-950">Tracking</p>
+              <p className="text-sm font-medium text-[var(--foreground)]">
+                Tracking
+              </p>
               {order.trackingNumber ? (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-[var(--muted-foreground)]">
                   {order.carrier && `${order.carrier} · `}
                   {order.trackingNumber}
                 </p>
               ) : (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-[var(--muted-foreground)]">
                   Tracking info will appear once your order ships.
                 </p>
               )}
@@ -120,8 +113,8 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         </div>
       )}
 
-      <div className="mt-8 rounded-2xl border border-neutral-200 p-5 sm:p-6">
-        <p className="text-xs uppercase tracking-wider text-neutral-400">
+      <div className="mt-8 rounded-2xl border border-[var(--border)] p-5 sm:p-6">
+        <p className="text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
           Order progress
         </p>
         <div className="mt-4 flex justify-between gap-2">
@@ -134,8 +127,8 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium",
                     completed
-                      ? "bg-neutral-950 text-white"
-                      : "bg-neutral-100 text-neutral-400"
+                      ? "bg-[var(--foreground)] text-[var(--background)]"
+                      : "bg-[var(--muted)] text-[var(--muted-foreground)]"
                   )}
                 >
                   {index + 1}
@@ -143,7 +136,9 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 <span
                   className={cn(
                     "text-center text-[10px] uppercase tracking-wider sm:text-xs",
-                    active || completed ? "text-neutral-950" : "text-neutral-400"
+                    active || completed
+                      ? "text-[var(--foreground)]"
+                      : "text-[var(--muted-foreground)]"
                   )}
                 >
                   {step.toLowerCase()}
@@ -156,11 +151,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <h3 className="text-sm font-medium text-neutral-950">Items</h3>
-          <ul className="mt-4 divide-y divide-neutral-200 rounded-2xl border border-neutral-200">
+          <h3 className="text-sm font-medium text-[var(--foreground)]">Items</h3>
+          <ul className="mt-4 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)]">
             {order.items.map((item) => (
               <li key={item.id} className="flex gap-4 p-4 sm:p-5">
-                <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
+                <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
                   {item.image && (
                     <Image
                       src={item.image}
@@ -173,12 +168,14 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 </div>
                 <div className="flex flex-1 items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-medium text-neutral-950">{item.name}</p>
-                    <p className="mt-1 text-xs text-neutral-500">
+                    <p className="text-sm font-medium text-[var(--foreground)]">
+                      {item.name}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
                       {item.color} · {item.size} · Qty {item.quantity}
                     </p>
                   </div>
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium text-[var(--foreground)]">
                     {formatPrice(Number(item.price) * item.quantity)}
                   </p>
                 </div>
@@ -188,9 +185,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-neutral-200 p-5">
-            <h3 className="text-sm font-medium text-neutral-950">Shipping address</h3>
-            <address className="mt-3 not-italic text-sm leading-relaxed text-neutral-500">
+          <div className="rounded-2xl border border-[var(--border)] p-5">
+            <h3 className="text-sm font-medium text-[var(--foreground)]">
+              Shipping address
+            </h3>
+            <address className="mt-3 not-italic text-sm leading-relaxed text-[var(--muted-foreground)]">
               {order.shippingName}
               <br />
               {order.shippingLine1}
@@ -207,25 +206,27 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             </address>
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 p-5">
-            <h3 className="text-sm font-medium text-neutral-950">Summary</h3>
-            <dl className="mt-4 space-y-2 text-sm">
+          <div className="rounded-2xl border border-[var(--border)] p-5">
+            <h3 className="text-sm font-medium text-[var(--foreground)]">
+              Summary
+            </h3>
+            <dl className="mt-4 space-y-2 text-sm text-[var(--foreground)]">
               <div className="flex justify-between">
-                <dt className="text-neutral-500">Subtotal</dt>
+                <dt className="text-[var(--muted-foreground)]">Subtotal</dt>
                 <dd>{formatPrice(Number(order.subtotal))}</dd>
               </div>
               {Number(order.discount) > 0 && (
-                <div className="flex justify-between text-green-700">
+                <div className="flex justify-between text-emerald-700 dark:text-emerald-400">
                   <dt>Discount</dt>
                   <dd>−{formatPrice(Number(order.discount))}</dd>
                 </div>
               )}
               <div className="flex justify-between">
-                <dt className="text-neutral-500">Shipping</dt>
+                <dt className="text-[var(--muted-foreground)]">Shipping</dt>
                 <dd>{formatPrice(Number(order.shippingCost))}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-neutral-500">Tax</dt>
+                <dt className="text-[var(--muted-foreground)]">Tax</dt>
                 <dd>{formatPrice(Number(order.tax))}</dd>
               </div>
               <Separator className="my-2" />

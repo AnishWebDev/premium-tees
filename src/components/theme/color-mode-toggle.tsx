@@ -42,7 +42,7 @@ export function ColorModeToggle({
         type="button"
         onClick={toggle}
         className={cn(
-          "inline-flex items-center gap-2 text-xs transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
+          "inline-flex items-center gap-2 text-xs text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
           className
         )}
         aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

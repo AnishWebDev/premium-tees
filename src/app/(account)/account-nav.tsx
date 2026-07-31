@@ -19,7 +19,7 @@ export function AccountNav() {
 
   return (
     <nav
-      className="mb-10 flex gap-1 overflow-x-auto border-b border-neutral-200"
+      className="mb-10 flex gap-1 overflow-x-auto border-b border-[var(--border)]"
       aria-label="Account"
     >
       {NAV_ITEMS.map((item) => {
@@ -31,9 +31,9 @@ export function AccountNav() {
             className={cn(
               "relative shrink-0 px-4 py-3 text-sm font-medium transition-colors",
               active
-                ? "text-neutral-950 after:scale-x-100"
-                : "text-neutral-500 hover:text-neutral-950",
-              "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:bg-neutral-950 after:transition-transform",
+                ? "text-[var(--foreground)] after:scale-x-100"
+                : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
+              "after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:bg-[var(--foreground)] after:transition-transform",
               !active && "after:scale-x-0 hover:after:scale-x-100"
             )}
             aria-current={active ? "page" : undefined}

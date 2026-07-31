@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Package } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ORDER_STATUS_STYLES } from "@/lib/order-status-styles";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -11,16 +12,6 @@ import { Badge } from "@/components/ui/badge";
 export const metadata: Metadata = {
   title: "Orders",
   robots: { index: false, follow: false },
-};
-
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-800",
-  PAID: "bg-blue-50 text-blue-800",
-  PROCESSING: "bg-indigo-50 text-indigo-800",
-  SHIPPED: "bg-purple-50 text-purple-800",
-  DELIVERED: "bg-green-50 text-green-800",
-  CANCELLED: "bg-neutral-100 text-neutral-600",
-  REFUNDED: "bg-red-50 text-red-700",
 };
 
 export default async function OrdersPage() {
@@ -47,41 +38,41 @@ export default async function OrdersPage() {
 
   return (
     <div>
-      <h2 className="font-display text-xl font-semibold text-neutral-950">
+      <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
         Order history
       </h2>
-      <p className="mt-1 text-sm text-neutral-500">
+      <p className="mt-1 text-sm text-[var(--muted-foreground)]">
         {orders.length} {orders.length === 1 ? "order" : "orders"}
       </p>
 
-      <ul className="mt-8 divide-y divide-neutral-200 rounded-2xl border border-neutral-200">
+      <ul className="mt-8 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)]">
         {orders.map((order) => (
           <li key={order.id}>
             <Link
               href={`/orders/${order.id}`}
-              className="flex flex-col gap-4 p-5 transition-colors hover:bg-neutral-50 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+              className="flex flex-col gap-4 p-5 transition-colors hover:bg-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:p-6"
             >
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <p className="text-sm font-medium text-neutral-950">
+                  <p className="text-sm font-medium text-[var(--foreground)]">
                     {order.orderNumber}
                   </p>
                   <Badge
                     variant="secondary"
                     className={cn(
                       "text-[10px] uppercase tracking-wider",
-                      STATUS_STYLES[order.status]
+                      ORDER_STATUS_STYLES[order.status]
                     )}
                   >
                     {order.status.toLowerCase()}
                   </Badge>
                 </div>
-                <p className="mt-1 text-sm text-neutral-500">
+                <p className="mt-1 text-sm text-[var(--muted-foreground)]">
                   {formatDate(order.createdAt)} · {order.items.length}{" "}
                   {order.items.length === 1 ? "item" : "items"}
                 </p>
               </div>
-              <p className="text-sm font-semibold text-neutral-950">
+              <p className="text-sm font-semibold text-[var(--foreground)]">
                 {formatPrice(Number(order.total))}
               </p>
             </Link>
