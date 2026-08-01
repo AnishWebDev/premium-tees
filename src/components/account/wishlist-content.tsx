@@ -9,9 +9,12 @@ import type { ProductCardData } from "@/types";
 import { ProductCard } from "@/components/product/product-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 
 export function WishlistContent() {
   const { data: session, status } = useSession();
+  const wishlistLoaded = useWishlistStore((s) => s.loaded);
+  const wishlistLoading = useWishlistStore((s) => s.loading);
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +22,7 @@ export function WishlistContent() {
     if (status === "loading") return;
 
     if (!session?.user) {
+      setProducts([]);
       setLoading(false);
       return;
     }
@@ -62,7 +66,11 @@ export function WishlistContent() {
       .finally(() => setLoading(false));
   }, [session, status]);
 
-  if (status === "loading" || loading) {
+  const handleRemoved = (productId: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+  };
+
+  if (status === "loading" || loading || (session?.user && !wishlistLoaded && wishlistLoading)) {
     return (
       <div className="flex items-center justify-center py-24">
         <Loader2 className="h-6 w-6 animate-spin text-[var(--muted-foreground)]" />
@@ -95,13 +103,13 @@ export function WishlistContent() {
   }
 
   return (
-    <>
-      <div className="mb-10 flex items-end justify-between gap-4">
+    <div>
+      <div className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+          <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
             Wishlist
-          </h1>
-          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+          </h2>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             {products.length} saved {products.length === 1 ? "item" : "items"}
           </p>
         </div>
@@ -112,9 +120,14 @@ export function WishlistContent() {
 
       <div className="product-grid">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            wishlistMode="remove"
+            onWishlistRemoved={handleRemoved}
+          />
         ))}
       </div>
-    </>
+    </div>
   );
 }

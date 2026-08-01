@@ -3,21 +3,32 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart } from "lucide-react";
+import { Heart, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import type { ProductCardData } from "@/types";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, cn } from "@/lib/utils";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { StarRating } from "@/components/shared/star-rating";
 import { Button } from "@/components/ui/button";
 
 type ProductCardProps = {
   product: ProductCardData;
   priority?: boolean;
+  /** On wishlist page: show remove control and drop item from list immediately */
+  wishlistMode?: "default" | "remove";
+  onWishlistRemoved?: (productId: string) => void;
 };
 
-export function ProductCard({ product, priority = false }: ProductCardProps) {
+export function ProductCard({
+  product,
+  priority = false,
+  wishlistMode = "default",
+  onWishlistRemoved,
+}: ProductCardProps) {
   const { data: session } = useSession();
+  const isSaved = useWishlistStore((s) => s.productIds.includes(product.id));
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
   const [hovered, setHovered] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
@@ -37,22 +48,21 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
     setWishlistLoading(true);
     try {
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Could not add to wishlist");
+      const action = await toggleWishlist(product.id);
+      if (action === "added") {
+        toast.success("Added to wishlist");
+      } else {
+        toast.success("Removed from wishlist");
+        onWishlistRemoved?.(product.id);
       }
-      toast.success("Added to wishlist");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setWishlistLoading(false);
     }
   };
+
+  const showWishlistAlways = wishlistMode === "remove" || isSaved;
 
   return (
     <div className="group transition-transform duration-300 hover:scale-[1.015]">
@@ -84,11 +94,24 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             variant="secondary"
             size="icon"
             disabled={wishlistLoading}
-            aria-label="Add to wishlist"
-            className="absolute right-3 top-3 h-9 w-9 rounded-full bg-white/90 text-neutral-950 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:opacity-100"
+            aria-label={
+              wishlistMode === "remove" || isSaved
+                ? "Remove from wishlist"
+                : "Add to wishlist"
+            }
+            className={cn(
+              "absolute right-3 top-3 h-9 w-9 rounded-full bg-white/90 text-neutral-950 shadow-sm backdrop-blur-sm transition-opacity",
+              showWishlistAlways ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}
             onClick={handleWishlist}
           >
-            <Heart className="h-4 w-4" />
+            {wishlistMode === "remove" ? (
+              <Trash2 className="h-4 w-4" />
+            ) : (
+              <Heart
+                className={cn("h-4 w-4", isSaved && "fill-red-500 text-red-500")}
+              />
+            )}
           </Button>
 
           {product.newArrival && (

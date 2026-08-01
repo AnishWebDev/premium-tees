@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { CartSessionSync } from "@/components/providers/cart-session-sync";
+import { WishlistSessionSync } from "@/components/providers/wishlist-session-sync";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -31,6 +32,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       >
         <QueryClientProvider client={queryClient}>
           <CartSessionSync />
+          <WishlistSessionSync />
           {children}
           <Toaster
             position="bottom-right"

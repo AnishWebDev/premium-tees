@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ShoppingBag, Heart, User, Search } from "lucide-react";
 import { NAV_LINKS, SITE_NAME } from "@/lib/constants";
 import { resetCartForUser, useCartStore } from "@/lib/stores/cart-store";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { cn } from "@/lib/utils";
 import { ColorModeToggle } from "@/components/theme/color-mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function Header() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const itemCount = useCartStore((s) => s.getItemCount());
+  const wishlistCount = useWishlistStore((s) => s.productIds.length);
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -94,7 +96,12 @@ export function Header() {
           </Button>
           <Button variant="ghost" size="icon" asChild aria-label="Wishlist">
             <Link href="/wishlist">
-              <Heart className="h-5 w-5" />
+              <Heart
+                className={cn(
+                  "h-5 w-5",
+                  wishlistCount > 0 && "fill-red-500 text-red-500"
+                )}
+              />
             </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild aria-label="Cart" className="relative">

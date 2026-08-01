@@ -6,6 +6,7 @@ import { Minus, Plus, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { SIZES } from "@/lib/constants";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { formatPrice, stockStatus, cn } from "@/lib/utils";
 import { StarRating } from "@/components/shared/star-rating";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,8 @@ type ProductInfoProps = {
 export function ProductInfo({ product }: ProductInfoProps) {
   const { data: session } = useSession();
   const addItem = useCartStore((s) => s.addItem);
+  const isSaved = useWishlistStore((s) => s.productIds.includes(product.id));
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
 
   const colors = useMemo(
     () => [...new Set(product.variants.map((v) => v.color))],
@@ -107,16 +110,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Could not add to wishlist");
-      }
-      toast.success("Added to wishlist");
+      const action = await toggleWishlist(product.id);
+      toast.success(
+        action === "added" ? "Added to wishlist" : "Removed from wishlist"
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -307,9 +304,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
             variant="outline"
             onClick={handleWishlist}
             disabled={loading}
-            aria-label="Add to wishlist"
+            aria-label={isSaved ? "Remove from wishlist" : "Add to wishlist"}
           >
-            <Heart className="h-4 w-4" />
+            <Heart
+              className={cn("h-4 w-4", isSaved && "fill-red-500 text-red-500")}
+            />
           </Button>
         </div>
       </div>
