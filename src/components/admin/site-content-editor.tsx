@@ -153,7 +153,9 @@ export function SiteContentEditor({
           <Card>
             <CardHeader>
               <CardTitle>Site identity</CardTitle>
-              <CardDescription>Brand name and short description used across the store.</CardDescription>
+              <CardDescription>
+                Global site name and description — updates header, footer, emails, checkout, and SEO.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Field

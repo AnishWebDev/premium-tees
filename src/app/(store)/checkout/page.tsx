@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { canUseDemoCheckout, isRazorpayConfigured } from "@/lib/razorpay";
 import { getStoreSettings, isLeadCaptureMode } from "@/lib/store-settings";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = {
-  title: "Checkout",
-  description: `Complete your order at ${SITE_NAME}.`,
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Checkout",
+    description: `Complete your order at ${site.name}.`,
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function CheckoutPage() {
   const session = await auth();

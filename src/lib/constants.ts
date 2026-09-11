@@ -1,9 +1,6 @@
 import { getSiteUrl } from "@/lib/site-url";
 
-export const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "Premium Tees";
 export const SITE_URL = getSiteUrl();
-export const SITE_DESCRIPTION =
-  "Premium essentials. Soft cotton tees designed with obsessive attention to fit, fabric, and finish.";
 
 export const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 

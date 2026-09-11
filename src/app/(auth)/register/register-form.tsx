@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useSiteIdentity } from "@/components/providers/site-identity-provider";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 export function RegisterForm() {
+  const { name: siteName } = useSiteIdentity();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/profile";
@@ -59,7 +61,7 @@ export function RegisterForm() {
       return;
     }
 
-    toast.success("Welcome to Premium Tees!");
+    toast.success(`Welcome to ${siteName}!`);
     router.push(callbackUrl);
     router.refresh();
   };

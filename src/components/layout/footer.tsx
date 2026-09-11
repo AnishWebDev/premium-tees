@@ -4,15 +4,16 @@ import {
   FOOTER_ESSENTIAL_LINKS,
   FOOTER_IMAGE,
   FOOTER_TRUST_ITEMS,
-  SITE_NAME,
 } from "@/lib/constants";
 import { getContentBlock } from "@/lib/site-content";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { NewsletterForm } from "@/components/home/newsletter-form";
 import { FooterCredit } from "@/components/layout/footer-credit";
 import { ColorModeToggle } from "@/components/theme/color-mode-toggle";
 
 export async function Footer() {
-  const [credit, newsletter, contact] = await Promise.all([
+  const [site, credit, newsletter, contact] = await Promise.all([
+    getSiteIdentity(),
     getContentBlock("footerCredit"),
     getContentBlock("newsletter"),
     getContentBlock("contact"),
@@ -37,9 +38,10 @@ export async function Footer() {
           <div className="container-tight pb-8 pt-16 sm:pb-10">
             <Link
               href="/"
-              className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+              aria-label={`${site.name} home`}
+              className="font-display break-words text-3xl font-semibold tracking-tight text-white sm:text-4xl"
             >
-              {SITE_NAME}
+              {site.name}
             </Link>
             <p className="mt-2 max-w-md text-sm text-white/85">
               Go slow. Get outside.
@@ -86,7 +88,7 @@ export async function Footer() {
       <div className="container-tight flex flex-col items-center gap-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
         <div className="flex flex-col items-center gap-2 sm:items-start">
           <p className="text-xs text-[var(--muted-foreground)]">
-            © {new Date().getFullYear()} {SITE_NAME}
+            © {new Date().getFullYear()} {site.name}
           </p>
           <FooterCredit credit={credit} />
         </div>

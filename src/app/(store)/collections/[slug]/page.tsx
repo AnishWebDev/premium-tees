@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCategories, getProducts } from "@/lib/products";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { ProductCard } from "@/components/product/product-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -30,13 +30,15 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
     return { title: "Collection not found" };
   }
 
+  const site = await getSiteIdentity();
+
   return {
     title: category.name,
     description:
       category.description ??
-      `Shop ${category.name} at ${SITE_NAME}. Premium tees with refined fit and finish.`,
+      `Shop ${category.name} at ${site.name}. Premium tees with refined fit and finish.`,
     openGraph: {
-      title: `${category.name} · ${SITE_NAME}`,
+      title: `${category.name} · ${site.name}`,
       description: category.description ?? undefined,
       images: category.image ? [{ url: category.image }] : undefined,
     },

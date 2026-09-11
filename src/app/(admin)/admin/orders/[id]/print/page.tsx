@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { PrintButton } from "@/components/admin/print-button";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export default async function OrderPackingSlipPage({ params }: PrintPageProps) {
 
   if (!order) notFound();
 
+  const site = await getSiteIdentity();
   const customerEmail = order.guestEmail || order.user?.email || "—";
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -59,7 +60,7 @@ export default async function OrderPackingSlipPage({ params }: PrintPageProps) {
               <p className="text-xs uppercase tracking-wider text-neutral-500">
                 From
               </p>
-              <p className="mt-1 font-medium">{SITE_NAME}</p>
+              <p className="mt-1 font-medium">{site.name}</p>
             </div>
             <div className="text-right">
               <p className="text-xs uppercase tracking-wider text-neutral-500">

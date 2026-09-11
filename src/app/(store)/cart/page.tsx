@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { CartView } from "@/components/cart/cart-view";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 
-export const metadata: Metadata = {
-  title: "Cart",
-  description: `Review your cart at ${SITE_NAME}.`,
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Cart",
+    description: `Review your cart at ${site.name}.`,
+    robots: { index: false, follow: false },
+  };
+}
 
 export default function CartPage() {
   return (

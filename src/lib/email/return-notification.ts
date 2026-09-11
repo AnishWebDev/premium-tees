@@ -18,7 +18,7 @@ export async function sendReturnRequestAdminEmail(request: ReturnWithOrder) {
     return { skipped: true as const };
   }
 
-  const brand = emailBrandName();
+  const brand = await emailBrandName();
   const customer =
     request.user.email ||
     request.order.guestEmail ||
@@ -56,7 +56,7 @@ export async function sendReturnStatusEmail(request: ReturnWithOrder) {
     null;
   if (!to) return { skipped: true as const };
 
-  const brand = emailBrandName();
+  const brand = await emailBrandName();
   const statusLabel = request.status.toLowerCase();
 
   const html = `<!DOCTYPE html>

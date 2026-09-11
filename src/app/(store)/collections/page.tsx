@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { getCategories } from "@/lib/products";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { SectionHeading } from "@/components/shared/section-heading";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Collections",
-  description: `Explore curated collections of premium tees at ${SITE_NAME}.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Collections",
+    description: `Explore curated collections of premium tees at ${site.name}.`,
+  };
+}
 
 const FALLBACK_IMAGES = [
   "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/roles";
@@ -11,6 +11,7 @@ import {
   type HomeData,
   upsertContentBlock,
 } from "@/lib/site-content";
+import { SITE_IDENTITY_TAG } from "@/lib/site-identity";
 
 export async function GET() {
   try {
@@ -102,6 +103,17 @@ export async function PUT(request: Request) {
     }
 
     await upsertContentBlock(key as ContentKey, payload);
+    if (key === "site") {
+      revalidateTag(SITE_IDENTITY_TAG);
+      const siteData = payload as { name?: string };
+      if (siteData.name?.trim()) {
+        const hero = await getContentBlock("hero");
+        await upsertContentBlock("hero", {
+          ...hero,
+          brand: siteData.name.trim(),
+        });
+      }
+    }
     revalidatePath("/", "layout");
     revalidatePath("/");
     revalidatePath("/about");

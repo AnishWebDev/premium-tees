@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { useSiteIdentity } from "@/components/providers/site-identity-provider";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -47,6 +48,7 @@ type AdminSidebarProps = {
 };
 
 export function AdminSidebar({ open, onClose, role }: AdminSidebarProps) {
+  const { name: siteName } = useSiteIdentity();
   const pathname = usePathname();
   const isSuperAdmin = role === "SUPERADMIN";
 
@@ -77,8 +79,13 @@ export function AdminSidebar({ open, onClose, role }: AdminSidebarProps) {
         )}
       >
         <div className="flex h-14 items-center justify-between border-b border-neutral-800 px-4">
-          <Link href="/admin" className="text-sm font-semibold tracking-tight" onClick={onClose}>
-            Premium Tees Admin
+          <Link
+            href="/admin"
+            title={`${siteName} Admin`}
+            className="block min-w-0 truncate text-sm font-semibold tracking-tight"
+            onClick={onClose}
+          >
+            {siteName} Admin
           </Link>
           <Button
             variant="ghost"

@@ -6,7 +6,8 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ShoppingBag, Heart, User, Search } from "lucide-react";
-import { NAV_LINKS, SITE_NAME } from "@/lib/constants";
+import { NAV_LINKS } from "@/lib/constants";
+import { useSiteIdentity } from "@/components/providers/site-identity-provider";
 import { resetCartForUser, useCartStore } from "@/lib/stores/cart-store";
 import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function Header() {
+  const { name: siteName } = useSiteIdentity();
   const pathname = usePathname();
   const { data: session } = useSession();
   const itemCount = useCartStore((s) => s.getItemCount());
@@ -65,9 +67,11 @@ export function Header() {
 
         <Link
           href="/"
-          className="font-display text-xl font-semibold tracking-tight text-[var(--foreground)] sm:text-2xl"
+          title={siteName}
+          aria-label={`${siteName} home`}
+          className="font-display min-w-0 max-w-[42vw] truncate text-xl font-semibold tracking-tight text-[var(--foreground)] sm:max-w-none sm:text-2xl"
         >
-          {SITE_NAME}
+          {siteName}
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">

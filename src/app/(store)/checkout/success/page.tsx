@@ -4,15 +4,18 @@ import { CheckCircle2, Package } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { verifyOrderAccessToken } from "@/lib/order-access";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = {
-  title: "Order confirmed",
-  description: `Your order has been placed at ${SITE_NAME}.`,
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Order confirmed",
+    description: `Your order has been placed at ${site.name}.`,
+    robots: { index: false, follow: false },
+  };
+}
 
 type SuccessPageProps = {
   searchParams: Promise<{

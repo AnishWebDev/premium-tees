@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_METHODS, SITE_NAME } from "@/lib/constants";
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_METHODS } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { formatPrice } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Shipping",
-  description: `Shipping rates and delivery times for ${SITE_NAME}.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Shipping",
+    description: `Shipping rates and delivery times for ${site.name}.`,
+  };
+}
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
   return (
     <div className="section-padding">
       <div className="container-tight max-w-3xl">

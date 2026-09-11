@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 
 let client: Resend | null = null;
 
@@ -66,6 +66,7 @@ export function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-export function emailBrandName() {
-  return SITE_NAME;
+export async function emailBrandName() {
+  const site = await getSiteIdentity();
+  return site.name;
 }

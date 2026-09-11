@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 
-export const metadata: Metadata = {
-  title: "Terms of Service",
-  description: `Terms of service for ${SITE_NAME}.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Terms of Service",
+    description: `Terms of service for ${site.name}.`,
+  };
+}
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const site = await getSiteIdentity();
+
   return (
     <section className="section-padding">
       <div className="container-tight">
@@ -22,7 +27,7 @@ export default function TermsPage() {
                 Agreement
               </h2>
               <p className="mt-3">
-                By accessing or using the {SITE_NAME} website, you agree to be bound by these
+                By accessing or using the {site.name} website, you agree to be bound by these
                 Terms of Service. If you do not agree, please do not use our services.
               </p>
             </section>
@@ -79,7 +84,7 @@ export default function TermsPage() {
               </h2>
               <p className="mt-3">
                 All content on this website — including text, images, logos, and designs — is
-                owned by {SITE_NAME} and protected by copyright and trademark laws. You may not
+                owned by {site.name} and protected by copyright and trademark laws. You may not
                 reproduce, distribute, or create derivative works without our written consent.
               </p>
             </section>
@@ -89,7 +94,7 @@ export default function TermsPage() {
                 Limitation of liability
               </h2>
               <p className="mt-3">
-                To the fullest extent permitted by law, {SITE_NAME} shall not be liable for
+                To the fullest extent permitted by law, {site.name} shall not be liable for
                 any indirect, incidental, or consequential damages arising from your use of
                 our website or products. Our total liability shall not exceed the amount you
                 paid for the relevant order.

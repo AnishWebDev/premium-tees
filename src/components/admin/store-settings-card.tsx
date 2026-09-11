@@ -105,6 +105,8 @@ export function StoreSettingsCard({ isSuperAdmin }: StoreSettingsCardProps) {
             <div className="mt-4 flex items-start gap-3">
               <Checkbox
                 id="payments-enabled"
+                role="switch"
+                aria-checked={paymentsEnabled}
                 checked={paymentsEnabled}
                 disabled={saving}
                 onCheckedChange={(checked) => {

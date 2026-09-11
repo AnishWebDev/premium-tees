@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: `Privacy policy for ${SITE_NAME}.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Privacy Policy",
+    description: `Privacy policy for ${site.name}.`,
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const site = await getSiteIdentity();
+
   return (
     <section className="section-padding">
       <div className="container-tight">
@@ -22,7 +27,7 @@ export default function PrivacyPage() {
                 Overview
               </h2>
               <p className="mt-3">
-                {SITE_NAME} (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) respects your
+                {site.name} (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) respects your
                 privacy. This policy explains how we collect, use, and protect your personal
                 information when you visit our website or make a purchase.
               </p>

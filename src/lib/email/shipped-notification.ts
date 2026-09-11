@@ -26,7 +26,7 @@ export async function sendOrderShippedEmail(order: OrderWithDetails) {
     return { skipped: true as const };
   }
 
-  const brand = emailBrandName();
+  const brand = await emailBrandName();
   const siteUrl = getSiteUrl();
   const orderUrl = order.userId
     ? `${siteUrl}/orders/${order.id}`

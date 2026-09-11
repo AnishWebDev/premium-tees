@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getRelatedProducts } from "@/lib/products";
-import { SITE_NAME, SITE_URL } from "@/lib/constants";
+import { SITE_URL } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductInfo } from "@/components/product/product-info";
 import { ProductReviews } from "@/components/product/product-reviews";
@@ -28,12 +29,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const description =
     product.metaDesc ?? product.shortDesc ?? product.description.slice(0, 160);
   const image = product.images[0]?.url;
+  const site = await getSiteIdentity();
 
   return {
     title,
     description,
     openGraph: {
-      title: `${title} · ${SITE_NAME}`,
+      title: `${title} · ${site.name}`,
       description,
       type: "website",
       images: image ? [{ url: image, alt: product.name }] : undefined,
@@ -50,6 +52,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
+  const site = await getSiteIdentity();
   const related = await getRelatedProducts(product.categoryId, product.id);
 
   const cardData: ProductCardData = {
@@ -77,7 +80,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     sku: product.variants[0]?.sku,
     brand: {
       "@type": "Brand",
-      name: SITE_NAME,
+      name: site.name,
     },
     offers: {
       "@type": "Offer",

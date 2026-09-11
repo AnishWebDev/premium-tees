@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getProducts, getCategories } from "@/lib/products";
-import { SITE_NAME } from "@/lib/constants";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { ProductCard } from "@/components/product/product-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -12,14 +12,17 @@ import { PackageSearch } from "lucide-react";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Shop",
-  description: `Browse our full collection of premium tees and essentials at ${SITE_NAME}.`,
-  openGraph: {
-    title: `Shop · ${SITE_NAME}`,
-    description: `Browse our full collection of premium tees and essentials.`,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteIdentity();
+  return {
+    title: "Shop",
+    description: `Browse our full collection of premium tees and essentials at ${site.name}.`,
+    openGraph: {
+      title: `Shop · ${site.name}`,
+      description: `Browse our full collection of premium tees and essentials.`,
+    },
+  };
+}
 
 type ShopPageProps = {
   searchParams: Promise<{

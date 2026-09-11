@@ -6,9 +6,17 @@ import { ThemeProvider } from "next-themes";
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { CartSessionSync } from "@/components/providers/cart-session-sync";
+import { SiteIdentityProvider } from "@/components/providers/site-identity-provider";
 import { WishlistSessionSync } from "@/components/providers/wishlist-session-sync";
+import type { SiteIdentity } from "@/lib/site-identity";
 
-export function AppProviders({ children }: { children: React.ReactNode }) {
+export function AppProviders({
+  site,
+  children,
+}: {
+  site: SiteIdentity;
+  children: React.ReactNode;
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -31,9 +39,11 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange={false}
       >
         <QueryClientProvider client={queryClient}>
-          <CartSessionSync />
-          <WishlistSessionSync />
-          {children}
+          <SiteIdentityProvider site={site}>
+            <CartSessionSync />
+            <WishlistSessionSync />
+            {children}
+          </SiteIdentityProvider>
           <Toaster
             position="bottom-right"
             toastOptions={{

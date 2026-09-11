@@ -1,11 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import {
-  FAQ_ITEMS,
-  INSTAGRAM_IMAGES,
-  SITE_DESCRIPTION,
-  SITE_NAME,
-  TESTIMONIALS,
-} from "@/lib/constants";
+  DEFAULT_SITE_DESCRIPTION,
+  DEFAULT_SITE_NAME,
+} from "@/lib/site-defaults";
+import { FAQ_ITEMS, INSTAGRAM_IMAGES, TESTIMONIALS } from "@/lib/constants";
 import {
   isHomeTemplateId,
   type HomeTemplateId,
@@ -168,11 +166,11 @@ export type AllSiteContent = {
 
 export const DEFAULT_SITE_CONTENT: AllSiteContent = {
   site: {
-    name: SITE_NAME,
-    description: SITE_DESCRIPTION,
+    name: DEFAULT_SITE_NAME,
+    description: DEFAULT_SITE_DESCRIPTION,
   },
   hero: {
-    brand: SITE_NAME,
+    brand: DEFAULT_SITE_NAME,
     headline: "Tees built for everyday excellence.",
     subheadline:
       "Premium organic cotton, refined fit, and a finish that holds up wash after wash.",
@@ -199,7 +197,7 @@ export const DEFAULT_SITE_CONTENT: AllSiteContent = {
       subtitle: "A short edit of pieces we reach for every week.",
     },
     story: {
-      eyebrow: SITE_NAME,
+      eyebrow: DEFAULT_SITE_NAME,
       title: "Cut slow. Worn daily.",
       body: "Soft organic cotton, a considered fit, and finishes that stay honest after every wash.",
       ctaLabel: "Our story",
@@ -229,16 +227,16 @@ export const DEFAULT_SITE_CONTENT: AllSiteContent = {
     phoneHours: "Mon–Fri, 9am–5pm PT",
     studioLabel: "Studio",
     studioLine1: "Los Angeles, CA",
-    studioLine2: SITE_NAME,
+    studioLine2: DEFAULT_SITE_NAME,
     formTitle: "Send a message",
   },
   about: {
     eyebrow: "Our story",
     title: "Less noise. Better tees.",
-    intro: SITE_DESCRIPTION,
+    intro: DEFAULT_SITE_DESCRIPTION,
     storyTitle: "Crafted for everyday",
     storyParagraphs: [
-      `${SITE_NAME} started with a simple frustration: great-looking tees that fell apart after a few washes. We spent two years sourcing long-staple organic cotton, refining our patterns, and partnering with factories that share our standards for fair labor and low-impact production.`,
+      `${DEFAULT_SITE_NAME} started with a simple frustration: great-looking tees that fell apart after a few washes. We spent two years sourcing long-staple organic cotton, refining our patterns, and partnering with factories that share our standards for fair labor and low-impact production.`,
       "Every piece is designed in Los Angeles and built to become a staple — not a seasonal throwaway. Minimal branding, maximum quality.",
     ],
     valuesTitle: "What we stand for",

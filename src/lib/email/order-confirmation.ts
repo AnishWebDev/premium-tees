@@ -31,8 +31,8 @@ function addressBlock(order: OrderWithDetails) {
   return lines.map(escapeHtml).join("<br />");
 }
 
-function buildInvoiceHtml(order: OrderWithDetails) {
-  const brand = escapeHtml(emailBrandName());
+function buildInvoiceHtml(order: OrderWithDetails, brandName: string) {
+  const brand = escapeHtml(brandName);
   const siteUrl = getSiteUrl();
   const orderUrl = order.userId
     ? `${siteUrl}/orders/${order.id}`
@@ -150,16 +150,19 @@ export async function sendOrderConfirmationEmail(order: OrderWithDetails) {
     return { skipped: true as const };
   }
 
-  const brand = emailBrandName();
+  const brand = await emailBrandName();
   const notify = getOrderNotifyEmail();
 
   return sendEmail({
     to,
     bcc: notify && notify.toLowerCase() !== to.toLowerCase() ? notify : null,
     subject: `${brand} invoice — ${order.orderNumber}`,
-    html: buildInvoiceHtml({
-      ...order,
-      razorpayPaymentId: order.razorpayPaymentId,
-    }),
+    html: buildInvoiceHtml(
+      {
+        ...order,
+        razorpayPaymentId: order.razorpayPaymentId,
+      },
+      brand
+    ),
   });
 }

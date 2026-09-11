@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { syncOrderByIdSafe } from "@/lib/google-sheets";
 import { fulfillOrder } from "@/lib/fulfill-order";
 import { orderSuccessPath } from "@/lib/order-access";
+import { getSiteIdentity } from "@/lib/site-identity";
 import { getStoreSettings, isLeadCaptureMode } from "@/lib/store-settings";
 import {
   canUseDemoCheckout,
@@ -279,6 +280,8 @@ export async function POST(request: Request) {
       });
     }
 
+    const site = await getSiteIdentity();
+
     const razorpayOrder = await createRazorpayOrder({
       amountInRupees: total,
       receipt: order.orderNumber,
@@ -301,7 +304,7 @@ export async function POST(request: Request) {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      name: process.env.NEXT_PUBLIC_APP_NAME ?? "Premium Tees",
+      name: site.name,
       email: session?.user?.email ?? data.email,
       contact: data.shippingPhone ?? "",
       redirectUrl: successUrl,
