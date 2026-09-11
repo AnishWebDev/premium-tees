@@ -31,6 +31,8 @@ import { ProductRowList } from "@/components/home/blocks/product-row-list";
 import { ImageMosaic } from "@/components/home/blocks/image-mosaic";
 import { StackedPanels } from "@/components/home/blocks/stacked-panels";
 import { EmbedFrame } from "@/components/home/blocks/embed-frame";
+import { TrailHero } from "@/components/home/blocks/trail-hero";
+import { TrustBar } from "@/components/home/blocks/trust-bar";
 import {
   ContentCard,
   type ContentCardAnimation,
@@ -81,6 +83,68 @@ function renderSection(section: HomeSectionItem, props: HomeTemplateProps) {
       return <Hero content={heroContent} />;
     case "heroStatic":
       return <StaticHero content={heroContent} />;
+    case "trailHero":
+      return (
+        <TrailHero
+          eyebrow={o.eyebrow}
+          brand={sectionText(o.brand, content.hero.brand)}
+          headline={sectionText(o.headline, "GO SLOW.\nGET OUTSIDE.")}
+          subheadline={sectionText(o.subheadline, content.hero.subheadline)}
+          imageUrl={sectionText(o.imageUrl, content.hero.imageUrl)}
+          ctaLabel={sectionText(o.ctaLabel, content.hero.primaryCtaLabel)}
+          ctaHref={sectionText(o.ctaHref, content.hero.primaryCtaHref)}
+          trustLine={o.subtitle?.trim() || undefined}
+          trustHref={o.linkHref?.trim() || undefined}
+          trustLinkLabel={o.linkLabel?.trim() || undefined}
+        />
+      );
+    case "trustBar":
+      return (
+        <TrustBar
+          title={sectionText(
+            o.title,
+            "Free shipping on orders over ₹2,000 · More wandering, less worrying"
+          )}
+          subtitle={o.subtitle}
+          href={o.linkHref}
+          linkLabel={o.linkLabel}
+        />
+      );
+    case "productGrid": {
+      const products = bestSellers.slice(0, limit(8));
+      if (products.length === 0) return null;
+      return (
+        <section className="section-padding">
+          <div className="container-tight">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="font-display text-2xl font-semibold tracking-tight text-[var(--foreground)] sm:text-3xl">
+                  {sectionText(o.title, home.bestSellers.title)}
+                </h2>
+                <p className="mt-2 max-w-md text-sm text-[var(--muted-foreground)]">
+                  {sectionText(o.subtitle, home.bestSellers.subtitle)}
+                </p>
+              </div>
+              <Link
+                href={sectionText(o.linkHref, "/shop?sort=best")}
+                className="theme-link text-sm"
+              >
+                {sectionText(o.linkLabel, "Shop bestsellers")}
+              </Link>
+            </div>
+            <div className="product-grid mt-10">
+              {products.map((product, i) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  priority={i < 4}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
     case "heroMedia":
       return <MediaHero content={heroContent} />;
     case "editorialMasthead":

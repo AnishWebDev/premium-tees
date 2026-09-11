@@ -4,6 +4,7 @@ export const HOME_TEMPLATE_IDS = [
   "editorial",
   "lookbook",
   "commerce",
+  "trail",
 ] as const;
 
 export type HomeTemplateId = (typeof HOME_TEMPLATE_IDS)[number];
@@ -56,6 +57,14 @@ export const HOME_TEMPLATES: HomeTemplateMeta[] = [
       "Media hero, promo strip, category pills, bestsellers + featured + new arrivals shelves.",
     inspiredBy: "Nike",
     density: "dense",
+  },
+  {
+    id: "trail",
+    name: "Trail club",
+    description:
+      "Outdoor-club hero, trust strip, product grid, fabric story, reviews, and pack-your-favorites CTA.",
+    inspiredBy: "Sloth Hiking Club",
+    density: "balanced",
   },
 ];
 

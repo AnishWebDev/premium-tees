@@ -72,6 +72,9 @@ export const HOME_SECTION_TYPES = [
   "newsletterBand",
   "embedFrame",
   "contentCard",
+  "trailHero",
+  "trustBar",
+  "productGrid",
 ] as const;
 
 export type HomeSectionType = (typeof HOME_SECTION_TYPES)[number];
@@ -274,6 +277,29 @@ export function editableFieldsForType(
         "backgroundColor",
         "textColor",
         "padding",
+      ]);
+    case "trailHero":
+      return withSpacing([
+        "eyebrow",
+        "brand",
+        "headline",
+        "subheadline",
+        "imageUrl",
+        "ctaLabel",
+        "ctaHref",
+        "subtitle",
+        "linkLabel",
+        "linkHref",
+      ]);
+    case "trustBar":
+      return withSpacing(["title", "subtitle", "linkLabel", "linkHref"]);
+    case "productGrid":
+      return withSpacing([
+        "title",
+        "subtitle",
+        "linkLabel",
+        "linkHref",
+        "productLimit",
       ]);
     default:
       return withSpacing(["title", "subtitle"]);
@@ -562,6 +588,32 @@ export function defaultPropsForSection(
         subtitle:
           "Paste a YouTube or Vimeo URL. Leave blank to use Hero video URL.",
       };
+    case "trailHero":
+      return {
+        eyebrow: "Graphic tees for your kind of outside",
+        brand: hero.brand,
+        headline: "GO SLOW.\nGET OUTSIDE.",
+        subheadline:
+          "Good nature. A little mischief.\nTees for taking the long way home.",
+        imageUrl: hero.imageUrl,
+        ctaLabel: hero.primaryCtaLabel,
+        ctaHref: hero.primaryCtaHref,
+        subtitle: "4.8 / 5 · 4,000+ customer reviews",
+        linkLabel: "See who’s wearing us",
+        linkHref: "/shop",
+      };
+    case "trustBar":
+      return {
+        title: "Free shipping on orders over ₹2,000 · More wandering, less worrying",
+      };
+    case "productGrid":
+      return {
+        title: "Your trail uniform.",
+        subtitle: "Explore the tees",
+        linkLabel: "Explore the tees",
+        linkHref: "/shop",
+        productLimit: 8,
+      };
     case "contentCard":
       return {
         columns: "1",
@@ -640,10 +692,30 @@ export const HOME_SECTION_CATALOG: HomeSectionMeta[] = [
     description:
       "One or more media + text cards with columns, padding, and animation",
   },
+  {
+    type: "trailHero",
+    label: "Trail hero",
+    description: "Outdoor-club split hero with reviews strip",
+  },
+  { type: "trustBar", label: "Trust bar", description: "Shipping / reviews promo strip" },
+  {
+    type: "productGrid",
+    label: "Product grid",
+    description: "8-up bestseller grid with shop link",
+  },
 ];
 
-function sid(type: HomeSectionType, i: number): HomeSectionItem {
-  return { id: `${type}-${i}`, type, enabled: true };
+function sid(
+  type: HomeSectionType,
+  i: number,
+  props?: HomeSectionProps
+): HomeSectionItem {
+  return {
+    id: `${type}-${i}`,
+    type,
+    enabled: true,
+    ...(props ? { props } : {}),
+  };
 }
 
 export function defaultSectionsForTemplate(
@@ -693,6 +765,97 @@ export function defaultSectionsForTemplate(
         sid("faq", 8),
         sid("instagram", 9),
         sid("newsletterBand", 10),
+      ];
+    case "trail":
+      return [
+        sid("trustBar", 0, {
+          title:
+            "Free shipping on orders over ₹2,000 · More wandering, less worrying",
+        }),
+        sid("trailHero", 1),
+        sid("marquee", 2, {
+          marqueeItems:
+            "More wandering,Less worrying,Absolutely no rushing,Take your time",
+        }),
+        sid("productGrid", 3, {
+          title: "Your trail uniform.",
+          subtitle: "Explore the tees",
+          linkLabel: "Explore the tees",
+          linkHref: "/shop",
+          productLimit: 8,
+        }),
+        sid("newArrivalsShelf", 4, {
+          title: "Fresh tees. Same slow pace.",
+          subtitle: "New arrivals",
+          linkLabel: "Shop new arrivals",
+          linkHref: "/shop?sort=new",
+        }),
+        sid("contentCard", 5, {
+          eyebrow: "Why we love organic cotton",
+          title: "Made for\ntaking it easy.",
+          body:
+            "• 100% ring-spun cotton — substantial, soft feel\n• Garment-dyed for that already-loved feel\n• Relaxed fit with room to slow down",
+          imageUrl:
+            "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=1600&q=80",
+          mediaLayout: "left",
+          mediaAspect: "portrait",
+          bgStyle: "muted",
+          padding: "lg",
+          ctaLabel: "Find your everyday tee",
+          ctaHref: "/shop",
+          cardsJson: JSON.stringify([
+            {
+              eyebrow: "Why we love organic cotton",
+              title: "Made for taking it easy.",
+              body:
+                "• 100% ring-spun cotton — substantial, soft feel\n• Garment-dyed for that already-loved feel\n• Relaxed fit with room to slow down",
+              imageUrl:
+                "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=1600&q=80",
+              ctaLabel: "Find your everyday tee",
+              ctaHref: "/shop",
+            },
+          ]),
+        }),
+        sid("essentialsFeatured", 6, {
+          title: "A warmer kind of slow.",
+          subtitle: "Soft fleece. Woodland humor. Room for one more snack break.",
+          linkLabel: "Shop sweatshirts",
+          linkHref: "/shop",
+        }),
+        sid("testimonials", 7, {
+          title: "Worn by you.",
+          subtitle: "Good tees. Great company. Shop the shirts our customers wear.",
+        }),
+        sid("contentCard", 8, {
+          columns: "2",
+          title: "Pack your favorites.",
+          body: "Two good tees. A few snacks. Absolutely no hurry to get there.",
+          mediaLayout: "top",
+          mediaAspect: "square",
+          bgStyle: "theme",
+          cardsJson: JSON.stringify([
+            {
+              title: "Weekend carry",
+              body: "Out Of Breath tee · Sunrise Pines tee",
+              imageUrl:
+                "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
+              ctaLabel: "Shop bestsellers",
+              ctaHref: "/shop?sort=best",
+            },
+            {
+              title: "In the bag",
+              body: "Layer up. Stay outside. Take the scenic route.",
+              imageUrl:
+                "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
+              ctaLabel: "Build your kit",
+              ctaHref: "/shop",
+            },
+          ]),
+        }),
+        sid("newsletterBand", 9, {
+          title: "A little more outside.",
+          subtitle: "New designs, club news, and a good excuse to take a break.",
+        }),
       ];
     case "parallax":
     default:
