@@ -279,8 +279,9 @@ export const DEFAULT_SITE_CONTENT: AllSiteContent = {
     images: INSTAGRAM_IMAGES,
   },
   newsletter: {
-    title: "Stay in the loop",
-    subtitle: "New drops, restocks, and fabric stories — delivered to your inbox.",
+    title: "Join the club",
+    subtitle:
+      "New designs, club news, and a good excuse to take a break.",
   },
   theme: DEFAULT_THEME,
   footerCredit: {

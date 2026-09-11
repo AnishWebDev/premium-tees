@@ -4,6 +4,7 @@ type SystemStatusCardProps = {
   status: {
     demoCheckout: boolean;
     razorpayConfigured: boolean;
+    googleSheetsConfigured: boolean;
     emailConfigured: boolean;
     orderNotifyEmail: boolean;
     appUrl: string | null;
@@ -49,6 +50,15 @@ export function SystemStatusCard({ status }: SystemStatusCardProps) {
               : status.demoCheckout
                 ? "Staff-only demo checkout (guests blocked until Razorpay)"
                 : "Neither Razorpay nor demo checkout enabled"
+          }
+        />
+        <StatusRow
+          label="Google Sheets"
+          ok={status.googleSheetsConfigured}
+          detail={
+            status.googleSheetsConfigured
+              ? "Customer orders sync to your spreadsheet"
+              : "Set GOOGLE_SHEETS_* and service account env vars"
           }
         />
         <StatusRow

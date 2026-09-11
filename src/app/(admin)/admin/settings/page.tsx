@@ -5,6 +5,7 @@ import { getStyleDefaults } from "@/lib/style-defaults";
 import { getSystemStatus } from "@/lib/system-status";
 import { ChangePasswordForm } from "@/components/admin/change-password-form";
 import { ThemeEditor } from "@/components/admin/theme-editor";
+import { StoreSettingsCard } from "@/components/admin/store-settings-card";
 import { SystemStatusCard } from "@/components/admin/system-status-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -32,6 +33,7 @@ export default async function AdminSettingsPage() {
       <Tabs defaultValue="style">
         <TabsList>
           <TabsTrigger value="style">Site style</TabsTrigger>
+          <TabsTrigger value="checkout">Checkout</TabsTrigger>
           <TabsTrigger value="password">Password</TabsTrigger>
           {showSystem && <TabsTrigger value="system">System</TabsTrigger>}
         </TabsList>
@@ -41,6 +43,9 @@ export default async function AdminSettingsPage() {
             isSuperAdmin={showSystem}
             hasStyleDefaults={Boolean(styleDefaults)}
           />
+        </TabsContent>
+        <TabsContent value="checkout" className="mt-6">
+          <StoreSettingsCard isSuperAdmin={showSystem} />
         </TabsContent>
         <TabsContent value="password" className="mt-6">
           <ChangePasswordForm />

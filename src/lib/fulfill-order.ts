@@ -1,3 +1,4 @@
+import { syncOrderByIdSafe } from "@/lib/google-sheets";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
 
@@ -121,6 +122,7 @@ export async function fulfillOrder(
         error
       );
     }
+    await syncOrderByIdSafe(paidOrder.id);
   }
 
   return paidOrder;

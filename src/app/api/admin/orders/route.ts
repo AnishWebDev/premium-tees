@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { sendOrderShippedEmail } from "@/lib/email/shipped-notification";
+import { syncOrderByIdSafe } from "@/lib/google-sheets";
 
 const updateOrderSchema = z.object({
   orderId: z.string().min(1),
@@ -116,6 +117,8 @@ export async function PATCH(request: Request) {
         );
       }
     }
+
+    await syncOrderByIdSafe(order.id);
 
     return NextResponse.json({
       ...order,

@@ -1,5 +1,6 @@
 /** Theme-friendly order status chip classes (readable in light + dark). */
 export const ORDER_STATUS_STYLES: Record<string, string> = {
+  LEAD: "bg-orange-500/15 text-orange-800 dark:text-orange-300",
   PENDING: "bg-amber-500/15 text-amber-800 dark:text-amber-300",
   PAID: "bg-sky-500/15 text-sky-800 dark:text-sky-300",
   PROCESSING: "bg-indigo-500/15 text-indigo-800 dark:text-indigo-300",

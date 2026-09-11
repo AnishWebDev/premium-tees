@@ -15,12 +15,15 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 
+type CheckoutMode = "payment" | "lead" | "demo";
+
 type CheckoutFormProps = {
-  /** Staff-only dummy paid checkout when Razorpay is not configured */
-  demoMode?: boolean;
+  mode?: CheckoutMode;
 };
 
-export function CheckoutForm({ demoMode = false }: CheckoutFormProps) {
+export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
+  const leadCapture = mode === "lead";
+  const demoMode = mode === "demo";
   const { data: session } = useSession();
   const [submitting, setSubmitting] = useState(false);
 
@@ -106,9 +109,13 @@ export function CheckoutForm({ demoMode = false }: CheckoutFormProps) {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Checkout failed");
 
-      if (body.demo) {
+      if (body.leadCapture || body.demo) {
         useCartStore.getState().clearCart();
-        toast.success("Demo order placed (no real payment)");
+        toast.success(
+          body.leadCapture
+            ? "Thanks! We received your order request."
+            : "Demo order placed (no real payment)"
+        );
         window.location.href =
           body.redirectUrl || `/checkout/success?order=${body.orderNumber}`;
         return;
@@ -262,7 +269,11 @@ export function CheckoutForm({ demoMode = false }: CheckoutFormProps) {
                 defaultValue="IN"
                 {...register("shippingCountry")}
               />
-              <p className="mt-1 text-xs text-[var(--muted-foreground)]">India (IN) — UPI & cards via Razorpay</p>
+              {!leadCapture && (
+                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                  India (IN) — UPI & cards via Razorpay
+                </p>
+              )}
             </div>
             <div className="sm:col-span-2">
               <Label htmlFor="shippingPhone">Phone (for UPI / delivery)</Label>
@@ -428,15 +439,19 @@ export function CheckoutForm({ demoMode = false }: CheckoutFormProps) {
           <Button type="submit" size="lg" className="mt-8 w-full" disabled={submitting}>
             {submitting
               ? "Processing…"
-              : demoMode
-                ? "Complete demo checkout"
-                : "Pay with UPI / Card"}
+              : leadCapture
+                ? "Submit order request"
+                : demoMode
+                  ? "Complete demo checkout"
+                  : "Pay with UPI / Card"}
           </Button>
 
           <p className="mt-4 text-center text-xs text-[var(--muted-foreground)]">
-            {demoMode
-              ? "Staff demo — order is marked paid without Razorpay"
-              : "Secure checkout powered by Razorpay — UPI, cards & more"}
+            {leadCapture
+              ? "No payment required — we’ll email you to confirm availability and next steps."
+              : demoMode
+                ? "Staff demo — order is marked paid without Razorpay"
+                : "Secure checkout powered by Razorpay — UPI, cards & more"}
           </p>
         </div>
       </div>

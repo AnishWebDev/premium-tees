@@ -34,6 +34,7 @@ type Analytics = {
 };
 
 const statusVariant: Record<string, "default" | "secondary" | "success" | "warning" | "destructive" | "outline"> = {
+  LEAD: "outline",
   PENDING: "warning",
   PAID: "success",
   PROCESSING: "secondary",

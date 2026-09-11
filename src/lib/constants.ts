@@ -22,25 +22,24 @@ export const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
-export const FOOTER_LINKS = {
-  shop: [
-    { href: "/shop", label: "All Products" },
-    { href: "/collections", label: "Collections" },
-    { href: "/shop?sort=new", label: "New Arrivals" },
-    { href: "/shop?sort=best", label: "Best Sellers" },
-  ],
-  help: [
-    { href: "/faq", label: "FAQ" },
-    { href: "/contact", label: "Contact" },
-    { href: "/orders", label: "Track Order" },
-    { href: "/shipping", label: "Shipping" },
-  ],
-  company: [
-    { href: "/about", label: "About Us" },
-    { href: "/privacy", label: "Privacy Policy" },
-    { href: "/terms", label: "Terms of Service" },
-  ],
-};
+/** Wide landscape for the storefront footer hero band. */
+export const FOOTER_IMAGE =
+  "https://images.unsplash.com/photo-1506905925346-fe556b757778?w=2400&q=80";
+
+export const FOOTER_TRUST_ITEMS = [
+  { title: "Premium cotton", subtitle: "Soft from day one" },
+  { title: "Free returns", subtitle: "Return with ease" },
+  { title: "Fast shipping", subtitle: "We actually hustle" },
+  { title: "Secure checkout", subtitle: "No sketchy trails" },
+] as const;
+
+export const FOOTER_ESSENTIAL_LINKS = [
+  { href: "/shop", label: "Shop" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contact" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+] as const;
 
 export const TESTIMONIALS = [
   {

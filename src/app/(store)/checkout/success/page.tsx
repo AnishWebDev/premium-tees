@@ -54,12 +54,16 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
           </div>
 
           <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-            Thank you for your order
+            {order?.status === "LEAD"
+              ? "Thanks — we got your request"
+              : "Thank you for your order"}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-[var(--muted-foreground)]">
-            {order && isOwner
-              ? "We've received your payment and will send a confirmation email shortly."
-              : "Your payment was successful. Check your email for order details."}
+            {order?.status === "LEAD"
+              ? "We saved your cart and shipping details. Our team will reach out to confirm availability and next steps — no payment taken yet."
+              : order && isOwner
+                ? "We've received your payment and will send a confirmation email shortly."
+                : "Your payment was successful. Check your email for order details."}
           </p>
 
           {order && isOwner && (

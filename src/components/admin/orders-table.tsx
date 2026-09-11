@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/table";
 
 const ORDER_STATUSES = [
+  "LEAD",
   "PENDING",
   "PAID",
   "PROCESSING",
@@ -68,6 +69,7 @@ const statusVariant: Record<
   OrderStatus,
   "default" | "secondary" | "success" | "warning" | "destructive" | "outline"
 > = {
+  LEAD: "outline",
   PENDING: "warning",
   PAID: "success",
   PROCESSING: "secondary",

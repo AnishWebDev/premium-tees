@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { syncOrderByIdSafe } from "@/lib/google-sheets";
 import { fulfillOrder } from "@/lib/fulfill-order";
 import { orderSuccessPath } from "@/lib/order-access";
+import { getStoreSettings, isLeadCaptureMode } from "@/lib/store-settings";
 import {
   canUseDemoCheckout,
   createRazorpayOrder,
@@ -27,9 +29,11 @@ const checkoutBodySchema = z.intersection(
 export async function POST(request: Request) {
   try {
     const session = await auth();
+    const storeSettings = await getStoreSettings();
+    const leadCapture = isLeadCaptureMode(storeSettings);
     const demoMode = canUseDemoCheckout(session?.user?.role);
 
-    if (!isRazorpayConfigured() && !demoMode) {
+    if (!leadCapture && !isRazorpayConfigured() && !demoMode) {
       return NextResponse.json(
         { error: "Checkout isn’t available yet. Please check back soon." },
         { status: 503 }
@@ -153,77 +157,106 @@ export async function POST(request: Request) {
     const total = Math.max(0, subtotal + shippingCost + tax - discount);
     const orderNumber = generateOrderNumber();
 
+    const orderData = {
+      orderNumber,
+      currency: "inr" as const,
+      subtotal,
+      shippingCost,
+      tax,
+      discount,
+      total,
+      couponCode,
+      notes: data.notes,
+      guestEmail: session?.user?.email ? undefined : data.email,
+      shippingName: data.shippingName,
+      shippingLine1: data.shippingLine1,
+      shippingLine2: data.shippingLine2,
+      shippingCity: data.shippingCity,
+      shippingState: data.shippingState,
+      shippingZip: data.shippingZip,
+      shippingCountry: data.shippingCountry || "IN",
+      shippingPhone: data.shippingPhone,
+      billingName: data.sameAsBilling ? data.shippingName : data.billingName,
+      billingLine1: data.sameAsBilling ? data.shippingLine1 : data.billingLine1,
+      billingLine2: data.sameAsBilling ? data.shippingLine2 : data.billingLine2,
+      billingCity: data.sameAsBilling ? data.shippingCity : data.billingCity,
+      billingState: data.sameAsBilling ? data.shippingState : data.billingState,
+      billingZip: data.sameAsBilling ? data.shippingZip : data.billingZip,
+      billingCountry: data.sameAsBilling
+        ? data.shippingCountry || "IN"
+        : data.billingCountry,
+      userId: session?.user?.id,
+      items: { create: orderItems },
+    };
+
     let order;
     try {
-      order = await prisma.$transaction(async (tx) => {
-        for (const item of orderItems) {
-          const inv = await tx.inventory.findUnique({
-            where: { variantId: item.variantId },
-          });
-          if (!inv || inv.quantity - inv.reserved < item.quantity) {
-            throw new Error(
-              `Insufficient stock for ${item.name} (${item.size}/${item.color})`
-            );
-          }
-
-          const reserved = await tx.inventory.updateMany({
-            where: {
-              variantId: item.variantId,
-              quantity: inv.quantity,
-              reserved: inv.reserved,
-            },
-            data: { reserved: { increment: item.quantity } },
-          });
-
-          if (reserved.count === 0) {
-            throw new Error(
-              `Stock changed for ${item.name}. Please refresh and try again.`
-            );
-          }
-        }
-
-        return tx.order.create({
+      if (leadCapture) {
+        order = await prisma.order.create({
           data: {
-            orderNumber,
-            status: "PENDING",
-            currency: "inr",
-            subtotal,
-            shippingCost,
-            tax,
-            discount,
-            total,
-            couponCode,
-            notes: data.notes,
-            guestEmail: session?.user?.email ? undefined : data.email,
-            shippingName: data.shippingName,
-            shippingLine1: data.shippingLine1,
-            shippingLine2: data.shippingLine2,
-            shippingCity: data.shippingCity,
-            shippingState: data.shippingState,
-            shippingZip: data.shippingZip,
-            shippingCountry: data.shippingCountry || "IN",
-            shippingPhone: data.shippingPhone,
-            billingName: data.sameAsBilling ? data.shippingName : data.billingName,
-            billingLine1: data.sameAsBilling ? data.shippingLine1 : data.billingLine1,
-            billingLine2: data.sameAsBilling ? data.shippingLine2 : data.billingLine2,
-            billingCity: data.sameAsBilling ? data.shippingCity : data.billingCity,
-            billingState: data.sameAsBilling ? data.shippingState : data.billingState,
-            billingZip: data.sameAsBilling ? data.shippingZip : data.billingZip,
-            billingCountry: data.sameAsBilling
-              ? data.shippingCountry || "IN"
-              : data.billingCountry,
-            userId: session?.user?.id,
-            items: { create: orderItems },
+            ...orderData,
+            status: "LEAD",
           },
         });
-      });
+      } else {
+        order = await prisma.$transaction(async (tx) => {
+          for (const item of orderItems) {
+            const inv = await tx.inventory.findUnique({
+              where: { variantId: item.variantId },
+            });
+            if (!inv || inv.quantity - inv.reserved < item.quantity) {
+              throw new Error(
+                `Insufficient stock for ${item.name} (${item.size}/${item.color})`
+              );
+            }
+
+            const reserved = await tx.inventory.updateMany({
+              where: {
+                variantId: item.variantId,
+                quantity: inv.quantity,
+                reserved: inv.reserved,
+              },
+              data: { reserved: { increment: item.quantity } },
+            });
+
+            if (reserved.count === 0) {
+              throw new Error(
+                `Stock changed for ${item.name}. Please refresh and try again.`
+              );
+            }
+          }
+
+          return tx.order.create({
+            data: {
+              ...orderData,
+              status: "PENDING",
+            },
+          });
+        });
+      }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not reserve stock";
+        error instanceof Error ? error.message : "Could not create order";
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
     const successUrl = orderSuccessPath(order.orderNumber);
+
+    if (leadCapture) {
+      await syncOrderByIdSafe(order.id);
+
+      return NextResponse.json({
+        leadCapture: true,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        redirectUrl: successUrl,
+        subtotal,
+        shippingCost,
+        tax,
+        discount,
+        total,
+      });
+    }
 
     if (demoMode) {
       const demoPaymentId = `demo_pay_${order.id.slice(-10)}`;

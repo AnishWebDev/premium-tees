@@ -5,7 +5,7 @@ type OrdersResponse = {
   orders: Array<{
     id: string;
     orderNumber: string;
-    status: "PENDING" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
+    status: "LEAD" | "PENDING" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "REFUNDED";
     total: number;
     createdAt: string;
     user: { name: string | null; email: string | null };
