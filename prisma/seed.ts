@@ -19,8 +19,8 @@ const UNSPLASH_IMAGES = [
   "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
   "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&q=80",
   "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=800&q=80",
-  "https://images.unsplash.com/photo-1622445275463-afa12ab34d44?w=800&q=80",
-  "https://images.unsplash.com/photo-1586367262704-6587a398b0f1?w=800&q=80",
+  "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
+  "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80",
 ];
 
 function randomInventory(): number {

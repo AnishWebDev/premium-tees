@@ -7,6 +7,7 @@ import { Heart, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import type { ProductCardData } from "@/types";
+import { normalizeImageUrl } from "@/lib/image-url";
 import { formatPrice, cn } from "@/lib/utils";
 import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { StarRating } from "@/components/shared/star-rating";
@@ -31,11 +32,18 @@ export function ProductCard({
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const [hovered, setHovered] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [imageBroken, setImageBroken] = useState(false);
 
   const primaryImage = product.images[0];
   const secondaryImage = product.images[1];
-  const displayImage =
+  const activeImage =
     hovered && secondaryImage ? secondaryImage : primaryImage;
+  const displayImage = activeImage
+    ? {
+        ...activeImage,
+        url: normalizeImageUrl(activeImage.url),
+      }
+    : undefined;
 
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -73,7 +81,7 @@ export function ProductCard({
         onMouseLeave={() => setHovered(false)}
       >
         <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[var(--muted)]">
-          {displayImage ? (
+          {displayImage && !imageBroken ? (
             <Image
               src={displayImage.url}
               alt={displayImage.alt ?? product.name}
@@ -82,6 +90,7 @@ export function ProductCard({
               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               priority={priority}
               loading={priority ? "eager" : "lazy"}
+              onError={() => setImageBroken(true)}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-[var(--muted-foreground)]">

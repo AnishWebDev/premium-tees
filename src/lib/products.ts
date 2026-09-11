@@ -1,3 +1,4 @@
+import { normalizeImageUrl } from "@/lib/image-url";
 import { prisma } from "@/lib/prisma";
 import type { ProductCardData } from "@/types";
 import { Prisma } from "@prisma/client";
@@ -35,7 +36,10 @@ function toCard(
     featured: product.featured,
     bestSeller: product.bestSeller,
     newArrival: product.newArrival,
-    images: product.images,
+    images: product.images.map((img) => ({
+      ...img,
+      url: normalizeImageUrl(img.url),
+    })),
     category: product.category,
     averageRating,
     reviewCount: product._count?.reviews ?? reviews.length,
@@ -185,6 +189,10 @@ export async function getProductBySlug(slug: string) {
 
   return {
     ...product,
+    images: product.images.map((img) => ({
+      ...img,
+      url: normalizeImageUrl(img.url),
+    })),
     price: Number(product.price),
     compareAt: product.compareAt ? Number(product.compareAt) : null,
     variants: product.variants.map((v) => ({
