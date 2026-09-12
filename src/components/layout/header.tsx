@@ -14,6 +14,7 @@ import { resetCartForUser, useCartStore } from "@/lib/stores/cart-store";
 import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { cn } from "@/lib/utils";
 import { ColorModeToggle } from "@/components/theme/color-mode-toggle";
+import { MiniCartDrawer } from "@/components/cart/mini-cart-drawer";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -43,6 +44,7 @@ export function Header({
   const wishlistCount = useWishlistStore((s) => s.productIds.length);
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -137,15 +139,19 @@ export function Header({
               />
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild aria-label="Cart" className="relative">
-            <Link href="/cart">
-              <ShoppingBag className="h-5 w-5" />
-              {count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-medium text-[var(--accent-foreground)]">
-                  {count}
-                </span>
-              )}
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Cart${count > 0 ? `, ${count} items` : ""}`}
+            className="relative"
+            onClick={() => setCartOpen(true)}
+          >
+            <ShoppingBag className="h-5 w-5" />
+            {count > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-medium text-[var(--accent-foreground)]">
+                {count}
+              </span>
+            )}
           </Button>
 
           {session?.user ? (
@@ -228,6 +234,8 @@ export function Header({
           </motion.nav>
         )}
       </AnimatePresence>
+
+      <MiniCartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </header>
   );
 }

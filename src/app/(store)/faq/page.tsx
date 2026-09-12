@@ -21,8 +21,25 @@ export const revalidate = 60;
 export default async function FAQPage() {
   const faq = await getContentBlock("faq");
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <section className="section-padding">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="container-tight">
         <SectionHeading title={faq.title} subtitle={faq.subtitle} />
 

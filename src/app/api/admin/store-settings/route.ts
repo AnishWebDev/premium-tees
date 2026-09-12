@@ -27,6 +27,13 @@ export async function GET() {
   }
 }
 
+const shippingMethodSchema = z.object({
+  id: z.enum(["standard", "express", "overnight"]),
+  label: z.string().min(1),
+  price: z.number().min(0),
+  days: z.string().min(1),
+});
+
 const putSchema = z
   .object({
     paymentsEnabled: z.boolean().optional(),
@@ -37,9 +44,39 @@ const putSchema = z
         boy: z.boolean(),
       })
       .optional(),
+    shipping: z
+      .object({
+        freeShippingThreshold: z.number().min(0),
+        pincodeDeliveryDays: z.string().min(1),
+        methods: z.array(shippingMethodSchema).min(1),
+      })
+      .optional(),
+    tax: z.object({ gstRate: z.number().min(0).max(1) }).optional(),
+    seo: z
+      .object({
+        titleSuffix: z.string().min(1),
+        keywords: z.array(z.string()),
+        ogImageUrl: z.string(),
+        analyticsId: z.string(),
+      })
+      .optional(),
+    announcement: z
+      .object({
+        enabled: z.boolean(),
+        message: z.string(),
+        linkHref: z.string(),
+        linkLabel: z.string(),
+      })
+      .optional(),
   })
   .refine(
-    (data) => data.paymentsEnabled !== undefined || data.audiencesEnabled !== undefined,
+    (data) =>
+      data.paymentsEnabled !== undefined ||
+      data.audiencesEnabled !== undefined ||
+      data.shipping !== undefined ||
+      data.tax !== undefined ||
+      data.seo !== undefined ||
+      data.announcement !== undefined,
     { message: "No settings to update" }
   );
 
@@ -60,10 +97,17 @@ export async function PUT(request: Request) {
       ...(parsed.data.audiencesEnabled
         ? { audiencesEnabled: parsed.data.audiencesEnabled }
         : {}),
+      ...(parsed.data.shipping ? { shipping: parsed.data.shipping } : {}),
+      ...(parsed.data.tax ? { tax: parsed.data.tax } : {}),
+      ...(parsed.data.seo ? { seo: parsed.data.seo } : {}),
+      ...(parsed.data.announcement ? { announcement: parsed.data.announcement } : {}),
     });
 
+    revalidatePath("/");
     revalidatePath("/checkout");
+    revalidatePath("/cart");
     revalidatePath("/shop");
+    revalidatePath("/shipping");
     revalidatePath("/admin/settings");
 
     return NextResponse.json({

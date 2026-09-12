@@ -34,6 +34,9 @@ type CartState = {
   setCoupon: (code: string | null, discount: number) => void;
   setShippingMethod: (method: "standard" | "express" | "overnight") => void;
   setUserId: (userId: string | null) => void;
+  setItems: (items: LocalCartItem[]) => void;
+  fetchCart: () => Promise<void>;
+  syncCart: () => Promise<void>;
   clearCart: () => void;
   getSubtotal: () => number;
   getItemCount: () => number;
@@ -119,6 +122,47 @@ export const useCartStore = create<CartState>()(
       setShippingMethod: (method) => set({ shippingMethod: method }),
 
       setUserId: (userId) => set({ userId }),
+
+      setItems: (items) => set({ items }),
+
+      fetchCart: async () => {
+        const { userId } = get();
+        if (!userId) return;
+
+        try {
+          const res = await fetch("/api/cart");
+          if (!res.ok) return;
+          const data = await res.json();
+          set({ items: data.items ?? [] });
+        } catch {
+          /* ignore */
+        }
+      },
+
+      syncCart: async () => {
+        const { userId, items } = get();
+        if (!userId) return;
+
+        try {
+          const res = await fetch("/api/cart", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              items: items.map((item) => ({
+                productId: item.productId,
+                variantId: item.variantId,
+                quantity: item.quantity,
+                savedForLater: item.savedForLater,
+              })),
+            }),
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          set({ items: data.items ?? [] });
+        } catch {
+          /* ignore */
+        }
+      },
 
       clearCart: () =>
         set({

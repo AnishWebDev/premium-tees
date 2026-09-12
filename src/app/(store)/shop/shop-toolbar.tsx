@@ -12,6 +12,7 @@ import {
   resolveKidsAge,
   type AudienceId,
 } from "@/lib/audience";
+import { SIZES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +51,16 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [minPriceInput, setMinPriceInput] = useState(searchParams.get("minPrice") ?? "");
+  const [maxPriceInput, setMaxPriceInput] = useState(searchParams.get("maxPrice") ?? "");
 
   const category = searchParams.get("category") ?? "";
+  const minPrice = searchParams.get("minPrice") ?? "";
+  const maxPrice = searchParams.get("maxPrice") ?? "";
+  const selectedSizes = (searchParams.get("size") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const sort = searchParams.get("sort") ?? "featured";
   const audienceParam = searchParams.get("audience");
   const audience =
@@ -90,9 +99,27 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
     updateParams({ q: query.trim() || null });
   };
 
+  const toggleSize = (size: string) => {
+    const next = selectedSizes.includes(size)
+      ? selectedSizes.filter((s) => s !== size)
+      : [...selectedSizes, size];
+    updateParams({ size: next.length ? next.join(",") : null });
+  };
+
+  const applyPriceFilter = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateParams({
+      minPrice: minPriceInput.trim() || null,
+      maxPrice: maxPriceInput.trim() || null,
+    });
+  };
+
   const hasActiveFilters =
     category ||
     searchParams.get("q") ||
+    minPrice ||
+    maxPrice ||
+    selectedSizes.length > 0 ||
     sort !== "featured" ||
     (enabledAudiences.length > 1 && audience !== DEFAULT_AUDIENCE) ||
     kidsAge !== null;
@@ -232,6 +259,8 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
               size="sm"
               onClick={() => {
                 setQuery("");
+                setMinPriceInput("");
+                setMaxPriceInput("");
                 startTransition(() => router.push("/shop"));
               }}
             >
@@ -239,6 +268,68 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
             </Button>
           )}
         </div>
+      </div>
+
+      <div className="grid gap-6 rounded-2xl border border-[var(--border)] p-4 sm:grid-cols-2">
+        <form onSubmit={applyPriceFilter} className="space-y-3">
+          <p className="text-sm font-medium text-[var(--foreground)]">Price range (₹)</p>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="shop-min-price">Min price</Label>
+              <Input
+                id="shop-min-price"
+                type="number"
+                min={0}
+                inputMode="numeric"
+                placeholder="0"
+                value={minPriceInput}
+                onChange={(e) => setMinPriceInput(e.target.value)}
+                className="w-28"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="shop-max-price">Max price</Label>
+              <Input
+                id="shop-max-price"
+                type="number"
+                min={0}
+                inputMode="numeric"
+                placeholder="5000"
+                value={maxPriceInput}
+                onChange={(e) => setMaxPriceInput(e.target.value)}
+                className="w-28"
+              />
+            </div>
+            <Button type="submit" variant="secondary" size="sm">
+              Apply
+            </Button>
+          </div>
+        </form>
+
+        <fieldset className="space-y-3">
+          <legend className="text-sm font-medium text-[var(--foreground)]">Sizes</legend>
+          <div className="flex flex-wrap gap-2">
+            {SIZES.map((size) => {
+              const active = selectedSizes.includes(size);
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => toggleSize(size)}
+                  className={cn(
+                    "rounded-lg border px-3 py-1.5 text-sm transition-colors",
+                    active
+                      ? "border-[var(--foreground)] bg-[var(--muted)] font-medium"
+                      : "border-[var(--border)] hover:border-neutral-300"
+                  )}
+                >
+                  {size}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CollectionSortToolbar } from "@/components/collections/collection-sort-toolbar";
 import { getCategories, getProducts } from "@/lib/products";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { ProductCard } from "@/components/product/product-card";
@@ -93,6 +95,10 @@ export default async function CollectionPage({ params, searchParams }: Collectio
             {total} {total === 1 ? "product" : "products"}
           </p>
         </div>
+
+        <Suspense fallback={<div className="mt-8 h-10 w-[180px] animate-pulse rounded-xl bg-[var(--muted)] ml-auto" />}>
+          <CollectionSortToolbar slug={slug} />
+        </Suspense>
 
         {products.length === 0 ? (
           <EmptyState

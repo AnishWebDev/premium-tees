@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RemoteImage } from "@/components/shared/remote-image";
+import { getCmsBlock } from "@/lib/cms-content";
 import { getCategories } from "@/lib/products";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { SectionHeading } from "@/components/shared/section-heading";
@@ -25,15 +26,15 @@ const FALLBACK_IMAGES = [
 ];
 
 export default async function CollectionsPage() {
-  const categories = await getCategories();
+  const [categories, collectionsCopy] = await Promise.all([
+    getCategories(),
+    getCmsBlock("collections"),
+  ]);
 
   return (
     <section className="section-padding">
       <div className="container-tight">
-        <SectionHeading
-          title="Collections"
-          subtitle="Curated categories designed for everyday wear — refined fits, premium fabrics, minimal branding."
-        />
+        <SectionHeading title={collectionsCopy.title} subtitle={collectionsCopy.subtitle} />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((category, index) => {

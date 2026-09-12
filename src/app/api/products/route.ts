@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice")
       ? parseFloat(searchParams.get("maxPrice")!)
       : undefined;
+    const size = searchParams.get("size") ?? undefined;
+    const color = searchParams.get("color") ?? undefined;
 
     const result = await getProducts({
       category,
@@ -24,6 +26,8 @@ export async function GET(request: NextRequest) {
       limit: isNaN(limit) ? 12 : Math.min(limit, 100),
       minPrice,
       maxPrice,
+      size,
+      color,
     });
 
     return NextResponse.json(result);

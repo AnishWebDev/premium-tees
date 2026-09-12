@@ -7,6 +7,7 @@ type CategoriesResponse = {
     name: string;
     slug: string;
     description: string | null;
+    image: string | null;
     featured: boolean;
     sortOrder: number;
     _count: { products: number };

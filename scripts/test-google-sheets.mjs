@@ -21,6 +21,19 @@ const auth = new google.auth.JWT({
 
 const sheets = google.sheets({ version: "v4", auth });
 
+function formatSheetDateTime(date) {
+  const formatted = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+  return `${formatted} IST`;
+}
+
 const meta = await sheets.spreadsheets.get({ spreadsheetId });
 const tabNames = meta.data.sheets?.map((s) => s.properties?.title) ?? [];
 console.log("Spreadsheet tabs:", tabNames.join(", "));
@@ -76,8 +89,8 @@ await sheets.spreadsheets.values.append({
       [
         "TEST-0001",
         "LEAD",
-        new Date().toISOString(),
-        new Date().toISOString(),
+        formatSheetDateTime(new Date()),
+        formatSheetDateTime(new Date()),
         "test@premiumtees.com",
         "Test Customer",
         "+91 99999 99999",

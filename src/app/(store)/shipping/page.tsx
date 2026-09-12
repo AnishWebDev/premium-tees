@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_METHODS } from "@/lib/constants";
+import { getCommerceConfig } from "@/lib/commerce";
+import { getCmsBlock } from "@/lib/cms-content";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { formatPrice } from "@/lib/utils";
+
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteIdentity();
@@ -13,6 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ShippingPage() {
+  const [commerce, legal] = await Promise.all([getCommerceConfig(), getCmsBlock("legal")]);
+
   return (
     <div className="section-padding">
       <div className="container-tight max-w-3xl">
@@ -20,12 +25,14 @@ export default async function ShippingPage() {
           Shipping
         </h1>
         <p className="mt-4 text-[var(--muted-foreground)]">
-          Fast, reliable delivery for every order. Free shipping on orders over{" "}
-          {formatPrice(FREE_SHIPPING_THRESHOLD)}.
+          {legal.shippingIntro.replace(
+            "{threshold}",
+            formatPrice(commerce.freeShippingThreshold)
+          )}
         </p>
 
         <div className="mt-12 space-y-6">
-          {SHIPPING_METHODS.map((method) => (
+          {commerce.shippingMethods.map((method) => (
             <div
               key={method.id}
               className="flex items-start justify-between gap-6 border-b border-[var(--border)] pb-6"
@@ -41,15 +48,19 @@ export default async function ShippingPage() {
           ))}
         </div>
 
-        <div className="mt-12 space-y-4 text-sm leading-relaxed text-[var(--muted-foreground)]">
-          <p>
-            Orders are processed within 1–2 business days. You will receive a tracking number by
-            email once your order ships.
-          </p>
-          <p>
-            International orders may be subject to duties and taxes, which are the responsibility
-            of the recipient.
-          </p>
+        <div className="mt-12 space-y-6 text-sm leading-relaxed text-[var(--muted-foreground)]">
+          {legal.shippingSections.map((section) => (
+            <section key={section.heading}>
+              <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
+                {section.heading}
+              </h2>
+              {section.paragraphs.map((paragraph, index) => (
+                <p key={index} className="mt-3">
+                  {paragraph}
+                </p>
+              ))}
+            </section>
+          ))}
           <p>
             Questions? Visit our{" "}
             <Link href="/faq" className="theme-link">

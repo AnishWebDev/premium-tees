@@ -29,7 +29,8 @@ export function CartSessionSync() {
     if (!hydrated || status === "loading") return;
 
     const nextUserId = session?.user?.id ?? null;
-    const { userId, setUserId, clearCart } = useCartStore.getState();
+    const { userId, setUserId, clearCart, syncCart, fetchCart } =
+      useCartStore.getState();
 
     if (userId === nextUserId) return;
 
@@ -40,6 +41,13 @@ export function CartSessionSync() {
     }
 
     setUserId(nextUserId);
+
+    if (nextUserId) {
+      void (async () => {
+        await syncCart();
+        await fetchCart();
+      })();
+    }
   }, [hydrated, session?.user?.id, status]);
 
   return null;

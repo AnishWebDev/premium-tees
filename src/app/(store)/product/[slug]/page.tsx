@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getRelatedProducts } from "@/lib/products";
+import { getCmsBlock } from "@/lib/cms-content";
 import { SITE_URL } from "@/lib/constants";
 import { getSiteIdentity } from "@/lib/site-identity";
+import { getStoreSettings } from "@/lib/store-settings";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductInfo } from "@/components/product/product-info";
+import { ProductBreadcrumbs } from "@/components/product/product-breadcrumbs";
 import { ProductReviews } from "@/components/product/product-reviews";
 import { RelatedProducts } from "@/components/product/related-products";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
@@ -52,8 +55,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const site = await getSiteIdentity();
-  const related = await getRelatedProducts(product.categoryId, product.id);
+  const [site, related, storeSettings, sizeGuide] = await Promise.all([
+    getSiteIdentity(),
+    getRelatedProducts(product.categoryId, product.id),
+    getStoreSettings(),
+    getCmsBlock("sizeGuide"),
+  ]);
 
   const cardData: ProductCardData = {
     id: product.id,
@@ -113,6 +120,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <section className="section-padding">
         <div className="container-tight">
+          <ProductBreadcrumbs
+            productName={product.name}
+            productSlug={product.slug}
+            category={product.category}
+          />
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
             <ProductGallery
               images={product.images.map((img) => ({
@@ -121,7 +133,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               }))}
               name={product.name}
             />
-            <ProductInfo product={product} />
+            <ProductInfo
+              product={product}
+              sizeGuide={sizeGuide}
+              pincodeDeliveryDays={storeSettings.shipping.pincodeDeliveryDays}
+            />
           </div>
         </div>
       </section>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getEnabledAudiences } from "@/lib/audience";
+import { getCmsBlock } from "@/lib/cms-content";
 import { getProducts, getCategories } from "@/lib/products";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { getStoreSettings } from "@/lib/store-settings";
@@ -33,12 +34,26 @@ type ShopPageProps = {
     age?: string;
     sort?: string;
     q?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    size?: string;
+    color?: string;
     page?: string;
   }>;
 };
 
 function buildPageUrl(
-  params: { category?: string; audience?: string; age?: string; sort?: string; q?: string },
+  params: {
+    category?: string;
+    audience?: string;
+    age?: string;
+    sort?: string;
+    q?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    size?: string;
+    color?: string;
+  },
   page: number
 ) {
   const search = new URLSearchParams();
@@ -47,6 +62,10 @@ function buildPageUrl(
   if (params.age) search.set("age", params.age);
   if (params.sort && params.sort !== "featured") search.set("sort", params.sort);
   if (params.q) search.set("q", params.q);
+  if (params.minPrice) search.set("minPrice", params.minPrice);
+  if (params.maxPrice) search.set("maxPrice", params.maxPrice);
+  if (params.size) search.set("size", params.size);
+  if (params.color) search.set("color", params.color);
   if (page > 1) search.set("page", String(page));
   const qs = search.toString();
   return qs ? `/shop?${qs}` : "/shop";
@@ -56,14 +75,20 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
-  const [storeSettings, { products, total, totalPages }, categories] = await Promise.all([
+  const [storeSettings, storeCopy, { products, total, totalPages }, categories] =
+    await Promise.all([
     getStoreSettings(),
+    getCmsBlock("storeCopy"),
     getProducts({
       category: params.category,
       audience: params.audience,
       age: params.age,
       sort: params.sort,
       q: params.q,
+      minPrice: params.minPrice ? parseFloat(params.minPrice) : undefined,
+      maxPrice: params.maxPrice ? parseFloat(params.maxPrice) : undefined,
+      size: params.size,
+      color: params.color,
       page,
       limit: 12,
     }),
@@ -78,6 +103,10 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     age: params.age,
     sort: params.sort,
     q: params.q,
+    minPrice: params.minPrice,
+    maxPrice: params.maxPrice,
+    size: params.size,
+    color: params.color,
   };
 
   return (
@@ -94,8 +123,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         {products.length === 0 ? (
           <EmptyState
             icon={PackageSearch}
-            title="No products found"
-            description="Try adjusting your filters or search term."
+            title={storeCopy.shopEmptyTitle}
+            description={storeCopy.shopEmptyDescription}
             actionLabel="View all products"
             actionHref="/shop"
             className="mt-16"

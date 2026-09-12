@@ -70,6 +70,15 @@ async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   }
 }
 
+function normalizeListParam(value?: string | string[]): string[] {
+  if (!value) return [];
+  const raw = Array.isArray(value) ? value.join(",") : value;
+  return raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 export async function getFeaturedProducts(limit = 8) {
   return safeQuery(async () => {
     const products = await prisma.product.findMany({
@@ -114,11 +123,27 @@ export async function getProducts(params: {
   q?: string;
   minPrice?: number;
   maxPrice?: number;
+  size?: string | string[];
+  color?: string | string[];
   page?: number;
   limit?: number;
 }) {
-  const { category, audience, age, sort = "featured", q, minPrice, maxPrice, page = 1, limit = 12 } =
-    params;
+  const {
+    category,
+    audience,
+    age,
+    sort = "featured",
+    q,
+    minPrice,
+    maxPrice,
+    size,
+    color,
+    page = 1,
+    limit = 12,
+  } = params;
+
+  const sizes = normalizeListParam(size);
+  const colors = normalizeListParam(color);
 
   return safeQuery(async () => {
     const settings = await getStoreSettings();
@@ -144,6 +169,16 @@ export async function getProducts(params: {
             price: {
               ...(minPrice ? { gte: minPrice } : {}),
               ...(maxPrice ? { lte: maxPrice } : {}),
+            },
+          }
+        : {}),
+      ...(sizes.length || colors.length
+        ? {
+            variants: {
+              some: {
+                ...(sizes.length ? { size: { in: sizes } } : {}),
+                ...(colors.length ? { color: { in: colors } } : {}),
+              },
             },
           }
         : {}),

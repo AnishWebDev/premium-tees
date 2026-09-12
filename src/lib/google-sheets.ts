@@ -67,6 +67,21 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
+/** Human-readable date/time for spreadsheet rows (India Standard Time). */
+export function formatSheetDateTime(date: Date): string {
+  const formatted = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+
+  return `${formatted} IST`;
+}
+
 function formatItems(items: OrderItem[]): string {
   return items
     .map(
@@ -84,8 +99,8 @@ function orderToRow(order: OrderForSheet): string[] {
   return [
     order.orderNumber,
     order.status,
-    order.createdAt.toISOString(),
-    order.updatedAt.toISOString(),
+    formatSheetDateTime(order.createdAt),
+    formatSheetDateTime(order.updatedAt),
     orderEmail(order),
     order.shippingName,
     order.shippingPhone ?? "",

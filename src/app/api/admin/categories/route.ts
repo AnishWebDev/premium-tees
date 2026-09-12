@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { categorySchema } from "@/lib/validations/product";
+
+const categoryUpdateSchema = z.object({
+  categoryId: z.string().min(1),
+  name: z.string().min(2).max(80).optional(),
+  description: z.string().optional().nullable(),
+  image: z.string().url().optional().or(z.literal("")).nullable(),
+  featured: z.boolean().optional(),
+  sortOrder: z.coerce.number().int().optional(),
+});
 
 export async function GET() {
   try {
@@ -71,6 +81,52 @@ export async function POST(request: Request) {
       }
     }
     console.error("[POST /api/admin/categories]", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    await requireAdmin();
+    const body = await request.json();
+    const parsed = categoryUpdateSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { categoryId, name, description, image, featured, sortOrder } = parsed.data;
+    const existing = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!existing) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+
+    const category = await prisma.category.update({
+      where: { id: categoryId },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(description !== undefined ? { description: description?.trim() || null } : {}),
+        ...(image !== undefined ? { image: image?.trim() || null } : {}),
+        ...(featured !== undefined ? { featured } : {}),
+        ...(sortOrder !== undefined ? { sortOrder } : {}),
+      },
+      include: { _count: { select: { products: true } } },
+    });
+
+    return NextResponse.json(category);
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "Unauthorized") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (error.message === "Forbidden") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+    console.error("[PATCH /api/admin/categories]", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

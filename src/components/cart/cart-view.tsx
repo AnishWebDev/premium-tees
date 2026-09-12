@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { Minus, Plus, ShoppingBag, Trash2, Bookmark, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/stores/cart-store";
 import {
-  SHIPPING_METHODS,
-  FREE_SHIPPING_THRESHOLD,
-} from "@/lib/constants";
+  DEFAULT_COMMERCE_CONFIG,
+  type CommerceConfig,
+} from "@/lib/commerce";
 import {
   formatPrice,
   calculateTax,
-  calculateShipping,
   cn,
 } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -21,7 +20,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function CartView() {
+type CartViewProps = {
+  commerce?: CommerceConfig;
+};
+
+export function CartView({ commerce: commerceProp }: CartViewProps) {
+  const [commerce, setCommerce] = useState<CommerceConfig>(
+    commerceProp ?? DEFAULT_COMMERCE_CONFIG
+  );
+
   const {
     items,
     couponCode,
@@ -42,17 +49,30 @@ export function CartView() {
   const [promoLoading, setPromoLoading] = useState(false);
   const [shippingState, setShippingState] = useState("CA");
 
+  useEffect(() => {
+    if (commerceProp) {
+      setCommerce(commerceProp);
+      return;
+    }
+
+    fetch("/api/store/config")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.commerce) setCommerce(data.commerce);
+      })
+      .catch(() => undefined);
+  }, [commerceProp]);
+
   const activeItems = getActiveItems();
   const savedItems = getSavedItems();
   const subtotal = getSubtotal();
 
   const shippingCost =
-    subtotal >= FREE_SHIPPING_THRESHOLD
+    subtotal >= commerce.freeShippingThreshold
       ? 0
-      : SHIPPING_METHODS.find((m) => m.id === shippingMethod)?.price ??
-        calculateShipping(subtotal, shippingMethod);
+      : commerce.shippingMethods.find((m) => m.id === shippingMethod)?.price ?? 0;
 
-  const tax = calculateTax(subtotal - discount, shippingState);
+  const tax = calculateTax(subtotal - discount, commerce.gstRate, shippingState);
   const total = Math.max(0, subtotal - discount + shippingCost + tax);
 
   const applyPromo = async () => {
@@ -270,9 +290,9 @@ export function CartView() {
             <div>
               <Label className="text-xs uppercase tracking-wider">Shipping</Label>
               <div className="mt-2 space-y-2" role="radiogroup" aria-label="Shipping method">
-                {SHIPPING_METHODS.map((method) => {
+                {commerce.shippingMethods.map((method) => {
                   const price =
-                    subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : method.price;
+                    subtotal >= commerce.freeShippingThreshold ? 0 : method.price;
                   return (
                     <label
                       key={method.id}
@@ -308,9 +328,9 @@ export function CartView() {
                   );
                 })}
               </div>
-              {subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
+              {subtotal > 0 && subtotal < commerce.freeShippingThreshold && (
                 <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-                  Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more for free
+                  Add {formatPrice(commerce.freeShippingThreshold - subtotal)} more for free
                   shipping
                 </p>
               )}
@@ -349,7 +369,9 @@ export function CartView() {
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-[var(--muted-foreground)]">Tax (est.)</dt>
+              <dt className="text-[var(--muted-foreground)]">
+                Tax (est. {Math.round(commerce.gstRate * 100)}% GST)
+              </dt>
               <dd className="font-medium text-[var(--foreground)]">{formatPrice(tax)}</dd>
             </div>
             <div className="flex justify-between border-t border-[var(--border)] pt-3 text-base">

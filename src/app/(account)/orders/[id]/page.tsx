@@ -9,6 +9,7 @@ import { ORDER_STATUS_STYLES } from "@/lib/order-status-styles";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { BuyAgainButton } from "@/components/account/buy-again-button";
 import { ReturnRequestForm } from "@/components/account/return-request-form";
 
 type OrderDetailPageProps = {
@@ -75,15 +76,18 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             Placed on {formatDate(order.createdAt)}
           </p>
         </div>
-        <Badge
-          variant="secondary"
-          className={cn(
-            "text-xs uppercase tracking-wider",
-            ORDER_STATUS_STYLES[order.status]
-          )}
-        >
-          {order.status.toLowerCase()}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-3">
+          <BuyAgainButton orderId={order.id} />
+          <Badge
+            variant="secondary"
+            className={cn(
+              "text-xs uppercase tracking-wider",
+              ORDER_STATUS_STYLES[order.status]
+            )}
+          >
+            {order.status.toLowerCase()}
+          </Badge>
+        </div>
       </div>
 
       {(order.status === "SHIPPED" ||

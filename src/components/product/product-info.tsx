@@ -8,7 +8,11 @@ import { SIZES } from "@/lib/constants";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { formatPrice, stockStatus, cn } from "@/lib/utils";
+import type { SizeGuideData } from "@/lib/cms-content";
 import { StarRating } from "@/components/shared/star-rating";
+import { SizeGuideModal } from "@/components/product/size-guide-modal";
+import { PincodeChecker } from "@/components/product/pincode-checker";
+import { StickyAddToCartBar } from "@/components/product/sticky-add-to-cart-bar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -22,6 +26,8 @@ type ProductVariant = {
 };
 
 type ProductInfoProps = {
+  sizeGuide?: SizeGuideData;
+  pincodeDeliveryDays?: string;
   product: {
     id: string;
     name: string;
@@ -39,7 +45,11 @@ type ProductInfoProps = {
   };
 };
 
-export function ProductInfo({ product }: ProductInfoProps) {
+export function ProductInfo({
+  product,
+  sizeGuide,
+  pincodeDeliveryDays = "4–6 business days",
+}: ProductInfoProps) {
   const { data: session } = useSession();
   const addItem = useCartStore((s) => s.addItem);
   const isSaved = useWishlistStore((s) => s.productIds.includes(product.id));
@@ -128,7 +138,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
   ].filter((s) => s.value);
 
   return (
-    <div className="flex flex-col">
+    <>
+    <div className="flex flex-col pb-24 lg:pb-0">
       <div className="space-y-3">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-[var(--foreground)] sm:text-4xl">
           {product.name}
@@ -213,7 +224,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
         {sizesForColor.length > 0 && (
           <div>
-            <Label className="mb-3 block">Size</Label>
+            <div className="mb-3 flex items-center justify-between">
+              <Label>Size</Label>
+              {sizeGuide && <SizeGuideModal data={sizeGuide} />}
+            </div>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Size">
               {sizesForColor.map((size) => {
                 const variant = product.variants.find(
@@ -311,7 +325,18 @@ export function ProductInfo({ product }: ProductInfoProps) {
             />
           </Button>
         </div>
+
+        <PincodeChecker pincodeDeliveryDays={pincodeDeliveryDays} />
       </div>
     </div>
+
+    <StickyAddToCartBar
+      productName={product.name}
+      unitPrice={unitPrice}
+      selectedVariant={!!selectedVariant}
+      disabled={!selectedVariant || stock?.status === "out"}
+      onAddToCart={handleAddToCart}
+    />
+    </>
   );
 }

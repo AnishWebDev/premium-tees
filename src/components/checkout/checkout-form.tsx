@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Lock, CreditCard, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations/checkout";
 import { SHIPPING_METHODS } from "@/lib/constants";
@@ -26,6 +27,8 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
   const demoMode = mode === "demo";
   const { data: session } = useSession();
   const [submitting, setSubmitting] = useState(false);
+  const [gstRate, setGstRate] = useState(0.05);
+  const [addressPrefilled, setAddressPrefilled] = useState(false);
 
   const {
     getActiveItems,
@@ -44,6 +47,7 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema) as never,
@@ -61,9 +65,62 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
   const selectedShipping = watch("shippingMethod");
   const shippingState = watch("shippingState");
 
+  useEffect(() => {
+    fetch("/api/store/config")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (typeof data?.commerce?.gstRate === "number") {
+          setGstRate(data.commerce.gstRate);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user || addressPrefilled) return;
+
+    fetch("/api/account/addresses")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const addresses = data?.addresses ?? [];
+        if (!addresses.length) {
+          setAddressPrefilled(true);
+          return;
+        }
+
+        const defaultAddress =
+          addresses.find(
+            (a: { isDefault: boolean; type: string }) =>
+              a.isDefault && (a.type === "SHIPPING" || a.type === "BOTH")
+          ) ??
+          addresses.find(
+            (a: { type: string }) => a.type === "SHIPPING" || a.type === "BOTH"
+          ) ??
+          addresses[0];
+
+        reset({
+          email: session.user.email ?? "",
+          shippingName: defaultAddress.name,
+          shippingLine1: defaultAddress.line1,
+          shippingLine2: defaultAddress.line2 ?? "",
+          shippingCity: defaultAddress.city,
+          shippingState: defaultAddress.state,
+          shippingZip: defaultAddress.zip,
+          shippingCountry: defaultAddress.country || "IN",
+          shippingPhone: defaultAddress.phone ?? "",
+          sameAsBilling: true,
+          shippingMethod,
+          couponCode: couponCode ?? undefined,
+          billingCountry: "IN",
+        });
+        setAddressPrefilled(true);
+      })
+      .catch(() => setAddressPrefilled(true));
+  }, [session?.user, addressPrefilled, reset, shippingMethod, couponCode]);
+
   const shippingCost =
     SHIPPING_METHODS.find((m) => m.id === selectedShipping)?.price ?? 79;
-  const tax = calculateTax(subtotal - discount, shippingState);
+  const tax = calculateTax(subtotal - discount, gstRate, shippingState);
   const total = Math.max(0, subtotal - discount + shippingCost + tax);
 
   const loadRazorpay = () =>
@@ -445,6 +502,28 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
                   ? "Complete demo checkout"
                   : "Pay with UPI / Card"}
           </Button>
+
+          {!leadCapture && !demoMode && (
+            <div
+              className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]"
+              aria-label="Payment security"
+            >
+              <span className="inline-flex items-center gap-1">
+                <Lock className="h-3 w-3" aria-hidden />
+                Secure checkout
+              </span>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <CreditCard className="h-3 w-3" aria-hidden />
+                Razorpay
+              </span>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <Smartphone className="h-3 w-3" aria-hidden />
+                UPI / cards
+              </span>
+            </div>
+          )}
 
           <p className="mt-4 text-center text-xs text-[var(--muted-foreground)]">
             {leadCapture

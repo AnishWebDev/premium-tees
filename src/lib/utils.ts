@@ -45,9 +45,13 @@ export function generateOrderNumber(): string {
   return `PT-${timestamp}-${random}`;
 }
 
-/** Simplified GST estimate for India apparel (5%). */
-export function calculateTax(subtotal: number, _state?: string): number {
-  return Math.round(subtotal * 0.05);
+/** GST estimate using configured rate (default 5%). */
+export function calculateTax(
+  subtotal: number,
+  gstRate = 0.05,
+  _state?: string
+): number {
+  return Math.round(subtotal * gstRate);
 }
 
 export function calculateShipping(subtotal: number, method = "standard"): number {

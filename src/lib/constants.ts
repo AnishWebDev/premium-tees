@@ -4,10 +4,17 @@ export const SITE_URL = getSiteUrl();
 
 export const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
-export const SHIPPING_METHODS = [
-  { id: "standard" as const, label: "Standard", price: 79, days: "4–6 business days" },
-  { id: "express" as const, label: "Express", price: 149, days: "2–3 business days" },
-  { id: "overnight" as const, label: "Priority", price: 249, days: "1–2 business days" },
+export type ShippingMethodId = "standard" | "express" | "overnight";
+
+export const SHIPPING_METHODS: {
+  id: ShippingMethodId;
+  label: string;
+  price: number;
+  days: string;
+}[] = [
+  { id: "standard", label: "Standard", price: 79, days: "4–6 business days" },
+  { id: "express", label: "Express", price: 149, days: "2–3 business days" },
+  { id: "overnight", label: "Priority", price: 249, days: "1–2 business days" },
 ];
 
 export const FREE_SHIPPING_THRESHOLD = 1999;
@@ -78,12 +85,12 @@ export const FAQ_ITEMS = [
   {
     question: "What is your shipping policy?",
     answer:
-      "Orders over $100 ship free within the US. Standard shipping takes 5–7 business days. Express and overnight options are available at checkout.",
+      "Orders over ₹1,999 ship free across India. Standard delivery takes 4–6 business days. Express and priority options are available at checkout.",
   },
   {
     question: "How do I find my size?",
     answer:
-      "Our tees follow a modern tailored fit. Check the size guide on each product page. If you're between sizes, we recommend sizing up for a relaxed look.",
+      "Our tees follow a modern tailored fit. Open the size guide on each product page. If you're between sizes, we recommend sizing up for a relaxed look.",
   },
   {
     question: "What is your return policy?",
@@ -96,9 +103,9 @@ export const FAQ_ITEMS = [
       "Machine wash cold with like colors, tumble dry low. Avoid bleach. For best longevity, wash inside out and hang dry when possible.",
   },
   {
-    question: "Do you ship internationally?",
+    question: "Do you deliver across India?",
     answer:
-      "Yes — we currently ship to the US, Canada, UK, and Australia. International duties and taxes may apply depending on your location.",
+      "Yes — we deliver to serviceable pincodes across India. Enter your pincode on the product page for an estimated delivery window.",
   },
   {
     question: "Are your products sustainably made?",

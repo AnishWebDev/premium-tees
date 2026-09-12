@@ -154,7 +154,11 @@ export async function POST(request: Request) {
     }
 
     const shippingCost = calculateShipping(subtotal, data.shippingMethod);
-    const tax = calculateTax(subtotal - discount, data.shippingState);
+    const tax = calculateTax(
+      subtotal - discount,
+      storeSettings.tax.gstRate,
+      data.shippingState
+    );
     const total = Math.max(0, subtotal + shippingCost + tax - discount);
     const orderNumber = generateOrderNumber();
 
