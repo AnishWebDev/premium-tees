@@ -9,8 +9,10 @@ import {
   DEFAULT_THEME,
   FONT_CATALOG,
   THEME_PRESETS,
+  fontWeightToCss,
   normalizeTheme,
   themeFromPreset,
+  type FontWeightOption,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -55,14 +57,16 @@ function buttonPreviewRadius(theme: ThemeData) {
   return 12;
 }
 
+const FONT_WEIGHT_OPTIONS: { value: FontWeightOption; label: string }[] = [
+  { value: "normal", label: "Normal" },
+  { value: "medium", label: "Medium" },
+  { value: "semibold", label: "Semibold" },
+  { value: "bold", label: "Bold" },
+];
+
 function buttonPreviewStyles(theme: ThemeData): React.CSSProperties {
   const radius = buttonPreviewRadius(theme);
-  const weight =
-    theme.buttonWeight === "semibold"
-      ? 600
-      : theme.buttonWeight === "normal"
-        ? 400
-        : 500;
+  const weight = Number(fontWeightToCss(theme.buttonWeight));
 
   if (theme.buttonStyle === "outline") {
     return {
@@ -382,6 +386,22 @@ export function ThemeEditor({
                 ))}
               </SelectContent>
             </Select>
+            <Label className="mt-3">Body weight</Label>
+            <Select
+              value={theme.fontSansWeight}
+              onValueChange={(v) => set("fontSansWeight", v as FontWeightOption)}
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Display / headings font</Label>
@@ -398,6 +418,22 @@ export function ThemeEditor({
                     <span style={{ fontFamily: `"${font.name}", serif` }}>
                       {font.name}
                     </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Label className="mt-3">Heading weight</Label>
+            <Select
+              value={theme.fontDisplayWeight}
+              onValueChange={(v) => set("fontDisplayWeight", v as FontWeightOption)}
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -462,9 +498,11 @@ export function ThemeEditor({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="semibold">Semibold</SelectItem>
+                {FONT_WEIGHT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -512,14 +550,16 @@ export function ThemeEditor({
               fontFamily:
                 FONT_CSS_VAR[theme.fontSans] ??
                 `"${theme.fontSans}", system-ui, sans-serif`,
+              fontWeight: Number(fontWeightToCss(theme.fontSansWeight)),
             }}
           >
             <p
-              className="text-2xl font-semibold"
+              className="text-2xl"
               style={{
                 fontFamily:
                   FONT_CSS_VAR[theme.fontDisplay] ??
                   `"${theme.fontDisplay}", Georgia, serif`,
+                fontWeight: Number(fontWeightToCss(theme.fontDisplayWeight)),
               }}
             >
               Preview heading

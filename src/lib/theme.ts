@@ -2,8 +2,22 @@ import { fontFamilyStack } from "@/lib/fonts";
 
 export type ButtonRadius = "pill" | "rounded" | "square";
 export type ButtonStyle = "solid" | "outline" | "soft";
-export type ButtonWeight = "normal" | "medium" | "semibold";
+export type FontWeightOption = "normal" | "medium" | "semibold" | "bold";
+export type ButtonWeight = FontWeightOption;
 export type LinkStyle = "underline" | "accent" | "subtle" | "bold";
+
+export function fontWeightToCss(weight: FontWeightOption): string {
+  switch (weight) {
+    case "normal":
+      return "400";
+    case "medium":
+      return "500";
+    case "semibold":
+      return "600";
+    case "bold":
+      return "700";
+  }
+}
 
 export type ThemeData = {
   presetId: string;
@@ -17,6 +31,8 @@ export type ThemeData = {
   ring: string;
   fontSans: string;
   fontDisplay: string;
+  fontSansWeight: FontWeightOption;
+  fontDisplayWeight: FontWeightOption;
   buttonRadius: ButtonRadius;
   buttonStyle: ButtonStyle;
   buttonWeight: ButtonWeight;
@@ -35,6 +51,8 @@ export const DEFAULT_THEME: ThemeData = {
   ring: "#0a0a0a",
   fontSans: "DM Sans",
   fontDisplay: "Instrument Serif",
+  fontSansWeight: "normal",
+  fontDisplayWeight: "semibold",
   buttonRadius: "pill",
   buttonStyle: "solid",
   buttonWeight: "medium",
@@ -45,7 +63,24 @@ export type ThemePreset = {
   id: string;
   name: string;
   description: string;
-  theme: Omit<ThemeData, "presetId">;
+  theme: Partial<Omit<ThemeData, "presetId">> &
+    Pick<
+      ThemeData,
+      | "background"
+      | "foreground"
+      | "muted"
+      | "mutedForeground"
+      | "border"
+      | "accent"
+      | "accentForeground"
+      | "ring"
+      | "fontSans"
+      | "fontDisplay"
+      | "buttonRadius"
+      | "buttonStyle"
+      | "buttonWeight"
+      | "linkStyle"
+    >;
 };
 
 /** Curated full-site looks. Avoids purple / cream-terracotta / newspaper defaults. */
@@ -217,6 +252,8 @@ export function normalizeTheme(input: unknown): ThemeData {
     buttonRadius: partial.buttonRadius ?? DEFAULT_THEME.buttonRadius,
     buttonStyle: partial.buttonStyle ?? DEFAULT_THEME.buttonStyle,
     buttonWeight: partial.buttonWeight ?? DEFAULT_THEME.buttonWeight,
+    fontSansWeight: partial.fontSansWeight ?? DEFAULT_THEME.fontSansWeight,
+    fontDisplayWeight: partial.fontDisplayWeight ?? DEFAULT_THEME.fontDisplayWeight,
     linkStyle: partial.linkStyle ?? DEFAULT_THEME.linkStyle,
   };
 }
@@ -224,7 +261,7 @@ export function normalizeTheme(input: unknown): ThemeData {
 export function themeFromPreset(presetId: string): ThemeData | null {
   const preset = THEME_PRESETS.find((p) => p.id === presetId);
   if (!preset) return null;
-  return { presetId: preset.id, ...preset.theme };
+  return normalizeTheme({ presetId: preset.id, ...preset.theme });
 }
 
 type ButtonSurface = {
@@ -317,12 +354,9 @@ export function themeToCssVariables(theme: ThemeData) {
       : normalized.buttonRadius === "square"
         ? "0.25rem"
         : "0.75rem";
-  const weight =
-    normalized.buttonWeight === "semibold"
-      ? "600"
-      : normalized.buttonWeight === "normal"
-        ? "400"
-        : "500";
+  const weight = fontWeightToCss(normalized.buttonWeight);
+  const sansWeight = fontWeightToCss(normalized.fontSansWeight);
+  const displayWeight = fontWeightToCss(normalized.fontDisplayWeight);
   const button = buttonSurface(normalized);
   const link = linkTokens(normalized);
 
@@ -354,6 +388,8 @@ export function themeToCssVariables(theme: ThemeData) {
   --link-weight: ${link.weight};
   --font-sans-family: ${sans};
   --font-display-family: ${display};
+  --font-sans-weight: ${sansWeight};
+  --font-display-weight: ${displayWeight};
   color-scheme: light;
 }
 .dark {

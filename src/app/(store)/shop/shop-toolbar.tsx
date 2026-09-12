@@ -93,9 +93,7 @@ export function ShopToolbar({ categories, total }: ShopToolbarProps) {
               className="pl-9"
             />
           </div>
-          <Button type="submit" variant="secondary">
-            Search
-          </Button>
+          <Button type="submit">Search</Button>
         </form>
       </div>
 

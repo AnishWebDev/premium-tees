@@ -39,6 +39,8 @@
   --link-weight: 500;
   --font-sans-family: "DM Sans", system-ui, sans-serif;
   --font-display-family: "Instrument Serif", Georgia, serif;
+  --font-sans-weight: 400;
+  --font-display-weight: 600;
 }
 
 @keyframes accordion-down {
@@ -109,6 +111,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans-family);
+  font-weight: var(--font-sans-weight);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -286,6 +289,7 @@ input[type="button"]:not(:disabled) {
 
 .font-display {
   font-family: var(--font-display-family);
+  font-weight: var(--font-display-weight) !important;
 }
 
 .theme-link {
