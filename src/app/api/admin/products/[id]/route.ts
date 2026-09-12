@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { toPrismaAudience } from "@/lib/audience";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
@@ -79,7 +80,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       }
     }
 
-    const { images, variants, ...productFields } = data;
+    const { images, variants, audience, ...productFields } = data;
 
     const product = await prisma.$transaction(async (tx) => {
       if (images) {
@@ -128,6 +129,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         data: {
           ...productFields,
           ...(slug ? { slug } : {}),
+          ...(audience ? { audience: toPrismaAudience(audience) } : {}),
         },
         include: {
           images: { orderBy: { sortOrder: "asc" } },

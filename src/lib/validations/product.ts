@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AUDIENCE_IDS } from "@/lib/audience";
 
 export const productSchema = z.object({
   name: z.string().min(2).max(120),
@@ -11,6 +12,7 @@ export const productSchema = z.object({
   bestSeller: z.boolean().default(false),
   newArrival: z.boolean().default(false),
   active: z.boolean().default(true),
+  audience: z.enum(AUDIENCE_IDS).default("men"),
   material: z.string().optional(),
   fit: z.string().optional(),
   care: z.string().optional(),

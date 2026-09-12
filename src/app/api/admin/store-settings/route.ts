@@ -27,9 +27,21 @@ export async function GET() {
   }
 }
 
-const putSchema = z.object({
-  paymentsEnabled: z.boolean(),
-});
+const putSchema = z
+  .object({
+    paymentsEnabled: z.boolean().optional(),
+    audiencesEnabled: z
+      .object({
+        women: z.boolean(),
+        girl: z.boolean(),
+        boy: z.boolean(),
+      })
+      .optional(),
+  })
+  .refine(
+    (data) => data.paymentsEnabled !== undefined || data.audiencesEnabled !== undefined,
+    { message: "No settings to update" }
+  );
 
 export async function PUT(request: Request) {
   try {
@@ -42,10 +54,16 @@ export async function PUT(request: Request) {
     }
 
     const settings = await upsertStoreSettings({
-      paymentsEnabled: parsed.data.paymentsEnabled,
+      ...(parsed.data.paymentsEnabled !== undefined
+        ? { paymentsEnabled: parsed.data.paymentsEnabled }
+        : {}),
+      ...(parsed.data.audiencesEnabled
+        ? { audiencesEnabled: parsed.data.audiencesEnabled }
+        : {}),
     });
 
     revalidatePath("/checkout");
+    revalidatePath("/shop");
     revalidatePath("/admin/settings");
 
     return NextResponse.json({

@@ -1,5 +1,11 @@
+import {
+  getEnabledAudiences,
+  resolveShopAudience,
+  toPrismaAudience,
+} from "@/lib/audience";
 import { normalizeImageUrl } from "@/lib/image-url";
 import { prisma } from "@/lib/prisma";
+import { getStoreSettings } from "@/lib/store-settings";
 import type { ProductCardData } from "@/types";
 import { Prisma } from "@prisma/client";
 
@@ -100,6 +106,7 @@ export async function getNewArrivals(limit = 8) {
 
 export async function getProducts(params: {
   category?: string;
+  audience?: string;
   sort?: string;
   q?: string;
   minPrice?: number;
@@ -107,11 +114,17 @@ export async function getProducts(params: {
   page?: number;
   limit?: number;
 }) {
-  const { category, sort = "featured", q, minPrice, maxPrice, page = 1, limit = 12 } = params;
+  const { category, audience, sort = "featured", q, minPrice, maxPrice, page = 1, limit = 12 } =
+    params;
 
   return safeQuery(async () => {
+    const settings = await getStoreSettings();
+    const enabledAudiences = getEnabledAudiences(settings.audiencesEnabled);
+    const resolvedAudience = resolveShopAudience(audience, enabledAudiences);
+
     const where: Prisma.ProductWhereInput = {
       active: true,
+      audience: toPrismaAudience(resolvedAudience),
       ...(category ? { category: { slug: category } } : {}),
       ...(q
         ? {

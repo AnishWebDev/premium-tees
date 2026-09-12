@@ -1,15 +1,23 @@
 import { prisma } from "@/lib/prisma";
+import {
+  DEFAULT_AUDIENCE_SETTINGS,
+  normalizeAudienceSettings,
+  type AudienceSettings,
+} from "@/lib/audience";
 
 export const STORE_SETTINGS_KEY = "storeSettings";
 
 export type StoreSettings = {
   /** When false, customers submit address/details without payment (lead capture). */
   paymentsEnabled: boolean;
+  /** SuperAdmin toggles — Men is always available in the shop filter. */
+  audiencesEnabled: AudienceSettings;
   updatedAt: string;
 };
 
 const DEFAULT_STORE_SETTINGS: StoreSettings = {
   paymentsEnabled: false,
+  audiencesEnabled: DEFAULT_AUDIENCE_SETTINGS,
   updatedAt: new Date(0).toISOString(),
 };
 
@@ -24,6 +32,7 @@ export async function getStoreSettings(): Promise<StoreSettings> {
     const data = row.data as Partial<StoreSettings>;
     return {
       paymentsEnabled: data.paymentsEnabled ?? DEFAULT_STORE_SETTINGS.paymentsEnabled,
+      audiencesEnabled: normalizeAudienceSettings(data.audiencesEnabled),
       updatedAt:
         typeof data.updatedAt === "string"
           ? data.updatedAt
@@ -35,10 +44,12 @@ export async function getStoreSettings(): Promise<StoreSettings> {
 }
 
 export async function upsertStoreSettings(
-  input: Pick<StoreSettings, "paymentsEnabled">
+  input: Partial<Pick<StoreSettings, "paymentsEnabled" | "audiencesEnabled">>
 ): Promise<StoreSettings> {
+  const current = await getStoreSettings();
   const next: StoreSettings = {
-    paymentsEnabled: input.paymentsEnabled,
+    paymentsEnabled: input.paymentsEnabled ?? current.paymentsEnabled,
+    audiencesEnabled: input.audiencesEnabled ?? current.audiencesEnabled,
     updatedAt: new Date().toISOString(),
   };
 

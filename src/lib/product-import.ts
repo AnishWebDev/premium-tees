@@ -1,3 +1,4 @@
+import { isAudienceId, type AudienceId } from "@/lib/audience";
 import { rowsToObjects, parseCsv } from "@/lib/csv-parse";
 import { slugify } from "@/lib/utils";
 import { productSchema, type ProductInput } from "@/lib/validations/product";
@@ -6,6 +7,7 @@ export const PRODUCT_IMPORT_HEADERS = [
   "name",
   "slug",
   "category",
+  "audience",
   "description",
   "short_desc",
   "price",
@@ -29,6 +31,7 @@ export const PRODUCT_IMPORT_TEMPLATE_ROW = {
   name: "Essential Crew Tee",
   slug: "essential-crew-tee",
   category: "essentials",
+  audience: "men",
   description:
     "Our signature crew neck tee in 220gsm organic cotton. Pre-shrunk, garment-dyed, and finished with a soft hand feel.",
   short_desc: "Premium organic cotton crew neck",
@@ -162,6 +165,12 @@ function rowToProductInput(
   const description = ensureDescription(raw.description ?? "", raw.short_desc);
   const slug = raw.slug?.trim() || undefined;
 
+  const audienceRaw = (raw.audience ?? "men").trim().toLowerCase();
+  if (!isAudienceId(audienceRaw)) {
+    return { error: `Invalid audience "${raw.audience}". Use men, women, girl, or boy.` };
+  }
+  const audience = audienceRaw as AudienceId;
+
   const variants = sizes.flatMap((size) =>
     colors.map((color) => ({
       size,
@@ -182,6 +191,7 @@ function rowToProductInput(
       bestSeller: parseBoolean(raw.best_seller, false),
       newArrival: parseBoolean(raw.new_arrival, false),
       active: parseBoolean(raw.active, true),
+      audience,
       material: raw.material?.trim() || undefined,
       fit: raw.fit?.trim() || undefined,
       care: raw.care?.trim() || undefined,

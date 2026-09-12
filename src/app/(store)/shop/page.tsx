@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getEnabledAudiences } from "@/lib/audience";
 import { getProducts, getCategories } from "@/lib/products";
 import { getSiteIdentity } from "@/lib/site-identity";
+import { getStoreSettings } from "@/lib/store-settings";
 import { ProductCard } from "@/components/product/product-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 type ShopPageProps = {
   searchParams: Promise<{
     category?: string;
+    audience?: string;
     sort?: string;
     q?: string;
     page?: string;
@@ -34,11 +37,12 @@ type ShopPageProps = {
 };
 
 function buildPageUrl(
-  params: { category?: string; sort?: string; q?: string },
+  params: { category?: string; audience?: string; sort?: string; q?: string },
   page: number
 ) {
   const search = new URLSearchParams();
   if (params.category) search.set("category", params.category);
+  if (params.audience && params.audience !== "men") search.set("audience", params.audience);
   if (params.sort && params.sort !== "featured") search.set("sort", params.sort);
   if (params.q) search.set("q", params.q);
   if (page > 1) search.set("page", String(page));
@@ -50,9 +54,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
-  const [{ products, total, totalPages }, categories] = await Promise.all([
+  const [storeSettings, { products, total, totalPages }, categories] = await Promise.all([
+    getStoreSettings(),
     getProducts({
       category: params.category,
+      audience: params.audience,
       sort: params.sort,
       q: params.q,
       page,
@@ -61,8 +67,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     getCategories(),
   ]);
 
+  const enabledAudiences = getEnabledAudiences(storeSettings.audiencesEnabled);
+
   const filterParams = {
     category: params.category,
+    audience: params.audience,
     sort: params.sort,
     q: params.q,
   };
@@ -71,7 +80,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     <section className="section-padding">
       <div className="container-tight">
         <Suspense fallback={<div className="h-32 animate-pulse rounded-2xl bg-[var(--muted)]" />}>
-          <ShopToolbar categories={categories} total={total} />
+          <ShopToolbar
+            categories={categories}
+            total={total}
+            enabledAudiences={enabledAudiences}
+          />
         </Suspense>
 
         {products.length === 0 ? (

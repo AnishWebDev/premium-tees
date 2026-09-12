@@ -1,3 +1,4 @@
+import { toPrismaAudience } from "@/lib/audience";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import type { ProductInput } from "@/lib/validations/product";
@@ -32,6 +33,7 @@ export async function createProduct(data: ProductInput) {
       bestSeller: data.bestSeller,
       newArrival: data.newArrival,
       active: data.active,
+      audience: toPrismaAudience(data.audience),
       material: data.material,
       fit: data.fit,
       care: data.care,

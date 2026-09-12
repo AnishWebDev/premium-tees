@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AUDIENCE_IDS, AUDIENCE_LABELS, type AudienceId } from "@/lib/audience";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Category = {
@@ -43,6 +44,7 @@ type ProductFormData = {
   price: string;
   compareAt: string;
   categoryId: string;
+  audience: AudienceId;
   featured: boolean;
   bestSeller: boolean;
   newArrival: boolean;
@@ -84,6 +86,7 @@ export function ProductForm({
     price: initialData?.price ?? "",
     compareAt: initialData?.compareAt ?? "",
     categoryId: initialData?.categoryId ?? "",
+    audience: initialData?.audience ?? "men",
     featured: initialData?.featured ?? false,
     bestSeller: initialData?.bestSeller ?? false,
     newArrival: initialData?.newArrival ?? false,
@@ -117,6 +120,7 @@ export function ProductForm({
     price: parseFloat(form.price),
     compareAt: form.compareAt ? parseFloat(form.compareAt) : null,
     categoryId: form.categoryId,
+    audience: form.audience,
     featured: form.featured,
     bestSeller: form.bestSeller,
     newArrival: form.newArrival,
@@ -406,6 +410,27 @@ export function ProductForm({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="audience">Shop audience</Label>
+                <Select
+                  value={form.audience}
+                  onValueChange={(v) => updateField("audience", v as AudienceId)}
+                >
+                  <SelectTrigger id="audience">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AUDIENCE_IDS.map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {AUDIENCE_LABELS[id]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-neutral-500">
+                  Controls which shop filter this product appears under.
+                </p>
               </div>
             </CardContent>
           </Card>
