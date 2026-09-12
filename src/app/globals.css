@@ -410,6 +410,25 @@ input[type="button"]:not(:disabled) {
   color: #ffffff !important;
 }
 
+/*
+ * Select / dropdown item highlight — same tokens as primary button hover
+ * so themed accent (e.g. green) always pairs with readable foreground.
+ */
+.theme-menu-item {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.theme-menu-item[data-highlighted],
+.theme-menu-item:focus {
+  background-color: var(--button-hover-bg) !important;
+  color: var(--button-hover-fg, var(--button-fg)) !important;
+}
+.theme-menu-item[data-highlighted] svg,
+.theme-menu-item:focus svg {
+  color: inherit;
+}
+
 .grain::before {
   content: "";
   position: absolute;

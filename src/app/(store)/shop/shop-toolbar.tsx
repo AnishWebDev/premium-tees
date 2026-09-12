@@ -129,30 +129,32 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="shop-audience" className="sr-only">
-              Shop by audience
-            </Label>
-            <Select
-              value={audience}
-              onValueChange={(value) =>
-                updateParams({
-                  audience: value === DEFAULT_AUDIENCE ? null : value,
-                })
-              }
-            >
-              <SelectTrigger id="shop-audience" className="w-[140px]" aria-label="Shop by audience">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {enabledAudiences.map((id) => (
-                  <SelectItem key={id} value={id}>
-                    {AUDIENCE_LABELS[id]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {enabledAudiences.length > 1 && (
+            <div className="space-y-1.5">
+              <Label htmlFor="shop-audience" className="sr-only">
+                Shop by audience
+              </Label>
+              <Select
+                value={audience}
+                onValueChange={(value) =>
+                  updateParams({
+                    audience: value === DEFAULT_AUDIENCE ? null : value,
+                  })
+                }
+              >
+                <SelectTrigger id="shop-audience" className="w-[140px]" aria-label="Shop by audience">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {enabledAudiences.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {AUDIENCE_LABELS[id]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <Select
             value={category || "all"}
