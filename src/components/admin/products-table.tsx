@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ProductImportDialog } from "@/components/admin/product-import-dialog";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -105,12 +106,15 @@ export function ProductsTable({ products, canDelete = false }: ProductsTableProp
             </SelectContent>
           </Select>
         </div>
-        <Button asChild className="rounded-md">
-          <Link href="/admin/products/new">
-            <Plus className="h-4 w-4" />
-            Add product
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <ProductImportDialog />
+          <Button asChild className="rounded-md">
+            <Link href="/admin/products/new">
+              <Plus className="h-4 w-4" />
+              Add product
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card className="rounded-lg shadow-sm">

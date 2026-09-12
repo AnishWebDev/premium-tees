@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ export function ParallaxImage({
         style={{ y, height: `${100 + overflowPercent}%`, top: `-${overflowPercent / 2}%` }}
         className="absolute inset-x-0"
       >
-        <Image
+        <RemoteImage
           src={src}
           alt={alt}
           fill

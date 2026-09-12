@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { ExternalLink } from "lucide-react";
 import type { InstagramData } from "@/lib/site-content";
 import { SectionHeading } from "@/components/shared/section-heading";
@@ -30,7 +30,7 @@ export function InstagramGallery({ content }: InstagramGalleryProps) {
               className="group relative aspect-square overflow-hidden rounded-xl bg-[var(--muted)]"
               aria-label={`Instagram photo ${index + 1}`}
             >
-              <Image
+              <RemoteImage
                 src={url}
                 alt={`${content.title} ${index + 1}`}
                 fill

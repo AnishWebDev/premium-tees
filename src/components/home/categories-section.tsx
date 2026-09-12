@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { SectionHeading } from "@/components/shared/section-heading";
 
 type Category = {
@@ -51,7 +51,7 @@ export function CategoriesSection({
                 href={`/shop?category=${category.slug}`}
                 className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-200"
               >
-                <Image
+                <RemoteImage
                   src={image}
                   alt={category.name}
                   fill

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { cn } from "@/lib/utils";
 
 type VideoBackgroundProps = {
@@ -48,7 +48,7 @@ export function VideoBackground({
       )}
     >
       {reduceMotion && poster ? (
-        <Image
+        <RemoteImage
           src={poster}
           alt=""
           fill

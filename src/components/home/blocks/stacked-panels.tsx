@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 type Panel = {
   id: string;
@@ -25,7 +25,7 @@ export function StackedPanels({ panels }: StackedPanelsProps) {
           href={panel.href}
           className="group relative flex min-h-[70vh] items-end overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-inset"
         >
-          <Image
+          <RemoteImage
             src={panel.image}
             alt=""
             fill

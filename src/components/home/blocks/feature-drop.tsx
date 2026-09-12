@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import type { ProductCardData } from "@/types";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export function FeatureDrop({
       <div className="container-tight grid gap-0 lg:grid-cols-2">
         <div className="relative min-h-[60vh] bg-[var(--muted)] lg:min-h-[80vh]">
           {image ? (
-            <Image
+            <RemoteImage
               src={image.url}
               alt=""
               fill
@@ -63,7 +63,7 @@ export function FeatureDrop({
           </div>
           {secondary ? (
             <div className="relative mt-12 hidden aspect-[4/3] max-w-sm overflow-hidden bg-[var(--muted)] lg:block">
-              <Image
+              <RemoteImage
                 src={secondary.url}
                 alt=""
                 fill

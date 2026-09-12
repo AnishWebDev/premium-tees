@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { getCategories } from "@/lib/products";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { SectionHeading } from "@/components/shared/section-heading";
@@ -46,7 +46,7 @@ export default async function CollectionsPage() {
                 href={`/collections/${category.slug}`}
                 className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-[var(--muted)]"
               >
-                <Image
+                <RemoteImage
                   src={image}
                   alt={category.name}
                   fill

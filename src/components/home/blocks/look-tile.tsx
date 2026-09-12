@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import type { ProductCardData } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export function LookTile({
       )}
     >
       {image ? (
-        <Image
+        <RemoteImage
           src={image.url}
           alt=""
           fill

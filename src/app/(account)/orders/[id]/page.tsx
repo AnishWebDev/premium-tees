@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, Truck } from "lucide-react";
 import { auth } from "@/lib/auth";
@@ -157,7 +157,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               <li key={item.id} className="flex gap-4 p-4 sm:p-5">
                 <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
                   {item.image && (
-                    <Image
+                    <RemoteImage
                       src={item.image}
                       alt={item.name}
                       fill

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { cn } from "@/lib/utils";
 
 export type MosaicCell = {
@@ -66,7 +66,7 @@ export function ImageMosaic({ cells, eyebrow, title }: ImageMosaicProps) {
                 spanClass
               )}
             >
-              <Image
+              <RemoteImage
                 src={cell.image}
                 alt=""
                 fill

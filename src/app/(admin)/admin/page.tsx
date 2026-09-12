@@ -27,7 +27,9 @@ type Analytics = {
     total: number;
     status: string;
     createdAt: string;
-    user: { name: string | null; email: string | null };
+    shippingName: string;
+    guestEmail?: string | null;
+    user: { name: string | null; email: string | null } | null;
   }>;
   topProducts: Array<{ name: string; sold: number; revenue: number }>;
   salesByDay: Array<{ date: string; revenue: number; orders: number }>;
@@ -146,8 +148,12 @@ export default async function AdminDashboardPage() {
                   <TableCell className="font-medium">{order.orderNumber}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="text-sm">{order.user.name ?? "Guest"}</p>
-                      <p className="text-xs text-neutral-500">{order.user.email}</p>
+                      <p className="text-sm">
+                        {order.user?.name ?? order.shippingName ?? "Guest"}
+                      </p>
+                      <p className="text-xs text-neutral-500">
+                        {order.user?.email ?? order.guestEmail ?? "—"}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell className="text-neutral-500">

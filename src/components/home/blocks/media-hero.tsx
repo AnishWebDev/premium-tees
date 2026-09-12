@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import type { HeroData } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { VideoBackground } from "@/components/effects";
@@ -71,7 +71,7 @@ export function MediaHero({ content }: MediaHeroProps) {
       className="relative min-h-[68vh] overflow-hidden text-white sm:min-h-[72vh]"
       aria-labelledby="media-hero-heading"
     >
-      <Image
+      <RemoteImage
         src={content.imageUrl}
         alt=""
         fill

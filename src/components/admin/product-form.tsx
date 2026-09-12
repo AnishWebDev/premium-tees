@@ -252,10 +252,13 @@ export function ProductForm({
                     <Input
                       value={img.url}
                       onChange={(e) => updateImage(index, "url", e.target.value)}
-                      placeholder="https://..."
+                      placeholder="https://example.com/photo.jpg"
                       type="url"
                       required={index === 0}
                     />
+                    <p className="text-xs text-neutral-500">
+                      Any public https image URL (Pexels, Imgur, your CDN, etc.)
+                    </p>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Alt text</Label>

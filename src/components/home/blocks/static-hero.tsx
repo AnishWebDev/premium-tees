@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import type { HeroData } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +42,7 @@ export function StaticHero({ content }: StaticHeroProps) {
           </div>
         </div>
         <div className="relative order-1 aspect-[4/5] overflow-hidden bg-[var(--muted)] sm:aspect-[5/4] lg:order-2 lg:aspect-[4/5]">
-          <Image
+          <RemoteImage
             src={content.imageUrl}
             alt=""
             fill

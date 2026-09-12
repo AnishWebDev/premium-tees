@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import type { ProductCardData } from "@/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ export function ProductRowList({
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-[var(--muted)]">
                     {image ? (
-                      <Image
+                      <RemoteImage
                         src={image.url}
                         alt=""
                         fill

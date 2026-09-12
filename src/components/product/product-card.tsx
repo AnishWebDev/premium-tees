@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { Heart, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import type { ProductCardData } from "@/types";
-import { normalizeImageUrl } from "@/lib/image-url";
 import { formatPrice, cn } from "@/lib/utils";
 import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { StarRating } from "@/components/shared/star-rating";
@@ -38,12 +37,7 @@ export function ProductCard({
   const secondaryImage = product.images[1];
   const activeImage =
     hovered && secondaryImage ? secondaryImage : primaryImage;
-  const displayImage = activeImage
-    ? {
-        ...activeImage,
-        url: normalizeImageUrl(activeImage.url),
-      }
-    : undefined;
+  const displayImage = activeImage;
 
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,7 +76,7 @@ export function ProductCard({
       >
         <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[var(--muted)]">
           {displayImage && !imageBroken ? (
-            <Image
+            <RemoteImage
               src={displayImage.url}
               alt={displayImage.alt ?? product.name}
               fill

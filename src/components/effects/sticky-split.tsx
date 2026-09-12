@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/effects/reveal";
 
@@ -39,7 +39,7 @@ export function StickySplit({
         )}
       >
         <div className="relative aspect-[4/5] overflow-hidden lg:sticky lg:top-28 lg:aspect-auto lg:h-[min(78vh,720px)]">
-          <Image
+          <RemoteImage
             src={image}
             alt={imageAlt}
             fill

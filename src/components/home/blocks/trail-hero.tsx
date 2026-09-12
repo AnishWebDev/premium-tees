@@ -1,8 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { StarRating } from "@/components/shared/star-rating";
 import { Button } from "@/components/ui/button";
-
 export type TrailHeroProps = {
   eyebrow?: string;
   brand?: string;
@@ -77,7 +76,7 @@ export function TrailHero({
           ) : null}
         </div>
         <div className="relative order-1 aspect-[5/4] overflow-hidden rounded-2xl bg-[var(--muted)] sm:aspect-[4/3] lg:order-2 lg:aspect-[4/5]">
-          <Image
+          <RemoteImage
             src={imageUrl}
             alt=""
             fill

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
@@ -167,7 +167,7 @@ export function ContentCard({
           aria-label={title || "Card media"}
         />
       ) : (
-        <Image
+        <RemoteImage
           src={mediaSrc}
           alt={title || ""}
           fill

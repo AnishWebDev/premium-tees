@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -76,7 +76,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
                   : "border-transparent hover:border-neutral-300"
               )}
             >
-              <Image
+              <RemoteImage
                 src={image.url}
                 alt={image.alt ?? `${name} thumbnail ${index + 1}`}
                 fill
@@ -95,7 +95,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
           className="group relative block aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
           aria-label="Zoom image"
         >
-          <Image
+          <RemoteImage
             src={activeImage.url}
             alt={activeImage.alt ?? name}
             fill
@@ -113,7 +113,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
         <DialogContent className="max-w-4xl border-none bg-transparent p-0 shadow-none">
           <DialogTitle className="sr-only">{name} — enlarged view</DialogTitle>
           <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-[var(--muted)]">
-            <Image
+            <RemoteImage
               src={activeImage.url}
               alt={activeImage.alt ?? name}
               fill

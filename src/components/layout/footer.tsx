@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import {
   FOOTER_ESSENTIAL_LINKS,
   FOOTER_IMAGE,
@@ -22,7 +22,7 @@ export async function Footer() {
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--background)] text-[var(--muted-foreground)]">
       <div className="relative aspect-[5/3] w-full max-h-[min(52vh,28rem)] min-h-[12rem] overflow-hidden sm:aspect-[21/9] sm:min-h-[14rem]">
-        <Image
+        <RemoteImage
           src={FOOTER_IMAGE}
           alt=""
           fill

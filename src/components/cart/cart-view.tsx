@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { Minus, Plus, ShoppingBag, Trash2, Bookmark, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/stores/cart-store";
@@ -111,7 +111,7 @@ export function CartView() {
                   className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-[var(--muted)]"
                 >
                   {item.image && (
-                    <Image
+                    <RemoteImage
                       src={item.image}
                       alt={item.name}
                       fill
@@ -195,7 +195,7 @@ export function CartView() {
                 <li key={item.id} className="flex gap-4 py-6 first:pt-0">
                   <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
                     {item.image && (
-                      <Image
+                      <RemoteImage
                         src={item.image}
                         alt={item.name}
                         fill
