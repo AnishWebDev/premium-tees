@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ShoppingBag, Heart, User, Search } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
+import type { NavLinkItem } from "@/lib/site-content";
+import { RemoteImage } from "@/components/shared/remote-image";
 import { useSiteIdentity } from "@/components/providers/site-identity-provider";
 import { resetCartForUser, useCartStore } from "@/lib/stores/cart-store";
 import { useWishlistStore } from "@/lib/stores/wishlist-store";
@@ -21,8 +23,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Header() {
+type HeaderProps = {
+  navLinks?: NavLinkItem[];
+  logoImageUrl?: string;
+  logoImageAlt?: string;
+};
+
+export function Header({
+  navLinks = NAV_LINKS,
+  logoImageUrl = "",
+  logoImageAlt = "",
+}: HeaderProps) {
   const { name: siteName } = useSiteIdentity();
+  const links = navLinks.length > 0 ? navLinks : NAV_LINKS;
+  const hasLogoImage = logoImageUrl.trim().length > 0;
   const pathname = usePathname();
   const { data: session } = useSession();
   const itemCount = useCartStore((s) => s.getItemCount());
@@ -69,13 +83,28 @@ export function Header() {
           href="/"
           title={siteName}
           aria-label={`${siteName} home`}
-          className="font-display min-w-0 max-w-[42vw] truncate text-xl font-semibold tracking-tight text-[var(--foreground)] sm:max-w-none sm:text-2xl"
+          className={
+            hasLogoImage
+              ? "relative block h-9 w-28 shrink-0 sm:h-10 sm:w-32"
+              : "font-display min-w-0 max-w-[42vw] truncate text-xl font-semibold tracking-tight text-[var(--foreground)] sm:max-w-none sm:text-2xl"
+          }
         >
-          {siteName}
+          {hasLogoImage ? (
+            <RemoteImage
+              src={logoImageUrl}
+              alt={logoImageAlt || siteName}
+              fill
+              sizes="128px"
+              className="object-contain object-left"
+              priority
+            />
+          ) : (
+            siteName
+          )}
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">
-          {NAV_LINKS.map((link) => (
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -178,7 +207,7 @@ export function Header() {
             aria-label="Mobile"
           >
             <div className="container-tight flex flex-col gap-1 py-4">
-              {NAV_LINKS.map((link) => (
+              {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

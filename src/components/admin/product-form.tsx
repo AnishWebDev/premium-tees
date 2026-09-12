@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -248,17 +249,12 @@ export function ProductForm({
               {form.images.map((img, index) => (
                 <div key={index} className="grid gap-3 rounded-md border border-neutral-200 p-3 sm:grid-cols-[1fr_1fr_auto]">
                   <div className="space-y-1.5">
-                    <Label>Image URL</Label>
-                    <Input
+                    <ImageUrlField
+                      label="Image URL"
                       value={img.url}
-                      onChange={(e) => updateImage(index, "url", e.target.value)}
-                      placeholder="https://example.com/photo.jpg"
-                      type="url"
-                      required={index === 0}
+                      onChange={(url) => updateImage(index, "url", url)}
+                      hint="Any public https image URL (Pexels, Imgur, your CDN, etc.)"
                     />
-                    <p className="text-xs text-neutral-500">
-                      Any public https image URL (Pexels, Imgur, your CDN, etc.)
-                    </p>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Alt text</Label>

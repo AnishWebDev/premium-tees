@@ -10,11 +10,15 @@ import type {
   ContentKey,
   FaqData,
   FooterCreditData,
+  FooterData,
+  HeaderData,
   HeroData,
   HomeData,
   InstagramData,
+  NavLinkItem,
   TestimonialsData,
 } from "@/lib/site-content";
+import { ImageUrlField } from "@/components/admin/image-url-field";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
 import { defaultSectionsForTemplate } from "@/lib/home-sections";
 import { fontFamilyStack } from "@/lib/fonts";
@@ -65,6 +69,8 @@ type SiteContentEditorProps = {
 
 const BASE_TABS: { key: ContentKey; label: string }[] = [
   { key: "site", label: "Site" },
+  { key: "header", label: "Header" },
+  { key: "footer", label: "Footer" },
   { key: "hero", label: "Hero" },
   { key: "home", label: "Home sections" },
   { key: "about", label: "About" },
@@ -137,7 +143,7 @@ export function SiteContentEditor({
         </p>
       </div>
 
-      <Tabs defaultValue="hero">
+      <Tabs defaultValue="site">
         <div className="sticky top-0 z-20 border-b border-neutral-200 bg-[var(--background)] px-4 py-2 md:px-6">
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-[var(--muted)] p-1">
             {tabs.map((tab) => (
@@ -176,6 +182,22 @@ export function SiteContentEditor({
               <SaveButton keyName="site" />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="header" className="mt-0">
+          <HeaderEditor
+            data={content.header}
+            onChange={(header) => setContent((c) => ({ ...c, header }))}
+            saveButton={<SaveButton keyName="header" />}
+          />
+        </TabsContent>
+
+        <TabsContent value="footer" className="mt-0">
+          <FooterEditor
+            data={content.footer}
+            onChange={(footer) => setContent((c) => ({ ...c, footer }))}
+            saveButton={<SaveButton keyName="footer" />}
+          />
         </TabsContent>
 
         <TabsContent value="hero" className="mt-0">
@@ -522,6 +544,195 @@ function Field({
   );
 }
 
+function NavLinksEditor({
+  label,
+  description,
+  links,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  links: NavLinkItem[];
+  onChange: (links: NavLinkItem[]) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-sm font-medium text-neutral-900">{label}</p>
+        <p className="text-xs text-neutral-500">{description}</p>
+      </div>
+      {links.map((link, index) => (
+        <div
+          key={`${link.href}-${index}`}
+          className="grid gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-[1fr_1fr_auto]"
+        >
+          <Field
+            label="Label"
+            value={link.label}
+            onChange={(v) => {
+              const next = [...links];
+              next[index] = { ...link, label: v };
+              onChange(next);
+            }}
+          />
+          <Field
+            label="Link"
+            value={link.href}
+            onChange={(v) => {
+              const next = [...links];
+              next[index] = { ...link, href: v };
+              onChange(next);
+            }}
+            placeholder="/shop or https://…"
+          />
+          <div className="flex items-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Remove link ${index + 1}`}
+              onClick={() => onChange(links.filter((_, i) => i !== index))}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onChange([...links, { label: "", href: "" }])}
+      >
+        <Plus className="mr-1 h-4 w-4" /> Add link
+      </Button>
+    </div>
+  );
+}
+
+function HeaderEditor({
+  data,
+  onChange,
+  saveButton,
+}: {
+  data: HeaderData;
+  onChange: (d: HeaderData) => void;
+  saveButton: ReactNode;
+}) {
+  const set = (patch: Partial<HeaderData>) => onChange({ ...data, ...patch });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Header</CardTitle>
+        <CardDescription>
+          Navigation links and optional logo image. Leave logo URL empty to show the site name as text.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <NavLinksEditor
+          label="Main navigation"
+          description="Desktop and mobile menu links."
+          links={data.navLinks}
+          onChange={(navLinks) => set({ navLinks })}
+        />
+        <ImageUrlField
+          label="Logo image URL (optional)"
+          value={data.logoImageUrl}
+          onChange={(logoImageUrl) => set({ logoImageUrl })}
+          hint="Replaces the text site name when set. Use a wide logo on transparent background."
+        />
+        <Field
+          label="Logo alt text"
+          value={data.logoImageAlt}
+          onChange={(logoImageAlt) => set({ logoImageAlt })}
+          placeholder="Your brand name"
+        />
+        {saveButton}
+      </CardContent>
+    </Card>
+  );
+}
+
+function FooterEditor({
+  data,
+  onChange,
+  saveButton,
+}: {
+  data: FooterData;
+  onChange: (d: FooterData) => void;
+  saveButton: ReactNode;
+}) {
+  const set = (patch: Partial<FooterData>) => onChange({ ...data, ...patch });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Footer</CardTitle>
+        <CardDescription>
+          Banner image, tagline, trust strip, and bottom links. Newsletter and contact email stay on their own tabs.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <ImageUrlField
+          label="Banner image URL"
+          value={data.bannerImageUrl}
+          onChange={(bannerImageUrl) => set({ bannerImageUrl })}
+          hint="Wide landscape photo works best."
+        />
+        <Field
+          label="Banner image alt text"
+          value={data.bannerImageAlt}
+          onChange={(bannerImageAlt) => set({ bannerImageAlt })}
+        />
+        <Field
+          label="Tagline under site name"
+          value={data.tagline}
+          onChange={(tagline) => set({ tagline })}
+        />
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm font-medium text-neutral-900">Trust strip</p>
+            <p className="text-xs text-neutral-500">Four columns shown above the copyright row.</p>
+          </div>
+          {data.trustItems.map((item, index) => (
+            <div
+              key={`trust-${index}`}
+              className="grid gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-2"
+            >
+              <Field
+                label={`Column ${index + 1} title`}
+                value={item.title}
+                onChange={(title) => {
+                  const trustItems = [...data.trustItems];
+                  trustItems[index] = { ...item, title };
+                  set({ trustItems });
+                }}
+              />
+              <Field
+                label={`Column ${index + 1} subtitle`}
+                value={item.subtitle}
+                onChange={(subtitle) => {
+                  const trustItems = [...data.trustItems];
+                  trustItems[index] = { ...item, subtitle };
+                  set({ trustItems });
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        <NavLinksEditor
+          label="Footer links"
+          description="Privacy, terms, FAQ, and other essentials."
+          links={data.essentialLinks}
+          onChange={(essentialLinks) => set({ essentialLinks })}
+        />
+        {saveButton}
+      </CardContent>
+    </Card>
+  );
+}
+
 function ContactEditor({
   data,
   onChange,
@@ -625,11 +836,10 @@ function HeroEditor({
           onChange={(v) => set({ subheadline: v })}
           multiline
         />
-        <Field
+        <ImageUrlField
           label="Poster / fallback image URL"
           value={data.imageUrl}
           onChange={(v) => set({ imageUrl: v })}
-          placeholder="https://..."
         />
         <Field
           label="Hero video URL (optional)"
@@ -1185,7 +1395,7 @@ function InstagramEditor({
         {data.images.map((url, i) => (
           <div key={i} className="flex gap-2">
             <div className="flex-1">
-              <Field
+              <ImageUrlField
                 label={`Image ${i + 1} URL`}
                 value={url}
                 onChange={(v) => {
@@ -1199,7 +1409,8 @@ function InstagramEditor({
               type="button"
               variant="ghost"
               size="icon"
-              className="mt-8"
+              className="mt-8 shrink-0"
+              aria-label={`Remove image ${i + 1}`}
               onClick={() =>
                 onChange({
                   ...data,

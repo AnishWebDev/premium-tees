@@ -19,9 +19,9 @@ export const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
-/** Wide landscape for the storefront footer hero band. */
+/** Wide landscape for the storefront footer hero band (CMS override in footer block). */
 export const FOOTER_IMAGE =
-  "https://images.unsplash.com/photo-1506905925346-fe556b757778?w=2400&q=80";
+  "https://images.pexels.com/photos/7671166/pexels-photo-7671166.jpeg?auto=compress&cs=tinysrgb&w=2400";
 
 export const FOOTER_TRUST_ITEMS = [
   { title: "Premium cotton", subtitle: "Soft from day one" },

@@ -1,10 +1,5 @@
 import Link from "next/link";
 import { RemoteImage } from "@/components/shared/remote-image";
-import {
-  FOOTER_ESSENTIAL_LINKS,
-  FOOTER_IMAGE,
-  FOOTER_TRUST_ITEMS,
-} from "@/lib/constants";
 import { getContentBlock } from "@/lib/site-content";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { NewsletterForm } from "@/components/home/newsletter-form";
@@ -12,8 +7,9 @@ import { FooterCredit } from "@/components/layout/footer-credit";
 import { ColorModeToggle } from "@/components/theme/color-mode-toggle";
 
 export async function Footer() {
-  const [site, credit, newsletter, contact] = await Promise.all([
+  const [site, footer, credit, newsletter, contact] = await Promise.all([
     getSiteIdentity(),
+    getContentBlock("footer"),
     getContentBlock("footerCredit"),
     getContentBlock("newsletter"),
     getContentBlock("contact"),
@@ -23,8 +19,8 @@ export async function Footer() {
     <footer className="border-t border-[var(--border)] bg-[var(--background)] text-[var(--muted-foreground)]">
       <div className="relative aspect-[5/3] w-full max-h-[min(52vh,28rem)] min-h-[12rem] overflow-hidden sm:aspect-[21/9] sm:min-h-[14rem]">
         <RemoteImage
-          src={FOOTER_IMAGE}
-          alt=""
+          src={footer.bannerImageUrl}
+          alt={footer.bannerImageAlt}
           fill
           priority={false}
           sizes="100vw"
@@ -43,9 +39,7 @@ export async function Footer() {
             >
               {site.name}
             </Link>
-            <p className="mt-2 max-w-md text-sm text-white/85">
-              Go slow. Get outside.
-            </p>
+            <p className="mt-2 max-w-md text-sm text-white/85">{footer.tagline}</p>
           </div>
         </div>
       </div>
@@ -72,7 +66,7 @@ export async function Footer() {
 
       <div className="border-y border-[var(--border)] bg-[var(--muted)]">
         <div className="container-tight grid grid-cols-2 gap-6 py-8 sm:grid-cols-4 sm:gap-8 sm:py-10">
-          {FOOTER_TRUST_ITEMS.map((item) => (
+          {footer.trustItems.map((item) => (
             <div key={item.title} className="text-center">
               <p className="text-sm font-semibold text-[var(--foreground)]">
                 {item.title}
@@ -96,7 +90,7 @@ export async function Footer() {
           aria-label="Footer"
           className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs"
         >
-          {FOOTER_ESSENTIAL_LINKS.map((link) => (
+          {footer.essentialLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}

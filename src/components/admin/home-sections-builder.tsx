@@ -21,6 +21,7 @@ import {
 } from "@/lib/home-sections";
 import type { HomeTemplateId } from "@/lib/home-templates";
 import { cn } from "@/lib/utils";
+import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -275,9 +276,11 @@ export function HomeSectionsBuilder({
                                     : undefined
                                 }
                               >
-                                <Label className="text-xs">
-                                  {SECTION_FIELD_LABELS[key]}
-                                </Label>
+                                {key !== "imageUrl" ? (
+                                  <Label className="text-xs">
+                                    {SECTION_FIELD_LABELS[key]}
+                                  </Label>
+                                ) : null}
                                 {options ? (
                                   <Select
                                     value={value || options[0]?.value}
@@ -336,6 +339,14 @@ export function HomeSectionsBuilder({
                                       }
                                     />
                                   </div>
+                                ) : key === "imageUrl" ? (
+                                  <ImageUrlField
+                                    label={SECTION_FIELD_LABELS[key]}
+                                    value={value}
+                                    onChange={(v) => setProp(section.id, key, v)}
+                                    className="mt-0"
+                                    inputClassName="mt-1.5"
+                                  />
                                 ) : (
                                   <Input
                                     className="mt-1.5"
@@ -520,13 +531,11 @@ function ContentCardsEditor({
                 />
               </div>
               <div className="sm:col-span-2">
-                <Label className="text-xs">Image / GIF URL</Label>
-                <Input
-                  className="mt-1"
+                <ImageUrlField
+                  label="Image / GIF URL"
                   value={card.imageUrl ?? ""}
-                  onChange={(e) =>
-                    updateCard(index, { imageUrl: e.target.value })
-                  }
+                  onChange={(imageUrl) => updateCard(index, { imageUrl })}
+                  inputClassName="mt-1"
                 />
               </div>
               <div className="sm:col-span-2">

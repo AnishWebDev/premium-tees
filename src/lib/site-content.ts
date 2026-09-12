@@ -3,7 +3,15 @@ import {
   DEFAULT_SITE_DESCRIPTION,
   DEFAULT_SITE_NAME,
 } from "@/lib/site-defaults";
-import { FAQ_ITEMS, INSTAGRAM_IMAGES, TESTIMONIALS } from "@/lib/constants";
+import {
+  FAQ_ITEMS,
+  FOOTER_ESSENTIAL_LINKS,
+  FOOTER_IMAGE,
+  FOOTER_TRUST_ITEMS,
+  INSTAGRAM_IMAGES,
+  NAV_LINKS,
+  TESTIMONIALS,
+} from "@/lib/constants";
 import {
   isHomeTemplateId,
   type HomeTemplateId,
@@ -17,6 +25,8 @@ import { DEFAULT_THEME, normalizeTheme, type ThemeData } from "@/lib/theme";
 
 export const CONTENT_KEYS = [
   "site",
+  "header",
+  "footer",
   "hero",
   "home",
   "about",
@@ -34,6 +44,30 @@ export type ContentKey = (typeof CONTENT_KEYS)[number];
 export type SiteData = {
   name: string;
   description: string;
+};
+
+export type NavLinkItem = {
+  href: string;
+  label: string;
+};
+
+export type HeaderData = {
+  navLinks: NavLinkItem[];
+  logoImageUrl: string;
+  logoImageAlt: string;
+};
+
+export type FooterTrustItem = {
+  title: string;
+  subtitle: string;
+};
+
+export type FooterData = {
+  bannerImageUrl: string;
+  bannerImageAlt: string;
+  tagline: string;
+  trustItems: FooterTrustItem[];
+  essentialLinks: NavLinkItem[];
 };
 
 export type HeroData = {
@@ -152,6 +186,8 @@ export type { ThemeData };
 
 export type AllSiteContent = {
   site: SiteData;
+  header: HeaderData;
+  footer: FooterData;
   hero: HeroData;
   home: HomeData;
   about: AboutData;
@@ -168,6 +204,18 @@ export const DEFAULT_SITE_CONTENT: AllSiteContent = {
   site: {
     name: DEFAULT_SITE_NAME,
     description: DEFAULT_SITE_DESCRIPTION,
+  },
+  header: {
+    navLinks: [...NAV_LINKS],
+    logoImageUrl: "",
+    logoImageAlt: "",
+  },
+  footer: {
+    bannerImageUrl: FOOTER_IMAGE,
+    bannerImageAlt: "Outdoor landscape",
+    tagline: "Go slow. Get outside.",
+    trustItems: FOOTER_TRUST_ITEMS.map((item) => ({ ...item })),
+    essentialLinks: FOOTER_ESSENTIAL_LINKS.map((item) => ({ ...item })),
   },
   hero: {
     brand: DEFAULT_SITE_NAME,
@@ -300,6 +348,71 @@ function mergeContent<T extends object>(defaults: T, stored: unknown): T {
   return { ...defaults, ...(stored as Partial<T>) };
 }
 
+function mergeNavLinks(stored: unknown, defaults: NavLinkItem[]): NavLinkItem[] {
+  if (!Array.isArray(stored) || stored.length === 0) return defaults;
+  const links = stored
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Partial<NavLinkItem>;
+      const href = row.href?.trim() ?? "";
+      const label = row.label?.trim() ?? "";
+      if (!href || !label) return null;
+      return { href, label };
+    })
+    .filter((item): item is NavLinkItem => item !== null);
+  return links.length > 0 ? links : defaults;
+}
+
+function mergeHeader(stored: unknown): HeaderData {
+  const defaults = DEFAULT_SITE_CONTENT.header;
+  const partial =
+    stored && typeof stored === "object" ? (stored as Partial<HeaderData>) : {};
+  return {
+    navLinks: mergeNavLinks(partial.navLinks, defaults.navLinks),
+    logoImageUrl:
+      typeof partial.logoImageUrl === "string" ? partial.logoImageUrl.trim() : "",
+    logoImageAlt:
+      typeof partial.logoImageAlt === "string"
+        ? partial.logoImageAlt.trim()
+        : defaults.logoImageAlt,
+  };
+}
+
+function mergeFooter(stored: unknown): FooterData {
+  const defaults = DEFAULT_SITE_CONTENT.footer;
+  const partial =
+    stored && typeof stored === "object" ? (stored as Partial<FooterData>) : {};
+  const trustItems = Array.isArray(partial.trustItems)
+    ? partial.trustItems
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const row = item as Partial<FooterTrustItem>;
+          const title = row.title?.trim() ?? "";
+          const subtitle = row.subtitle?.trim() ?? "";
+          if (!title) return null;
+          return { title, subtitle };
+        })
+        .filter((item): item is FooterTrustItem => item !== null)
+    : defaults.trustItems;
+
+  return {
+    bannerImageUrl:
+      typeof partial.bannerImageUrl === "string" && partial.bannerImageUrl.trim()
+        ? partial.bannerImageUrl.trim()
+        : defaults.bannerImageUrl,
+    bannerImageAlt:
+      typeof partial.bannerImageAlt === "string" && partial.bannerImageAlt.trim()
+        ? partial.bannerImageAlt.trim()
+        : defaults.bannerImageAlt,
+    tagline:
+      typeof partial.tagline === "string" && partial.tagline.trim()
+        ? partial.tagline.trim()
+        : defaults.tagline,
+    trustItems: trustItems.length > 0 ? trustItems : defaults.trustItems,
+    essentialLinks: mergeNavLinks(partial.essentialLinks, defaults.essentialLinks),
+  };
+}
+
 function mergeFooterCredit(stored: unknown): FooterCreditData {
   const defaults = DEFAULT_SITE_CONTENT.footerCredit;
   const partial =
@@ -336,6 +449,12 @@ export async function getContentBlock<K extends ContentKey>(
     if (key === "footerCredit") {
       return mergeFooterCredit(row?.data) as AllSiteContent[K];
     }
+    if (key === "header") {
+      return mergeHeader(row?.data) as AllSiteContent[K];
+    }
+    if (key === "footer") {
+      return mergeFooter(row?.data) as AllSiteContent[K];
+    }
     return mergeContent(DEFAULT_SITE_CONTENT[key], row?.data) as AllSiteContent[K];
   } catch {
     return DEFAULT_SITE_CONTENT[key];
@@ -370,6 +489,8 @@ export async function getAllSiteContent(): Promise<AllSiteContent> {
     const byKey = Object.fromEntries(rows.map((r) => [r.key, r.data]));
     return {
       site: mergeContent(DEFAULT_SITE_CONTENT.site, byKey.site),
+      header: mergeHeader(byKey.header),
+      footer: mergeFooter(byKey.footer),
       hero: mergeContent(DEFAULT_SITE_CONTENT.hero, byKey.hero),
       home: mergeHome(byKey.home),
       about: mergeContent(DEFAULT_SITE_CONTENT.about, byKey.about),
