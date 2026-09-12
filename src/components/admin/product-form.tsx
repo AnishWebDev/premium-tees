@@ -17,7 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AUDIENCE_IDS, AUDIENCE_LABELS, type AudienceId } from "@/lib/audience";
+import {
+  AUDIENCE_IDS,
+  AUDIENCE_LABELS,
+  isKidsAudience,
+  KIDS_AGE_IDS,
+  KIDS_AGE_LABELS,
+  type AudienceId,
+  type KidsAgeId,
+} from "@/lib/audience";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Category = {
@@ -45,6 +53,7 @@ type ProductFormData = {
   compareAt: string;
   categoryId: string;
   audience: AudienceId;
+  kidsAge: KidsAgeId | null;
   featured: boolean;
   bestSeller: boolean;
   newArrival: boolean;
@@ -87,6 +96,7 @@ export function ProductForm({
     compareAt: initialData?.compareAt ?? "",
     categoryId: initialData?.categoryId ?? "",
     audience: initialData?.audience ?? "men",
+    kidsAge: initialData?.kidsAge ?? null,
     featured: initialData?.featured ?? false,
     bestSeller: initialData?.bestSeller ?? false,
     newArrival: initialData?.newArrival ?? false,
@@ -121,6 +131,7 @@ export function ProductForm({
     compareAt: form.compareAt ? parseFloat(form.compareAt) : null,
     categoryId: form.categoryId,
     audience: form.audience,
+    kidsAge: isKidsAudience(form.audience) ? form.kidsAge : null,
     featured: form.featured,
     bestSeller: form.bestSeller,
     newArrival: form.newArrival,
@@ -415,7 +426,14 @@ export function ProductForm({
                 <Label htmlFor="audience">Shop audience</Label>
                 <Select
                   value={form.audience}
-                  onValueChange={(v) => updateField("audience", v as AudienceId)}
+                  onValueChange={(v) => {
+                    const next = v as AudienceId;
+                    setForm((prev) => ({
+                      ...prev,
+                      audience: next,
+                      kidsAge: isKidsAudience(next) ? prev.kidsAge : null,
+                    }));
+                  }}
                 >
                   <SelectTrigger id="audience">
                     <SelectValue />
@@ -432,6 +450,32 @@ export function ProductForm({
                   Controls which shop filter this product appears under.
                 </p>
               </div>
+              {isKidsAudience(form.audience) && (
+                <div className="space-y-2">
+                  <Label htmlFor="kids-age">Age group</Label>
+                  <Select
+                    value={form.kidsAge ?? "none"}
+                    onValueChange={(v) =>
+                      updateField("kidsAge", v === "none" ? null : (v as KidsAgeId))
+                    }
+                  >
+                    <SelectTrigger id="kids-age">
+                      <SelectValue placeholder="Select age group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Not set</SelectItem>
+                      {KIDS_AGE_IDS.map((id) => (
+                        <SelectItem key={id} value={id}>
+                          {KIDS_AGE_LABELS[id]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-neutral-500">
+                    Used when customers filter Girls or Boys by age in the shop.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

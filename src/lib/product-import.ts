@@ -1,4 +1,4 @@
-import { isAudienceId, type AudienceId } from "@/lib/audience";
+import { isAudienceId, isKidsAgeId, type AudienceId, type KidsAgeId } from "@/lib/audience";
 import { rowsToObjects, parseCsv } from "@/lib/csv-parse";
 import { slugify } from "@/lib/utils";
 import { productSchema, type ProductInput } from "@/lib/validations/product";
@@ -8,6 +8,7 @@ export const PRODUCT_IMPORT_HEADERS = [
   "slug",
   "category",
   "audience",
+  "kids_age",
   "description",
   "short_desc",
   "price",
@@ -32,6 +33,7 @@ export const PRODUCT_IMPORT_TEMPLATE_ROW = {
   slug: "essential-crew-tee",
   category: "essentials",
   audience: "men",
+  kids_age: "",
   description:
     "Our signature crew neck tee in 220gsm organic cotton. Pre-shrunk, garment-dyed, and finished with a soft hand feel.",
   short_desc: "Premium organic cotton crew neck",
@@ -171,6 +173,20 @@ function rowToProductInput(
   }
   const audience = audienceRaw as AudienceId;
 
+  let kidsAge: KidsAgeId | null = null;
+  const kidsAgeRaw = raw.kids_age?.trim();
+  if (kidsAgeRaw) {
+    if (!isKidsAgeId(kidsAgeRaw)) {
+      return {
+        error: `Invalid kids_age "${raw.kids_age}". Use 2-4, 5-7, 8-10, or 11-13.`,
+      };
+    }
+    if (audience !== "girl" && audience !== "boy") {
+      return { error: "kids_age is only valid when audience is girl or boy." };
+    }
+    kidsAge = kidsAgeRaw;
+  }
+
   const variants = sizes.flatMap((size) =>
     colors.map((color) => ({
       size,
@@ -192,6 +208,7 @@ function rowToProductInput(
       newArrival: parseBoolean(raw.new_arrival, false),
       active: parseBoolean(raw.active, true),
       audience,
+      kidsAge,
       material: raw.material?.trim() || undefined,
       fit: raw.fit?.trim() || undefined,
       care: raw.care?.trim() || undefined,

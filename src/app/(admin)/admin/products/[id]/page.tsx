@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/roles";
 import { adminFetch } from "@/lib/admin-api";
-import { fromPrismaAudience, type AudienceId } from "@/lib/audience";
+import { fromPrismaAudience, fromPrismaKidsAge, type AudienceId } from "@/lib/audience";
 import { ProductForm } from "@/components/admin/product-form";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +25,7 @@ type ProductResponse = {
   newArrival: boolean;
   active: boolean;
   audience: string;
+  kidsAge: string | null;
   images: Array<{ url: string; alt: string | null }>;
   variants: Array<{
     size: string;
@@ -84,6 +85,7 @@ export default async function EditProductPage({ params }: PageProps) {
           newArrival: product.newArrival,
           active: product.active,
           audience: fromPrismaAudience(product.audience) as AudienceId,
+          kidsAge: fromPrismaKidsAge(product.kidsAge),
           images: product.images.map((img) => ({
             url: img.url,
             alt: img.alt ?? "",

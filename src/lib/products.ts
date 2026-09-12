@@ -2,6 +2,8 @@ import {
   getEnabledAudiences,
   resolveShopAudience,
   toPrismaAudience,
+  resolveKidsAge,
+  toPrismaKidsAge,
 } from "@/lib/audience";
 import { normalizeImageUrl } from "@/lib/image-url";
 import { prisma } from "@/lib/prisma";
@@ -107,6 +109,7 @@ export async function getNewArrivals(limit = 8) {
 export async function getProducts(params: {
   category?: string;
   audience?: string;
+  age?: string;
   sort?: string;
   q?: string;
   minPrice?: number;
@@ -114,17 +117,19 @@ export async function getProducts(params: {
   page?: number;
   limit?: number;
 }) {
-  const { category, audience, sort = "featured", q, minPrice, maxPrice, page = 1, limit = 12 } =
+  const { category, audience, age, sort = "featured", q, minPrice, maxPrice, page = 1, limit = 12 } =
     params;
 
   return safeQuery(async () => {
     const settings = await getStoreSettings();
     const enabledAudiences = getEnabledAudiences(settings.audiencesEnabled);
     const resolvedAudience = resolveShopAudience(audience, enabledAudiences);
+    const resolvedKidsAge = resolveKidsAge(age, resolvedAudience);
 
     const where: Prisma.ProductWhereInput = {
       active: true,
       audience: toPrismaAudience(resolvedAudience),
+      ...(resolvedKidsAge ? { kidsAge: toPrismaKidsAge(resolvedKidsAge) } : {}),
       ...(category ? { category: { slug: category } } : {}),
       ...(q
         ? {

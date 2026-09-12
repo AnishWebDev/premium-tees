@@ -1,4 +1,4 @@
-import { toPrismaAudience } from "@/lib/audience";
+import { toPrismaAudience, toPrismaKidsAge } from "@/lib/audience";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import type { ProductInput } from "@/lib/validations/product";
@@ -34,6 +34,7 @@ export async function createProduct(data: ProductInput) {
       newArrival: data.newArrival,
       active: data.active,
       audience: toPrismaAudience(data.audience),
+      kidsAge: data.kidsAge ? toPrismaKidsAge(data.kidsAge) : null,
       material: data.material,
       fit: data.fit,
       care: data.care,

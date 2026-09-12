@@ -6,6 +6,10 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import {
   AUDIENCE_LABELS,
   DEFAULT_AUDIENCE,
+  isKidsAudience,
+  KIDS_AGE_IDS,
+  KIDS_AGE_LABELS,
+  resolveKidsAge,
   type AudienceId,
 } from "@/lib/audience";
 import { cn } from "@/lib/utils";
@@ -54,6 +58,9 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
     audienceParam && enabledAudiences.includes(audienceParam as AudienceId)
       ? (audienceParam as AudienceId)
       : DEFAULT_AUDIENCE;
+  const ageParam = searchParams.get("age");
+  const kidsAge = resolveKidsAge(ageParam ?? undefined, audience);
+  const showKidsAgeFilter = isKidsAudience(audience);
 
   const updateParams = useCallback(
     (updates: Record<string, string | null>) => {
@@ -87,7 +94,8 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
     category ||
     searchParams.get("q") ||
     sort !== "featured" ||
-    (enabledAudiences.length > 1 && audience !== DEFAULT_AUDIENCE);
+    (enabledAudiences.length > 1 && audience !== DEFAULT_AUDIENCE) ||
+    kidsAge !== null;
 
   return (
     <div className={cn("space-y-6", isPending && "opacity-60")}>
@@ -136,11 +144,13 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
               </Label>
               <Select
                 value={audience}
-                onValueChange={(value) =>
+                onValueChange={(value) => {
+                  const nextAudience = value as AudienceId;
                   updateParams({
                     audience: value === DEFAULT_AUDIENCE ? null : value,
-                  })
-                }
+                    age: isKidsAudience(nextAudience) ? ageParam : null,
+                  });
+                }}
               >
                 <SelectTrigger id="shop-audience" className="w-[140px]" aria-label="Shop by audience">
                   <SelectValue />
@@ -149,6 +159,32 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
                   {enabledAudiences.map((id) => (
                     <SelectItem key={id} value={id}>
                       {AUDIENCE_LABELS[id]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {showKidsAgeFilter && (
+            <div className="space-y-1.5">
+              <Label htmlFor="shop-age" className="sr-only">
+                Filter by age
+              </Label>
+              <Select
+                value={kidsAge ?? "all"}
+                onValueChange={(value) =>
+                  updateParams({ age: value === "all" ? null : value })
+                }
+              >
+                <SelectTrigger id="shop-age" className="w-[150px]" aria-label="Filter by age">
+                  <SelectValue placeholder="All ages" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All ages</SelectItem>
+                  {KIDS_AGE_IDS.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {KIDS_AGE_LABELS[id]}
                     </SelectItem>
                   ))}
                 </SelectContent>

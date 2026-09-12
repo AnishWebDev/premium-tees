@@ -30,6 +30,7 @@ type ShopPageProps = {
   searchParams: Promise<{
     category?: string;
     audience?: string;
+    age?: string;
     sort?: string;
     q?: string;
     page?: string;
@@ -37,12 +38,13 @@ type ShopPageProps = {
 };
 
 function buildPageUrl(
-  params: { category?: string; audience?: string; sort?: string; q?: string },
+  params: { category?: string; audience?: string; age?: string; sort?: string; q?: string },
   page: number
 ) {
   const search = new URLSearchParams();
   if (params.category) search.set("category", params.category);
   if (params.audience && params.audience !== "men") search.set("audience", params.audience);
+  if (params.age) search.set("age", params.age);
   if (params.sort && params.sort !== "featured") search.set("sort", params.sort);
   if (params.q) search.set("q", params.q);
   if (page > 1) search.set("page", String(page));
@@ -59,6 +61,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     getProducts({
       category: params.category,
       audience: params.audience,
+      age: params.age,
       sort: params.sort,
       q: params.q,
       page,
@@ -72,6 +75,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const filterParams = {
     category: params.category,
     audience: params.audience,
+    age: params.age,
     sort: params.sort,
     q: params.q,
   };

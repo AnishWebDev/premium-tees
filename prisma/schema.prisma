@@ -122,6 +122,13 @@ enum ProductAudience {
   BOY
 }
 
+enum KidsAgeGroup {
+  AGE_2_4
+  AGE_5_7
+  AGE_8_10
+  AGE_11_13
+}
+
 model Product {
   id            String   @id @default(cuid())
   name          String
@@ -131,6 +138,7 @@ model Product {
   price         Decimal 
   compareAt     Decimal?
   audience      ProductAudience @default(MEN)
+  kidsAge       KidsAgeGroup?
   featured      Boolean  @default(false)
   bestSeller    Boolean  @default(false)
   newArrival    Boolean  @default(false)
@@ -155,7 +163,7 @@ model Product {
   cartItems   CartItem[]
 
   @@index([categoryId])
-  @@index([audience, active])
+  @@index([audience, kidsAge, active])
   @@index([featured, active])
   @@index([slug])
   @@map("products")

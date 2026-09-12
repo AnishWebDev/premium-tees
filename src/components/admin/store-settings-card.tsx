@@ -217,8 +217,8 @@ export function StoreSettingsCard({ isSuperAdmin }: StoreSettingsCardProps) {
                 {(
                   [
                     ["women", "Women"],
-                    ["girl", "Girl"],
-                    ["boy", "Boy"],
+                    ["girl", "Girls"],
+                    ["boy", "Boys"],
                   ] as const
                 ).map(([key, label]) => (
                   <div key={key} className="flex items-start gap-3">
@@ -241,8 +241,8 @@ export function StoreSettingsCard({ isSuperAdmin }: StoreSettingsCardProps) {
             ) : (
               <ul className="mt-3 space-y-1 text-xs text-neutral-600">
                 <li>Women: {audiencesEnabled.women ? "Enabled" : "Hidden"}</li>
-                <li>Girl: {audiencesEnabled.girl ? "Enabled" : "Hidden"}</li>
-                <li>Boy: {audiencesEnabled.boy ? "Enabled" : "Hidden"}</li>
+                <li>Girls: {audiencesEnabled.girl ? "Enabled" : "Hidden"}</li>
+                <li>Boys: {audiencesEnabled.boy ? "Enabled" : "Hidden"}</li>
               </ul>
             )}
           </div>

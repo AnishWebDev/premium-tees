@@ -1,7 +1,20 @@
 import { z } from "zod";
-import { AUDIENCE_IDS } from "@/lib/audience";
+import { AUDIENCE_IDS, isKidsAudience, KIDS_AGE_IDS } from "@/lib/audience";
 
-export const productSchema = z.object({
+function refineKidsAge(
+  data: { audience?: (typeof AUDIENCE_IDS)[number]; kidsAge?: (typeof KIDS_AGE_IDS)[number] | null },
+  ctx: z.RefinementCtx
+) {
+  if (data.kidsAge && data.audience && !isKidsAudience(data.audience)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Age group is only valid for Girls or Boys products",
+      path: ["kidsAge"],
+    });
+  }
+}
+
+const productFieldsSchema = z.object({
   name: z.string().min(2).max(120),
   slug: z.string().min(2).max(140).optional(),
   description: z.string().min(20),
@@ -13,6 +26,7 @@ export const productSchema = z.object({
   newArrival: z.boolean().default(false),
   active: z.boolean().default(true),
   audience: z.enum(AUDIENCE_IDS).default("men"),
+  kidsAge: z.enum(KIDS_AGE_IDS).optional().nullable(),
   material: z.string().optional(),
   fit: z.string().optional(),
   care: z.string().optional(),
@@ -44,6 +58,10 @@ export const productSchema = z.object({
     )
     .min(1, "At least one variant is required"),
 });
+
+export const productSchema = productFieldsSchema.superRefine(refineKidsAge);
+
+export const updateProductSchema = productFieldsSchema.partial().superRefine(refineKidsAge);
 
 export const reviewSchema = z.object({
   productId: z.string().min(1),

@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { toPrismaAudience } from "@/lib/audience";
+import { isKidsAudience, toPrismaAudience, toPrismaKidsAge } from "@/lib/audience";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
-import { productSchema } from "@/lib/validations/product";
+import { updateProductSchema } from "@/lib/validations/product";
 
 type RouteContext = { params: Promise<{ id: string }> };
-
-const updateProductSchema = productSchema.partial();
 
 export async function GET(_request: NextRequest, context: RouteContext) {
   try {
@@ -80,7 +78,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       }
     }
 
-    const { images, variants, audience, ...productFields } = data;
+    const { images, variants, audience, kidsAge, ...productFields } = data;
 
     const product = await prisma.$transaction(async (tx) => {
       if (images) {
@@ -130,6 +128,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           ...productFields,
           ...(slug ? { slug } : {}),
           ...(audience ? { audience: toPrismaAudience(audience) } : {}),
+          ...(kidsAge !== undefined
+            ? { kidsAge: kidsAge ? toPrismaKidsAge(kidsAge) : null }
+            : audience && !isKidsAudience(audience)
+              ? { kidsAge: null }
+              : {}),
         },
         include: {
           images: { orderBy: { sortOrder: "asc" } },
