@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Check, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { adminFixedSaveBar } from "@/lib/admin-ui-classes";
 import type { SavedThemePreset, ThemeData } from "@/lib/theme";
 import {
   DEFAULT_THEME,
@@ -656,7 +657,7 @@ export function ThemeEditor({
       </div>
 
       {/* Fixed action bar — always visible on long style forms */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 md:px-6 lg:left-64">
+      <div className={`${adminFixedSaveBar} md:px-6`}>
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={save} disabled={saving || Boolean(defaultsBusy)}>
             {saving ? (

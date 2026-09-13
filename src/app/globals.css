@@ -266,6 +266,16 @@ textarea:-webkit-autofill:focus {
   background-color: #262626 !important;
 }
 
+.admin-surface.admin-dark .admin-fixed-save-bar {
+  background-color: color-mix(in srgb, var(--background) 96%, transparent) !important;
+  border-top-color: var(--border) !important;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.admin-surface:not(.admin-dark) .admin-fixed-save-bar {
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
+}
+
 /* Tailwind preflight sets cursor: default on buttons — restore pointer affordance */
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]),

@@ -14,6 +14,7 @@ import type { CmsPageRecord } from "@/lib/cms-pages";
 import type { SectionContentSource } from "@/lib/home-sections";
 import type { HomeTemplateId } from "@/lib/home-templates";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
+import { adminFixedSaveBar } from "@/lib/admin-ui-classes";
 import { pageKindForSlug, pagePathForSlug } from "@/lib/page-catalog";
 import type { AllSiteContent, ContentKey } from "@/lib/site-content";
 import { CmsExtraEditor } from "@/components/admin/cms-extra-editor";
@@ -479,7 +480,7 @@ export function CmsStudio({
                     </div>
                   </CardHeader>
                   {usesSectionBuilder ? (
-                    <CardContent className="space-y-4 border-t border-neutral-100 pt-4">
+                    <CardContent className="space-y-4 border-t border-[var(--border)] pt-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <Label>Title</Label>
@@ -658,7 +659,7 @@ function FixedSaveBar({
   onSave: () => void;
 }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-neutral-200 bg-[var(--background)]/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/80 lg:left-64">
+    <div className={adminFixedSaveBar}>
       <div className="flex justify-end">
         <Button onClick={onSave} disabled={saving} size="lg">
           {saving ? (

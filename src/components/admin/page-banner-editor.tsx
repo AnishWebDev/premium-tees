@@ -6,6 +6,7 @@ import {
   PAGE_BANNER_SPACING_OPTIONS,
   type PageBannerData,
 } from "@/lib/page-banner";
+import { adminComponentSettingsDivider } from "@/lib/admin-ui-classes";
 import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -93,17 +94,13 @@ export function PageBannerEditor({
         </div>
 
         {canEditComponentSettings ? (
-          <Accordion
-            type="single"
-            collapsible
-            className="border-t border-[var(--border)]/35 pt-2"
-          >
+          <Accordion type="single" collapsible className={adminComponentSettingsDivider}>
             <AccordionItem value="settings" className="border-none">
-              <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">
+              <AccordionTrigger className="py-2 text-xs font-medium text-[var(--foreground)] hover:no-underline">
                 Component settings
               </AccordionTrigger>
               <AccordionContent className="space-y-4 pb-1 pt-2">
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   Background, alignment, and spacing for this banner.
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">

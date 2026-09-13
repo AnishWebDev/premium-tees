@@ -19,6 +19,7 @@ import type {
   TestimonialsData,
 } from "@/lib/site-content";
 import { ImageUrlField } from "@/components/admin/image-url-field";
+import { adminFixedSaveBar } from "@/lib/admin-ui-classes";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
 import { defaultSectionsForTemplate } from "@/lib/home-sections";
 import { fontFamilyStack } from "@/lib/fonts";
@@ -1286,7 +1287,7 @@ function HomeEditor({
         onChange={(sections) => onChange({ ...data, sections })}
       />
 
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 md:px-6 lg:left-64">
+      <div className={`${adminFixedSaveBar} md:px-6`}>
         <div className="flex flex-wrap items-center gap-3">{saveButton}</div>
       </div>
     </div>

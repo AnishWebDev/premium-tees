@@ -21,6 +21,11 @@ import {
 } from "@/lib/home-sections";
 import type { HomeTemplateId } from "@/lib/home-templates";
 import {
+  adminComponentSettingsDivider,
+  adminInlinePanel,
+  adminPanelMuted,
+} from "@/lib/admin-ui-classes";
+import {
   GalleryImagesEditor,
   MosaicCellsEditor,
 } from "@/components/admin/section-json-editors";
@@ -187,17 +192,17 @@ export function HomeSectionsBuilder({
   };
 
   const addComponentBar = canManageLayout ? (
-    <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-4">
+    <div className={adminPanelMuted}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1">
-          <Label className="text-xs font-medium text-neutral-600">
+          <Label className="text-xs font-medium text-[var(--muted-foreground)]">
             Component type
           </Label>
           <Select
             value={addType || undefined}
             onValueChange={(v) => setAddType(v as HomeSectionType)}
           >
-            <SelectTrigger className="mt-1.5 bg-white">
+            <SelectTrigger className="mt-1.5 bg-[var(--background)]">
               <SelectValue placeholder="Select a component" />
             </SelectTrigger>
             <SelectContent>
@@ -247,7 +252,7 @@ export function HomeSectionsBuilder({
       <CardContent className="space-y-4">
         {addComponentBar}
         {visibleSections.length === 0 ? (
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-[var(--muted-foreground)]">
             No components on this {pageLabel.toLowerCase()} yet.
             {canManageLayout
               ? " Choose a type above and click Add component."
@@ -289,16 +294,14 @@ export function HomeSectionsBuilder({
                   }}
                   onDragEnd={() => setDragIndex(null)}
                   className={cn(
-                    "rounded-xl border bg-white",
-                    dragIndex === index
-                      ? "border-neutral-950 bg-neutral-50 opacity-60"
-                      : "border-neutral-200"
+                    adminInlinePanel,
+                    dragIndex === index && "border-[var(--foreground)] bg-[var(--muted)] opacity-60"
                   )}
                 >
                   <div className="flex items-center gap-3 px-3 py-2">
                     {canManageLayout && (
                       <span
-                        className="cursor-grab text-neutral-400 active:cursor-grabbing"
+                        className="cursor-grab text-[var(--muted-foreground)] active:cursor-grabbing"
                         aria-hidden
                         title="Drag to reorder"
                       >
@@ -313,7 +316,7 @@ export function HomeSectionsBuilder({
                             update(section.id, { enabled: v === true })
                           }
                         />
-                        <span className="truncate font-medium text-neutral-950">
+                        <span className="truncate font-medium text-[var(--foreground)]">
                           {linked ? linked.name : sectionLabel(section.type)}
                         </span>
                         {linked ? (
@@ -324,7 +327,7 @@ export function HomeSectionsBuilder({
                         ) : null}
                       </label>
                     ) : (
-                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-950">
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--foreground)]">
                         {linked ? linked.name : sectionLabel(section.type)}
                         {linked ? (
                           <span className="ml-2 inline-flex items-center gap-0.5 rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800">
@@ -353,7 +356,7 @@ export function HomeSectionsBuilder({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-neutral-500"
+                        className="h-8 w-8 text-[var(--muted-foreground)]"
                         aria-label={`Remove ${sectionLabel(section.type)}`}
                         onClick={() => remove(section.id)}
                       >
@@ -363,7 +366,7 @@ export function HomeSectionsBuilder({
                   </div>
 
                   {open && (
-                    <div className="space-y-3 border-t border-neutral-100 px-3 py-3">
+                    <div className="space-y-3 border-t border-[var(--border)] px-3 py-3">
                       {linked ? (
                         <div className="rounded-lg border border-violet-200 bg-violet-50/60 px-3 py-2 text-xs text-violet-900">
                           <p>
@@ -409,7 +412,7 @@ export function HomeSectionsBuilder({
                       ) : section.type !== "contentCard" &&
                         section.type !== "imageMosaic" &&
                         section.type !== "imageGallery" ? (
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-[var(--muted-foreground)]">
                           No direct fields for this block.
                         </p>
                       ) : null}
@@ -457,14 +460,14 @@ export function HomeSectionsBuilder({
                         <Accordion
                           type="single"
                           collapsible
-                          className="border-t border-neutral-100 pt-2"
+                          className={adminComponentSettingsDivider}
                         >
                           <AccordionItem value="settings" className="border-none">
-                            <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">
+                            <AccordionTrigger className="py-2 text-xs font-medium text-[var(--foreground)] hover:no-underline">
                               Component settings
                             </AccordionTrigger>
-                            <AccordionContent className="pb-1 pt-2 text-neutral-950">
-                              <p className="mb-3 text-xs text-neutral-500">
+                            <AccordionContent className="pb-1 pt-2 text-[var(--foreground)]">
+                              <p className="mb-3 text-xs text-[var(--muted-foreground)]">
                                 Layout, spacing, colors, and other visual options
                                 for this block.
                               </p>
@@ -487,13 +490,13 @@ export function HomeSectionsBuilder({
         )}
 
         {libraryComponents.length > 0 && canManageLayout ? (
-          <div className="flex flex-col gap-3 border-t border-neutral-100 pt-4 sm:flex-row sm:items-end">
+          <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4 sm:flex-row sm:items-end">
             <div className="flex-1">
-              <Label className="text-xs font-medium text-neutral-600">
+              <Label className="text-xs font-medium text-[var(--muted-foreground)]">
                 Insert shared component
               </Label>
               <Select value={libraryPick} onValueChange={setLibraryPick}>
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger className="mt-1.5 bg-[var(--background)]">
                   <SelectValue placeholder="Pick a saved component…" />
                 </SelectTrigger>
                 <SelectContent>
