@@ -61,6 +61,7 @@ export const HOME_SECTION_TYPES = [
   "categoriesCards",
   "categoriesList",
   "imageMosaic",
+  "imageGallery",
   "stackedPanels",
   "storySplit",
   "storyInline",
@@ -123,6 +124,10 @@ export type HomeSectionProps = {
   columns?: string;
   /** Extra / all content cards as JSON array of ContentCardItem */
   cardsJson?: string;
+  /** Image mosaic tiles as JSON array of MosaicCellItem */
+  cellsJson?: string;
+  /** Image gallery items as JSON array of GalleryImageItem */
+  imagesJson?: string;
 };
 
 /** One tile inside a content-card section. */
@@ -134,6 +139,22 @@ export type ContentCardItem = {
   videoUrl?: string;
   ctaLabel?: string;
   ctaHref?: string;
+};
+
+export type MosaicCellItem = {
+  imageUrl: string;
+  title: string;
+  linkHref: string;
+  imageAlt?: string;
+  span?: "tall" | "wide" | "square";
+};
+
+export type GalleryImageItem = {
+  imageUrl: string;
+  title: string;
+  caption: string;
+  linkHref: string;
+  imageAlt: string;
 };
 
 export type HomeSectionItem = {
@@ -173,12 +194,23 @@ const CONTENT_CARD_SETTINGS_FIELDS: HomeSectionFieldKey[] = [
   "padding",
 ];
 
+const IMAGE_GALLERY_SETTINGS_FIELDS: HomeSectionFieldKey[] = [
+  "columns",
+  "mediaAspect",
+  "borderRadius",
+  "bgStyle",
+  "backgroundColor",
+];
+
 /** Padding, spacing, and block-level styling — SuperAdmin component settings panel. */
 export function componentSettingsFieldsForType(
   type: HomeSectionType
 ): HomeSectionFieldKey[] {
   if (type === "contentCard") {
     return [...CONTENT_CARD_SETTINGS_FIELDS, ...SECTION_SPACING_FIELDS];
+  }
+  if (type === "imageGallery") {
+    return [...IMAGE_GALLERY_SETTINGS_FIELDS, ...SECTION_SPACING_FIELDS];
   }
   return [...SECTION_SPACING_FIELDS];
 }
@@ -269,6 +301,8 @@ export function editableFieldsForType(
       return contentFields(["title", "subtitle"]);
     case "imageMosaic":
       return contentFields(["eyebrow", "title"]);
+    case "imageGallery":
+      return contentFields(["title", "subtitle"]);
     case "stackedPanels":
       return contentFields(["subtitle"]);
     case "storySplit":
@@ -357,6 +391,8 @@ export const SECTION_FIELD_LABELS: Record<HomeSectionFieldKey, string> = {
   paddingRight: "Section padding right",
   columns: "Cards per row",
   cardsJson: "Cards data",
+  cellsJson: "Mosaic tiles data",
+  imagesJson: "Gallery images data",
 };
 
 /** Dropdown choices for enum-like section fields. */
@@ -436,6 +472,8 @@ export const SECTION_FIELD_OPTIONS: Partial<
     { value: "2", label: "2 per row" },
     { value: "3", label: "3 per row" },
     { value: "4", label: "4 per row" },
+    { value: "5", label: "5 per row" },
+    { value: "6", label: "6 per row" },
   ],
 };
 
@@ -569,7 +607,58 @@ export function defaultPropsForSection(
         subtitle: home.categories.subtitle,
       };
     case "imageMosaic":
-      return { eyebrow: "Campaign", title: home.essentials.title };
+      return {
+        eyebrow: "Campaign",
+        title: home.essentials.title,
+        cellsJson: JSON.stringify([
+          {
+            imageUrl: home.story.imageUrl,
+            title: home.story.title,
+            linkHref: home.story.ctaHref,
+            imageAlt: home.story.title,
+            span: "tall",
+          },
+          {
+            imageUrl: hero.imageUrl,
+            title: hero.headline,
+            linkHref: hero.primaryCtaHref,
+            imageAlt: hero.headline,
+            span: "wide",
+          },
+        ] satisfies MosaicCellItem[]),
+      };
+    case "imageGallery":
+      return {
+        title: "Gallery",
+        subtitle: home.categories.subtitle,
+        columns: "3",
+        mediaAspect: "square",
+        borderRadius: "md",
+        bgStyle: "theme",
+        imagesJson: JSON.stringify([
+          {
+            imageUrl: home.story.imageUrl,
+            title: "Look one",
+            caption: "",
+            linkHref: "/shop",
+            imageAlt: "Look one",
+          },
+          {
+            imageUrl: hero.imageUrl,
+            title: "Look two",
+            caption: "",
+            linkHref: "/shop",
+            imageAlt: "Look two",
+          },
+          {
+            imageUrl: home.story.imageUrl,
+            title: "Look three",
+            caption: "",
+            linkHref: "/shop",
+            imageAlt: "Look three",
+          },
+        ] satisfies GalleryImageItem[]),
+      };
     case "stackedPanels":
       return { subtitle: home.categories.subtitle };
     case "storySplit":
@@ -692,6 +781,11 @@ export const HOME_SECTION_CATALOG: HomeSectionMeta[] = [
   { type: "categoriesCards", label: "Category cards", description: "Image category cards" },
   { type: "categoriesList", label: "Category list", description: "Text category list" },
   { type: "imageMosaic", label: "Image mosaic", description: "Campaign mosaic grid" },
+  {
+    type: "imageGallery",
+    label: "Image gallery",
+    description: "Custom image grid with titles and optional links",
+  },
   { type: "stackedPanels", label: "Stacked panels", description: "Full-bleed stacked campaigns" },
   { type: "storySplit", label: "Story split", description: "Sticky split story block" },
   { type: "storyInline", label: "Story inline", description: "Compact story + CTA row" },
@@ -972,6 +1066,8 @@ function normalizeSectionProps(raw: unknown): HomeSectionProps | undefined {
     "paddingRight",
     "columns",
     "cardsJson",
+    "cellsJson",
+    "imagesJson",
   ];
   for (const key of strings) {
     if (typeof p[key] === "string") {
@@ -982,6 +1078,63 @@ function normalizeSectionProps(raw: unknown): HomeSectionProps | undefined {
     next.productLimit = Math.min(24, Math.round(p.productLimit));
   }
   return Object.keys(next).length > 0 ? next : undefined;
+}
+
+function parseJsonArray<T>(
+  raw: string | undefined,
+  mapItem: (value: unknown) => T
+): T[] | null {
+  if (!raw?.trim()) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return null;
+    return parsed.map(mapItem);
+  } catch {
+    return null;
+  }
+}
+
+/** Admin-edited mosaic tiles; null when using storefront auto-fill. */
+export function resolveMosaicCells(
+  props?: HomeSectionProps
+): MosaicCellItem[] | null {
+  return parseJsonArray(props?.cellsJson, (raw) => {
+    const c =
+      raw && typeof raw === "object"
+        ? (raw as MosaicCellItem)
+        : ({} as MosaicCellItem);
+    const span = c.span;
+    return {
+      imageUrl: typeof c.imageUrl === "string" ? c.imageUrl : "",
+      title: typeof c.title === "string" ? c.title : "",
+      linkHref: typeof c.linkHref === "string" ? c.linkHref : "",
+      imageAlt: typeof c.imageAlt === "string" ? c.imageAlt : "",
+      span:
+        span === "tall" || span === "wide" || span === "square"
+          ? span
+          : undefined,
+    };
+  });
+}
+
+/** Gallery images from imagesJson. */
+export function resolveGalleryImages(
+  props?: HomeSectionProps
+): GalleryImageItem[] {
+  const parsed = parseJsonArray(props?.imagesJson, (raw) => {
+    const c =
+      raw && typeof raw === "object"
+        ? (raw as GalleryImageItem)
+        : ({} as GalleryImageItem);
+    return {
+      imageUrl: typeof c.imageUrl === "string" ? c.imageUrl : "",
+      title: typeof c.title === "string" ? c.title : "",
+      caption: typeof c.caption === "string" ? c.caption : "",
+      linkHref: typeof c.linkHref === "string" ? c.linkHref : "",
+      imageAlt: typeof c.imageAlt === "string" ? c.imageAlt : "",
+    };
+  });
+  return parsed ?? [];
 }
 
 /** Resolve content-card tiles from cardsJson or legacy flat props. */

@@ -6,7 +6,8 @@ export type MosaicCell = {
   id: string;
   image: string;
   title: string;
-  href: string;
+  href?: string;
+  alt?: string;
   span?: "tall" | "wide" | "square";
 };
 
@@ -56,19 +57,11 @@ export function ImageMosaic({ cells, eyebrow, title }: ImageMosaicProps) {
                 ? "col-span-2 row-span-1"
                 : "col-span-1 row-span-1";
 
-          return (
-            <Link
-              key={cell.id}
-              href={cell.href}
-              aria-label={cell.title}
-              className={cn(
-                "group relative overflow-hidden bg-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
-                spanClass
-              )}
-            >
+          const tileInner = (
+            <>
               <RemoteImage
                 src={cell.image}
-                alt=""
+                alt={cell.alt?.trim() || cell.title || "Mosaic image"}
                 fill
                 sizes="(max-width: 1024px) 50vw, 25vw"
                 className="object-cover transition-transform duration-700 motion-safe:group-hover:scale-105"
@@ -77,12 +70,40 @@ export function ImageMosaic({ cells, eyebrow, title }: ImageMosaicProps) {
                 className="absolute inset-0 bg-gradient-to-t from-neutral-950/75 via-neutral-950/20 to-transparent"
                 aria-hidden
               />
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                <p className="font-display text-lg font-semibold text-white sm:text-xl">
-                  {cell.title}
-                </p>
-              </div>
-            </Link>
+              {cell.title ? (
+                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                  <p className="font-display text-lg font-semibold text-white sm:text-xl">
+                    {cell.title}
+                  </p>
+                </div>
+              ) : null}
+            </>
+          );
+
+          const tileClass = cn(
+            "group relative overflow-hidden bg-[var(--muted)]",
+            spanClass,
+            cell.href?.trim() &&
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2"
+          );
+
+          if (cell.href?.trim()) {
+            return (
+              <Link
+                key={cell.id}
+                href={cell.href}
+                aria-label={cell.title || cell.alt || "View image"}
+                className={tileClass}
+              >
+                {tileInner}
+              </Link>
+            );
+          }
+
+          return (
+            <div key={cell.id} className={tileClass}>
+              {tileInner}
+            </div>
           );
         })}
       </div>

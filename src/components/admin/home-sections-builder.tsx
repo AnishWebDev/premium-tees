@@ -9,6 +9,8 @@ import {
   defaultSectionsForTemplate,
   editableFieldsForType,
   resolveContentCards,
+  resolveGalleryImages,
+  resolveMosaicCells,
   sectionLabel,
   type ContentCardItem,
   type HomeSectionFieldKey,
@@ -18,6 +20,10 @@ import {
   type SectionContentSource,
 } from "@/lib/home-sections";
 import type { HomeTemplateId } from "@/lib/home-templates";
+import {
+  GalleryImagesEditor,
+  MosaicCellsEditor,
+} from "@/components/admin/section-json-editors";
 import { SectionFieldGrid } from "@/components/admin/section-field-grid";
 import { cn } from "@/lib/utils";
 import { ImageUrlField } from "@/components/admin/image-url-field";
@@ -400,7 +406,9 @@ export function HomeSectionsBuilder({
                           defaults={defaults}
                           onSetProp={handleSetProp}
                         />
-                      ) : section.type !== "contentCard" ? (
+                      ) : section.type !== "contentCard" &&
+                        section.type !== "imageMosaic" &&
+                        section.type !== "imageGallery" ? (
                         <p className="text-xs text-neutral-500">
                           No direct fields for this block.
                         </p>
@@ -414,6 +422,32 @@ export function HomeSectionsBuilder({
                               section.id,
                               "cardsJson",
                               JSON.stringify(cards)
+                            )
+                          }
+                        />
+                      ) : null}
+
+                      {section.type === "imageMosaic" ? (
+                        <MosaicCellsEditor
+                          cells={resolveMosaicCells(section.props) ?? []}
+                          onChange={(cells) =>
+                            setProp(
+                              section.id,
+                              "cellsJson",
+                              JSON.stringify(cells)
+                            )
+                          }
+                        />
+                      ) : null}
+
+                      {section.type === "imageGallery" ? (
+                        <GalleryImagesEditor
+                          images={resolveGalleryImages(section.props)}
+                          onChange={(images) =>
+                            setProp(
+                              section.id,
+                              "imagesJson",
+                              JSON.stringify(images)
                             )
                           }
                         />

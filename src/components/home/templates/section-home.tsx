@@ -1,6 +1,17 @@
 import Link from "next/link";
 import type { HomeSectionItem } from "@/lib/home-sections";
-import { resolveContentCards, sectionText } from "@/lib/home-sections";
+import {
+  resolveContentCards,
+  resolveGalleryImages,
+  resolveMosaicCells,
+  sectionText,
+} from "@/lib/home-sections";
+import {
+  galleryAspectClass,
+  galleryBandClass,
+  galleryRoundedClass,
+  ImageGallery,
+} from "@/components/home/blocks/image-gallery";
 import {
   columnsClass,
   overridesSectionPaddingY,
@@ -448,34 +459,75 @@ function renderSection(section: HomeSectionItem, props: HomeTemplateProps) {
         </section>
       );
     case "imageMosaic": {
-      const mosaicCells = [
-        {
-          id: "story",
-          image: home.story.imageUrl,
-          title: home.story.title,
-          href: home.story.ctaHref,
-          span: "tall" as const,
-        },
-        ...categories.slice(0, 3).map((c, i) => ({
-          id: c.id,
-          image: c.image ?? FALLBACK,
-          title: c.name,
-          href: `/shop?category=${c.slug}`,
-          span: (i === 0 ? "wide" : "square") as "wide" | "square",
-        })),
-        ...featured.slice(0, 2).map((p) => ({
-          id: p.id,
-          image: p.images[0]?.url ?? FALLBACK,
-          title: p.name,
-          href: `/product/${p.slug}`,
-          span: "square" as const,
-        })),
-      ].slice(0, 6);
+      const customCells = resolveMosaicCells(o);
+      const mosaicCells = customCells
+        ? customCells
+            .filter((cell) => cell.imageUrl.trim())
+            .map((cell, index) => ({
+              id: `mosaic-${index}`,
+              image: cell.imageUrl,
+              title: cell.title,
+              href: cell.linkHref || undefined,
+              alt: cell.imageAlt,
+              span: cell.span,
+            }))
+        : [
+            {
+              id: "story",
+              image: home.story.imageUrl,
+              title: home.story.title,
+              href: home.story.ctaHref,
+              span: "tall" as const,
+            },
+            ...categories.slice(0, 3).map((c, i) => ({
+              id: c.id,
+              image: c.image ?? FALLBACK,
+              title: c.name,
+              href: `/shop?category=${c.slug}`,
+              span: (i === 0 ? "wide" : "square") as "wide" | "square",
+            })),
+            ...featured.slice(0, 2).map((p) => ({
+              id: p.id,
+              image: p.images[0]?.url ?? FALLBACK,
+              title: p.name,
+              href: `/product/${p.slug}`,
+              span: "square" as const,
+            })),
+          ].slice(0, 6);
       return (
         <ImageMosaic
           cells={mosaicCells}
           eyebrow={sectionText(o.eyebrow, "Campaign")}
           title={sectionText(o.title, home.essentials.title)}
+        />
+      );
+    }
+    case "imageGallery": {
+      const images = resolveGalleryImages(o)
+        .filter((img) => img.imageUrl.trim())
+        .map((img, index) => ({
+          id: `gallery-${index}`,
+          image: img.imageUrl,
+          alt: img.imageAlt || img.title,
+          title: img.title || undefined,
+          caption: img.caption || undefined,
+          href: img.linkHref || undefined,
+        }));
+      if (images.length === 0) return null;
+      const columns = Math.min(
+        6,
+        Math.max(2, parseInt(o.columns ?? "3", 10) || 3)
+      );
+      return (
+        <ImageGallery
+          title={sectionText(o.title, "Gallery")}
+          subtitle={o.subtitle}
+          images={images}
+          columns={columns}
+          aspectClass={galleryAspectClass(o.mediaAspect)}
+          roundedClass={galleryRoundedClass(o.borderRadius)}
+          bandClass={galleryBandClass(o.bgStyle, o.backgroundColor)}
+          backgroundColor={o.backgroundColor}
         />
       );
     }
