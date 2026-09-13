@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type {
   AboutData,
@@ -182,10 +182,20 @@ export function SiteContentEditor({
             <CardHeader>
               <CardTitle>Site identity</CardTitle>
               <CardDescription>
-                Site name, description, and logo — updates header, footer, emails, checkout, and SEO.
+                Logo, site name, and description — updates header, footer, emails, checkout, and SEO.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <SiteLogoEditor
+                logoImageUrl={content.header.logoImageUrl}
+                logoImageAlt={content.header.logoImageAlt}
+                onChange={(patch) =>
+                  setContent((c) => ({
+                    ...c,
+                    header: { ...c.header, ...patch },
+                  }))
+                }
+              />
               <Field
                 label="Site name"
                 value={content.site.name}
@@ -200,28 +210,6 @@ export function SiteContentEditor({
                   setContent((c) => ({ ...c, site: { ...c.site, description: v } }))
                 }
                 multiline
-              />
-              <ImageUrlField
-                label="Logo image URL (optional)"
-                value={content.header.logoImageUrl}
-                onChange={(logoImageUrl) =>
-                  setContent((c) => ({
-                    ...c,
-                    header: { ...c.header, logoImageUrl },
-                  }))
-                }
-                hint="Square or mark-style logo works best next to the site name. Use a transparent PNG or SVG."
-              />
-              <Field
-                label="Logo alt text"
-                value={content.header.logoImageAlt}
-                onChange={(logoImageAlt) =>
-                  setContent((c) => ({
-                    ...c,
-                    header: { ...c.header, logoImageAlt },
-                  }))
-                }
-                placeholder="Your brand name"
               />
               <Button onClick={saveSiteIdentity} disabled={saving === "site"}>
                 {saving === "site" ? (
@@ -558,6 +546,86 @@ function FooterCreditEditor({
         {saveButton}
       </CardContent>
     </Card>
+  );
+}
+
+function SiteLogoEditor({
+  logoImageUrl,
+  logoImageAlt,
+  onChange,
+}: {
+  logoImageUrl: string;
+  logoImageAlt: string;
+  onChange: (patch: Pick<HeaderData, "logoImageUrl" | "logoImageAlt">) => void;
+}) {
+  const [broken, setBroken] = useState(false);
+  const trimmed = logoImageUrl.trim();
+  const showPreview = trimmed.length > 0 && !broken;
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Logo</Label>
+        <p className="mt-1 text-xs text-neutral-500">
+          Shown in the site header next to your site name. Use a transparent PNG or SVG.
+        </p>
+      </div>
+
+      <div
+        className="flex min-h-[10rem] items-center justify-center rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-8 sm:min-h-[12rem]"
+        aria-live="polite"
+      >
+        {showPreview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={trimmed}
+            alt={logoImageAlt.trim() || "Logo preview"}
+            className="max-h-32 max-w-full object-contain sm:max-h-40"
+            onError={() => setBroken(true)}
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-2 text-neutral-400">
+            <ImageIcon className="h-12 w-12 sm:h-14 sm:w-14" aria-hidden />
+            <span className="text-sm">No logo yet — add a URL below</span>
+          </div>
+        )}
+      </div>
+
+      {trimmed && broken ? (
+        <p className="text-xs text-amber-700" role="alert">
+          Preview unavailable — check the URL is public and direct.
+        </p>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="site-logo-url">Logo image URL</Label>
+          <Input
+            id="site-logo-url"
+            type="url"
+            className="mt-2"
+            value={logoImageUrl}
+            placeholder="https://example.com/logo.png"
+            onChange={(e) => {
+              setBroken(false);
+              onChange({ logoImageUrl: e.target.value, logoImageAlt });
+            }}
+          />
+        </div>
+        <div>
+          <Label htmlFor="site-logo-alt">Logo alt text</Label>
+          <Input
+            id="site-logo-alt"
+            className="mt-2"
+            value={logoImageAlt}
+            placeholder="Your brand name"
+            onChange={(e) =>
+              onChange({ logoImageUrl, logoImageAlt: e.target.value })
+            }
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

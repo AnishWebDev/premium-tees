@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -57,9 +57,8 @@ export function ChangePasswordForm() {
         <form onSubmit={onSubmit} className="max-w-md space-y-4">
           <div>
             <Label htmlFor="currentPassword">Current password</Label>
-            <Input
+            <PasswordInput
               id="currentPassword"
-              type="password"
               autoComplete="current-password"
               className="mt-2"
               value={currentPassword}
@@ -69,9 +68,8 @@ export function ChangePasswordForm() {
           </div>
           <div>
             <Label htmlFor="newPassword">New password</Label>
-            <Input
+            <PasswordInput
               id="newPassword"
-              type="password"
               autoComplete="new-password"
               className="mt-2"
               value={newPassword}
@@ -83,9 +81,8 @@ export function ChangePasswordForm() {
           </div>
           <div>
             <Label htmlFor="confirmPassword">Confirm new password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               autoComplete="new-password"
               className="mt-2"
               value={confirmPassword}

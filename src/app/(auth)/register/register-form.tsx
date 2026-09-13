@@ -11,6 +11,7 @@ import { useSiteIdentity } from "@/components/providers/site-identity-provider";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
@@ -116,9 +117,8 @@ export function RegisterForm({
 
         <div>
           <Label htmlFor="password">Password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="new-password"
             className="mt-2"
             {...register("password")}
@@ -130,9 +130,8 @@ export function RegisterForm({
 
         <div>
           <Label htmlFor="confirmPassword">Confirm password</Label>
-          <Input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
             autoComplete="new-password"
             className="mt-2"
             {...register("confirmPassword")}

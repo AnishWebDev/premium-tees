@@ -10,7 +10,7 @@ import {
   type ResetPasswordInput,
 } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 export function ResetPasswordForm() {
@@ -85,9 +85,8 @@ export function ResetPasswordForm() {
 
         <div>
           <Label htmlFor="password">New password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="new-password"
             className="mt-2"
             {...register("password")}
@@ -99,9 +98,8 @@ export function ResetPasswordForm() {
 
         <div>
           <Label htmlFor="confirmPassword">Confirm password</Label>
-          <Input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
             autoComplete="new-password"
             className="mt-2"
             {...register("confirmPassword")}

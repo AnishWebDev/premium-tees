@@ -14,8 +14,9 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
   const session = await auth();
-  const [theme, styleDefaults] = await Promise.all([
+  const [theme, savedThemes, styleDefaults] = await Promise.all([
     getContentBlock("theme"),
+    getContentBlock("savedThemes"),
     getStyleDefaults(),
   ]);
   const showSystem = isSuperAdmin(session?.user?.role);
@@ -42,6 +43,7 @@ export default async function AdminSettingsPage() {
         <TabsContent value="style" className="mt-6">
           <ThemeEditor
             initialTheme={theme}
+            initialSavedThemes={savedThemes}
             isSuperAdmin={showSystem}
             hasStyleDefaults={Boolean(styleDefaults)}
           />

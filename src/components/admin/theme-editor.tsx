@@ -1,17 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { ThemeData } from "@/lib/theme";
+import type { SavedThemePreset, ThemeData } from "@/lib/theme";
 import { FONT_CSS_VAR } from "@/lib/fonts";
 import {
   DEFAULT_THEME,
   FONT_CATALOG,
   THEME_PRESETS,
+  createSavedThemePreset,
   fontWeightToCss,
   normalizeTheme,
   themeFromPreset,
+  themeMatchesPreset,
   type FontWeightOption,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -35,6 +37,7 @@ import {
 
 type ThemeEditorProps = {
   initialTheme: ThemeData;
+  initialSavedThemes?: SavedThemePreset[];
   /** SuperAdmin can snapshot / restore the approved style pack */
   isSuperAdmin?: boolean;
   hasStyleDefaults?: boolean;
@@ -127,26 +130,27 @@ function linkPreviewStyles(theme: ThemeData): React.CSSProperties {
 
 export function ThemeEditor({
   initialTheme,
+  initialSavedThemes = [],
   isSuperAdmin = false,
   hasStyleDefaults: initialHasDefaults = false,
 }: ThemeEditorProps) {
   const [theme, setTheme] = useState<ThemeData>(() => normalizeTheme(initialTheme));
+  const [savedThemes, setSavedThemes] = useState<SavedThemePreset[]>(initialSavedThemes);
+  const [themeName, setThemeName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingThemeList, setSavingThemeList] = useState(false);
   const [defaultsBusy, setDefaultsBusy] = useState<"save" | "reset" | null>(null);
   const [hasStyleDefaults, setHasStyleDefaults] = useState(initialHasDefaults);
 
   const activePresetId = useMemo(() => {
-    if (theme.presetId && theme.presetId !== "custom") {
-      const match = themeFromPreset(theme.presetId);
-      if (!match) return "custom";
-      const { presetId: _p, ...rest } = match;
-      const { presetId: _t, ...current } = theme;
-      return JSON.stringify(rest) === JSON.stringify(current)
-        ? theme.presetId
-        : "custom";
+    for (const preset of THEME_PRESETS) {
+      if (themeMatchesPreset(theme, preset.id, savedThemes)) return preset.id;
+    }
+    for (const preset of savedThemes) {
+      if (themeMatchesPreset(theme, preset.id, savedThemes)) return preset.id;
     }
     return "custom";
-  }, [theme]);
+  }, [theme, savedThemes]);
 
   const set = <K extends keyof ThemeData>(key: K, value: ThemeData[K]) => {
     setTheme((t) => ({
@@ -161,8 +165,64 @@ export function ThemeEditor({
       setTheme((t) => ({ ...t, presetId: "custom" }));
       return;
     }
-    const next = themeFromPreset(presetId);
+    const next = themeFromPreset(presetId, savedThemes);
     if (next) setTheme(next);
+  };
+
+  const persistSavedThemes = async (next: SavedThemePreset[]) => {
+    setSavingThemeList(true);
+    try {
+      const res = await fetch("/api/admin/content", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "savedThemes", data: next }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Could not save theme list");
+      }
+      setSavedThemes(next);
+    } finally {
+      setSavingThemeList(false);
+    }
+  };
+
+  const saveNamedTheme = async () => {
+    const name = themeName.trim();
+    if (!name) {
+      toast.error("Enter a name for your theme");
+      return;
+    }
+    try {
+      const preset = createSavedThemePreset(
+        currentPayload(),
+        name,
+        savedThemes.map((p) => p.id)
+      );
+      const next = [...savedThemes, preset];
+      await persistSavedThemes(next);
+      setTheme(normalizeTheme({ presetId: preset.id, ...preset.theme }));
+      setThemeName("");
+      toast.success(`Saved theme “${name}”`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save theme");
+    }
+  };
+
+  const deleteSavedTheme = async (id: string) => {
+    const preset = savedThemes.find((p) => p.id === id);
+    if (!preset) return;
+    if (!window.confirm(`Delete saved theme “${preset.name}”?`)) return;
+    try {
+      const next = savedThemes.filter((p) => p.id !== id);
+      await persistSavedThemes(next);
+      if (activePresetId === id) {
+        setTheme((t) => ({ ...t, presetId: "custom" }));
+      }
+      toast.success(`Deleted “${preset.name}”`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not delete theme");
+    }
   };
 
   const currentPayload = (): ThemeData => ({
@@ -243,10 +303,44 @@ export function ThemeEditor({
         <CardHeader>
           <CardTitle>Themes</CardTitle>
           <CardDescription>
-            Pick a full look in one click, or choose Custom and fine-tune below.
+            Pick a built-in or saved theme, or choose Custom and fine-tune below.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <Label htmlFor="theme-save-name">Save current style as theme</Label>
+              <Input
+                id="theme-save-name"
+                className="mt-2"
+                value={themeName}
+                placeholder="e.g. Summer drop"
+                onChange={(e) => setThemeName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void saveNamedTheme();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void saveNamedTheme()}
+              disabled={savingThemeList || !themeName.trim()}
+            >
+              {savingThemeList ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save theme"
+              )}
+            </Button>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {THEME_PRESETS.map((preset) => {
               const selected = activePresetId === preset.id;
@@ -287,6 +381,60 @@ export function ThemeEditor({
                       />
                     ))}
                   </div>
+                </button>
+              );
+            })}
+
+            {savedThemes.map((preset) => {
+              const selected = activePresetId === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => applyPreset(preset.id)}
+                  className={cn(
+                    "relative rounded-xl border p-4 text-left transition-colors",
+                    selected
+                      ? "border-neutral-950 bg-neutral-50"
+                      : "border-neutral-200 hover:border-neutral-400"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 pr-8">
+                      <p className="truncate text-sm font-semibold text-neutral-950">
+                        {preset.name}
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-500">Your saved theme</p>
+                    </div>
+                    {selected && <Check className="h-4 w-4 shrink-0 text-neutral-950" />}
+                  </div>
+                  <div className="mt-4 flex gap-1.5">
+                    {[
+                      preset.theme.background,
+                      preset.theme.foreground,
+                      preset.theme.accent,
+                      preset.theme.muted,
+                    ].map((color, i) => (
+                      <span
+                        key={`${preset.id}-${i}`}
+                        className="h-6 w-6 rounded-full border border-black/10"
+                        style={{ background: color }}
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-2 h-8 w-8 text-neutral-400 hover:text-red-600"
+                    aria-label={`Delete theme ${preset.name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void deleteSavedTheme(preset.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </button>
               );
             })}

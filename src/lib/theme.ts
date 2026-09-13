@@ -258,10 +258,91 @@ export function normalizeTheme(input: unknown): ThemeData {
   };
 }
 
-export function themeFromPreset(presetId: string): ThemeData | null {
-  const preset = THEME_PRESETS.find((p) => p.id === presetId);
-  if (!preset) return null;
-  return normalizeTheme({ presetId: preset.id, ...preset.theme });
+export type SavedThemePreset = {
+  id: string;
+  name: string;
+  description: string;
+  theme: Omit<ThemeData, "presetId">;
+  createdAt: string;
+};
+
+export function slugifyThemeName(name: string): string {
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug ? `custom-${slug}` : `custom-${Date.now()}`;
+}
+
+export function normalizeSavedThemes(stored: unknown): SavedThemePreset[] {
+  if (!Array.isArray(stored)) return [];
+  return stored
+    .filter(
+      (item): item is SavedThemePreset =>
+        Boolean(
+          item &&
+            typeof item === "object" &&
+            typeof (item as SavedThemePreset).id === "string" &&
+            typeof (item as SavedThemePreset).name === "string" &&
+            (item as SavedThemePreset).theme &&
+            typeof (item as SavedThemePreset).theme === "object"
+        )
+    )
+    .map((item) => ({
+      id: item.id,
+      name: item.name.trim(),
+      description: item.description?.trim() ?? "Saved custom theme",
+      createdAt: item.createdAt ?? new Date().toISOString(),
+      theme: normalizeTheme({ ...item.theme, presetId: "custom" }),
+    }))
+    .filter((item) => item.name.length > 0);
+}
+
+export function createSavedThemePreset(
+  theme: ThemeData,
+  name: string,
+  existingIds: string[]
+): SavedThemePreset {
+  let id = slugifyThemeName(name);
+  if (existingIds.includes(id)) {
+    id = `${id}-${Date.now().toString(36)}`;
+  }
+  const { presetId: _presetId, ...themeFields } = normalizeTheme(theme);
+  return {
+    id,
+    name: name.trim(),
+    description: "Saved custom theme",
+    createdAt: new Date().toISOString(),
+    theme: themeFields,
+  };
+}
+
+export function themeFromPreset(
+  presetId: string,
+  savedPresets: SavedThemePreset[] = []
+): ThemeData | null {
+  const builtIn = THEME_PRESETS.find((p) => p.id === presetId);
+  if (builtIn) {
+    return normalizeTheme({ presetId: builtIn.id, ...builtIn.theme });
+  }
+  const saved = savedPresets.find((p) => p.id === presetId);
+  if (saved) {
+    return normalizeTheme({ presetId: saved.id, ...saved.theme });
+  }
+  return null;
+}
+
+export function themeMatchesPreset(
+  theme: ThemeData,
+  presetId: string,
+  savedPresets: SavedThemePreset[] = []
+): boolean {
+  const match = themeFromPreset(presetId, savedPresets);
+  if (!match) return false;
+  const { presetId: _a, ...a } = match;
+  const { presetId: _b, ...b } = normalizeTheme(theme);
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 type ButtonSurface = {

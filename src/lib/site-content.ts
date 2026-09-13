@@ -21,7 +21,13 @@ import {
   normalizeHomeSections,
   type HomeSectionItem,
 } from "@/lib/home-sections";
-import { DEFAULT_THEME, normalizeTheme, type ThemeData } from "@/lib/theme";
+import {
+  DEFAULT_THEME,
+  normalizeSavedThemes,
+  normalizeTheme,
+  type SavedThemePreset,
+  type ThemeData,
+} from "@/lib/theme";
 
 export const CONTENT_KEYS = [
   "site",
@@ -36,6 +42,7 @@ export const CONTENT_KEYS = [
   "instagram",
   "newsletter",
   "theme",
+  "savedThemes",
   "footerCredit",
 ] as const;
 
@@ -197,6 +204,7 @@ export type AllSiteContent = {
   instagram: InstagramData;
   newsletter: NewsletterData;
   theme: ThemeData;
+  savedThemes: SavedThemePreset[];
   footerCredit: FooterCreditData;
 };
 
@@ -330,6 +338,7 @@ export const DEFAULT_SITE_CONTENT: AllSiteContent = {
       "New designs, club news, and a good excuse to take a break.",
   },
   theme: DEFAULT_THEME,
+  savedThemes: [],
   footerCredit: {
     enabled: true,
     prefix: "Made with",
@@ -443,6 +452,9 @@ export async function getContentBlock<K extends ContentKey>(
     if (key === "theme") {
       return normalizeTheme(row?.data) as AllSiteContent[K];
     }
+    if (key === "savedThemes") {
+      return normalizeSavedThemes(row?.data) as AllSiteContent[K];
+    }
     if (key === "home") {
       return mergeHome(row?.data) as AllSiteContent[K];
     }
@@ -500,6 +512,7 @@ export async function getAllSiteContent(): Promise<AllSiteContent> {
       instagram: mergeContent(DEFAULT_SITE_CONTENT.instagram, byKey.instagram),
       newsletter: mergeContent(DEFAULT_SITE_CONTENT.newsletter, byKey.newsletter),
       theme: normalizeTheme(byKey.theme),
+      savedThemes: normalizeSavedThemes(byKey.savedThemes),
       footerCredit: mergeFooterCredit(byKey.footerCredit),
     };
   } catch {
