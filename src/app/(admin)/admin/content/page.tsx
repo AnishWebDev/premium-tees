@@ -3,7 +3,11 @@ import { isSuperAdmin } from "@/lib/roles";
 import { getAllCmsContent } from "@/lib/cms-content";
 import { listCmsPages } from "@/lib/cms-pages";
 import { getAllSiteContent } from "@/lib/site-content";
-import { CmsStudio } from "@/components/admin/cms-studio";
+import {
+  CmsStudio,
+  parseCmsGlobalCopyTab,
+  parseCmsMainTab,
+} from "@/components/admin/cms-studio";
 import type { SectionContentSource } from "@/lib/home-sections";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +27,14 @@ function toSectionContentSource(
   };
 }
 
-export default async function AdminContentPage() {
+type AdminContentPageProps = {
+  searchParams: Promise<{ tab?: string; sub?: string }>;
+};
+
+export default async function AdminContentPage({
+  searchParams,
+}: AdminContentPageProps) {
+  const { tab, sub } = await searchParams;
   const [pages, siteContent, cmsContent, session] = await Promise.all([
     listCmsPages(),
     getAllSiteContent(),
@@ -39,6 +50,8 @@ export default async function AdminContentPage() {
       initialCmsContent={cmsContent}
       contentSource={toSectionContentSource(siteContent)}
       canSelectHomeTemplate={superAdmin}
+      initialMainTab={parseCmsMainTab(tab)}
+      initialGlobalCopyTab={parseCmsGlobalCopyTab(sub)}
     />
   );
 }

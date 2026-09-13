@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { adminComponentSettingsDivider } from "@/lib/admin-ui-classes";
 
 const BG_STYLE_OPTIONS = [
   { value: "theme", label: "Page background" },
@@ -112,12 +113,16 @@ export function HelloBarEditor({
       </div>
 
       {canEditSettings ? (
-        <Accordion type="single" collapsible defaultValue="hello-settings">
-          <AccordionItem value="hello-settings" className="border rounded-lg px-4">
-            <AccordionTrigger className="text-sm font-medium">
-              Hello bar settings (SuperAdmin)
+        <Accordion type="single" collapsible className={adminComponentSettingsDivider}>
+          <AccordionItem value="hello-settings" className="border-none">
+            <AccordionTrigger className="py-2 text-xs font-medium text-[var(--foreground)] hover:no-underline">
+              Hello bar settings
             </AccordionTrigger>
-            <AccordionContent className="space-y-4 pb-4">
+            <AccordionContent className="space-y-4 pb-1 pt-2 text-[var(--foreground)]">
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Background, colors, sticky behavior, and dismiss options for the
+                promo bar.
+              </p>
               <div className="space-y-2">
                 <Label>Background</Label>
                 <Select

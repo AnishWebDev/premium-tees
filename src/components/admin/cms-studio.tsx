@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ExternalLink,
   Loader2,
@@ -59,7 +60,23 @@ type CmsStudioProps = {
   initialCmsContent: AllCmsContent;
   contentSource: SectionContentSource;
   canSelectHomeTemplate: boolean;
+  initialMainTab?: MainTab;
+  initialGlobalCopyTab?: CmsKey;
 };
+
+export function parseCmsMainTab(value: string | null | undefined): MainTab {
+  if (value && MAIN_TABS.some((tab) => tab.key === value)) {
+    return value as MainTab;
+  }
+  return "site";
+}
+
+export function parseCmsGlobalCopyTab(value: string | null | undefined): CmsKey {
+  if (value && GLOBAL_COPY_SUBTABS.some((tab) => tab.key === value)) {
+    return value as CmsKey;
+  }
+  return "storeCopy";
+}
 
 const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: "site", label: "Site" },
@@ -87,9 +104,13 @@ export function CmsStudio({
   initialCmsContent,
   contentSource,
   canSelectHomeTemplate,
+  initialMainTab = "site",
+  initialGlobalCopyTab = "storeCopy",
 }: CmsStudioProps) {
-  const [mainTab, setMainTab] = useState<MainTab>("site");
-  const [globalCopyTab, setGlobalCopyTab] = useState<CmsKey>("storeCopy");
+  const router = useRouter();
+  const pathname = usePathname();
+  const [mainTab, setMainTab] = useState<MainTab>(initialMainTab);
+  const [globalCopyTab, setGlobalCopyTab] = useState<CmsKey>(initialGlobalCopyTab);
   const [siteContent, setSiteContent] = useState(initialSiteContent);
   const [cmsContent, setCmsContent] = useState(initialCmsContent);
   const [pages, setPages] = useState(initialPages);
@@ -116,6 +137,37 @@ export function CmsStudio({
   );
 
   const selectedPage = pages.find((p) => p.id === selectedPageId) ?? null;
+
+  const syncTabUrl = useCallback(
+    (tab: MainTab, sub: CmsKey) => {
+      const params = new URLSearchParams();
+      if (tab !== "site") params.set("tab", tab);
+      if (tab === "global-copy" && sub !== "storeCopy") {
+        params.set("sub", sub);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router]
+  );
+
+  const handleMainTabChange = useCallback(
+    (value: string) => {
+      const tab = value as MainTab;
+      setMainTab(tab);
+      syncTabUrl(tab, globalCopyTab);
+    },
+    [globalCopyTab, syncTabUrl]
+  );
+
+  const handleGlobalCopyTabChange = useCallback(
+    (value: string) => {
+      const sub = value as CmsKey;
+      setGlobalCopyTab(sub);
+      syncTabUrl(mainTab, sub);
+    },
+    [mainTab, syncTabUrl]
+  );
 
   useEffect(() => {
     setPageDraft(selectedPage);
@@ -298,7 +350,7 @@ export function CmsStudio({
         </p>
       </div>
 
-      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as MainTab)}>
+      <Tabs value={mainTab} onValueChange={handleMainTabChange}>
         <div className="sticky top-0 z-20 border-b border-neutral-200 bg-[var(--background)] px-4 py-2 md:px-6">
           <TabsList className={adminTabsList}>
             {MAIN_TABS.map((tab) => (
@@ -625,10 +677,7 @@ export function CmsStudio({
               copy. Page-specific content (Collections, Legal, Shop empty catalog)
               is under <strong>Pages</strong>.
             </p>
-            <Tabs
-              value={globalCopyTab}
-              onValueChange={(v) => setGlobalCopyTab(v as CmsKey)}
-            >
+            <Tabs value={globalCopyTab} onValueChange={handleGlobalCopyTabChange}>
               <TabsList className={`mb-4 ${adminTabsList}`}>
                 {GLOBAL_COPY_SUBTABS.map((tab) => (
                   <TabsTrigger key={tab.key} value={tab.key}>
