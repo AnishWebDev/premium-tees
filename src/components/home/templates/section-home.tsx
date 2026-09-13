@@ -47,7 +47,6 @@ import {
   VideoPlayerBlock,
   videoPlayerSettingsFromProps,
 } from "@/components/home/blocks/video-player-block";
-import { countdownParts } from "@/lib/promo-schedule";
 import { TrailHero } from "@/components/home/blocks/trail-hero";
 import { TrustBar } from "@/components/home/blocks/trust-bar";
 import {
@@ -705,7 +704,6 @@ function renderSection(section: HomeSectionItem, props: HomeTemplateProps) {
           backgroundColor={o.backgroundColor}
           textColor={o.textColor}
           borderRadius={o.borderRadius}
-          initialParts={countdownParts(o.countdownTargetAt, o.scheduleStartAt)}
         />
       );
     case "contentCard": {

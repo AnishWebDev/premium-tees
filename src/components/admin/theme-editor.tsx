@@ -230,9 +230,9 @@ export function ThemeEditor({
   };
 
   return (
-    <div className="pb-24">
-      <div className="lg:flex lg:items-start lg:gap-8">
-        <div className="min-w-0 flex-1 space-y-6">
+    <div className="relative pb-24">
+      <div className="lg:pr-[min(100%,24rem)]">
+        <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Themes</CardTitle>
@@ -333,14 +333,17 @@ export function ThemeEditor({
                       : "border-neutral-200 hover:border-neutral-400"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 pr-8">
-                      <p className="truncate text-sm font-semibold text-neutral-950">
-                        {preset.name}
-                      </p>
-                      <p className="mt-1 text-xs text-neutral-500">Your saved theme</p>
-                    </div>
-                    {selected && <Check className="h-4 w-4 shrink-0 text-neutral-950" />}
+                  {selected ? (
+                    <Check
+                      className="absolute left-3 top-3 h-4 w-4 text-neutral-950"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <div className={cn("min-w-0", selected && "pl-6")}>
+                    <p className="truncate pe-8 text-sm font-semibold text-neutral-950">
+                      {preset.name}
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">Your saved theme</p>
                   </div>
                   <div className="mt-4 flex gap-1.5">
                     {[
@@ -360,7 +363,7 @@ export function ThemeEditor({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-2 top-2 h-8 w-8 text-neutral-400 hover:text-red-600"
+                    className="absolute right-1.5 top-1.5 h-8 w-8 text-neutral-400 hover:text-red-600"
                     aria-label={`Delete theme ${preset.name}`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -637,13 +640,16 @@ export function ThemeEditor({
         </div>
       )}
         </div>
-
-        <aside className="hidden w-[min(100%,22.5rem)] shrink-0 lg:block">
-          <div className="sticky top-20">
-            <ThemePreviewPanel theme={theme} />
-          </div>
-        </aside>
       </div>
+
+      <aside
+        aria-label="Theme live preview"
+        className="pointer-events-none fixed bottom-24 right-4 top-[4.75rem] z-10 hidden w-[min(100%,22.5rem)] lg:block xl:right-8"
+      >
+        <div className="pointer-events-auto h-full overflow-y-auto overscroll-contain pb-2">
+          <ThemePreviewPanel theme={theme} />
+        </div>
+      </aside>
 
       <div className="mt-6 lg:hidden">
         <ThemePreviewPanel theme={theme} />

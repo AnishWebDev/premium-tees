@@ -229,3 +229,96 @@ export async function syncOrderByIdSafe(orderId: string): Promise<void> {
     console.error(`[google-sheets] sync failed for order ${orderId}`, error);
   }
 }
+
+const CONTACT_HEADERS = [
+  "Submitted At",
+  "Name",
+  "Email",
+  "Subject",
+  "Message",
+] as const;
+
+const CONTACT_LAST_COLUMN = "E";
+
+function getContactTabName(): string {
+  return process.env.GOOGLE_SHEETS_CONTACT_TAB_NAME?.trim() || "Contact";
+}
+
+export type ContactSheetInput = {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+};
+
+function contactHeadersMatch(existing: string[] | undefined): boolean {
+  if (!existing || existing.length !== CONTACT_HEADERS.length) return false;
+  return CONTACT_HEADERS.every((header, index) => existing[index] === header);
+}
+
+async function ensureContactTabExists(sheets: ReturnType<typeof google.sheets>) {
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getContactTabName();
+  const meta = await sheets.spreadsheets.get({ spreadsheetId });
+  const exists = meta.data.sheets?.some((sheet) => sheet.properties?.title === tab);
+  if (exists) return;
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      requests: [{ addSheet: { properties: { title: tab } } }],
+    },
+  });
+}
+
+async function ensureContactHeaders(sheets: ReturnType<typeof google.sheets>) {
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getContactTabName();
+  const range = `${tab}!A1:${CONTACT_LAST_COLUMN}1`;
+
+  const existing = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range,
+  });
+
+  const existingRow = existing.data.values?.[0];
+  if (contactHeadersMatch(existingRow)) return;
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range,
+    valueInputOption: "RAW",
+    requestBody: { values: [Array.from(CONTACT_HEADERS)] },
+  });
+}
+
+export async function appendContactToGoogleSheets(
+  input: ContactSheetInput
+): Promise<void> {
+  if (!isGoogleSheetsConfigured()) {
+    throw new Error("Google Sheets is not configured");
+  }
+
+  const sheets = await getSheetsClient();
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getContactTabName();
+
+  await ensureContactTabExists(sheets);
+  await ensureContactHeaders(sheets);
+
+  const row = [
+    formatSheetDateTime(new Date()),
+    input.name.trim(),
+    input.email.trim(),
+    input.subject.trim(),
+    input.message.trim(),
+  ];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: `${tab}!A:${CONTACT_LAST_COLUMN}`,
+    valueInputOption: "RAW",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: { values: [row] },
+  });
+}

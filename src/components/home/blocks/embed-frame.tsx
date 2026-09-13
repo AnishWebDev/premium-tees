@@ -11,6 +11,50 @@ function youtubeEmbed(id: string) {
   return `https://www.youtube-nocookie.com/embed/${id}`;
 }
 
+export type EmbedPlaybackOptions = {
+  autoplay?: boolean;
+  muted?: boolean;
+  loop?: boolean;
+};
+
+/** Append autoplay / loop params for YouTube, Vimeo, and similar embeds. */
+export function withEmbedPlayback(
+  embedSrc: string,
+  options: EmbedPlaybackOptions
+): string {
+  try {
+    const url = new URL(embedSrc);
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+    const isYoutube =
+      host.includes("youtube") || host.includes("youtube-nocookie");
+
+    if (options.autoplay) {
+      url.searchParams.set("autoplay", "1");
+      url.searchParams.set("mute", options.muted !== false ? "1" : "0");
+      url.searchParams.set("playsinline", "1");
+    } else {
+      url.searchParams.delete("autoplay");
+      url.searchParams.delete("mute");
+      url.searchParams.delete("playsinline");
+    }
+
+    if (options.loop) {
+      url.searchParams.set("loop", "1");
+      if (isYoutube) {
+        const id = url.pathname.split("/").filter(Boolean).pop();
+        if (id) url.searchParams.set("playlist", id);
+      }
+    } else {
+      url.searchParams.delete("loop");
+      url.searchParams.delete("playlist");
+    }
+
+    return url.toString();
+  } catch {
+    return embedSrc;
+  }
+}
+
 /** Convert common watch / share URLs to embeddable srcs. */
 export function toEmbedSrc(url: string): string | null {
   const raw = url?.trim();

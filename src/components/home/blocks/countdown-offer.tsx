@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import {
   galleryBandClass,
@@ -24,7 +24,6 @@ type CountdownOfferProps = {
   backgroundColor?: string;
   textColor?: string;
   borderRadius?: string;
-  initialParts?: CountdownParts | null;
 };
 
 function Unit({ label, value }: { label: string; value: number }) {
@@ -52,14 +51,18 @@ export function CountdownOffer({
   backgroundColor = "",
   textColor = "",
   borderRadius = "lg",
-  initialParts = null,
 }: CountdownOfferProps) {
-  const [parts, setParts] = useState<CountdownParts | null>(initialParts);
+  const [parts, setParts] = useState<CountdownParts | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useLayoutEffect(() => {
+    setParts(countdownParts(countdownTargetAt, scheduleStartAt));
+    setReady(true);
+  }, [countdownTargetAt, scheduleStartAt]);
 
   useEffect(() => {
     const tick = () =>
       setParts(countdownParts(countdownTargetAt, scheduleStartAt));
-    tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
   }, [countdownTargetAt, scheduleStartAt]);
@@ -70,7 +73,7 @@ export function CountdownOffer({
   const roundedClass = galleryRoundedClass(borderRadius);
   const customBg = backgroundColor?.trim();
   const customColor = textColor?.trim();
-  const expired = parts?.expired ?? false;
+  const expired = ready && (parts?.expired ?? false);
   const phaseLabel =
     parts?.phase === "before"
       ? "Offer starts in"
@@ -98,7 +101,9 @@ export function CountdownOffer({
           </p>
         ) : null}
 
-        {expired ? (
+        {!ready ? (
+          <div className="mt-8 h-[5.5rem]" aria-hidden />
+        ) : expired ? (
           <p className="mt-8 text-base font-medium">{expiredMessage}</p>
         ) : parts ? (
           <>
@@ -124,7 +129,7 @@ export function CountdownOffer({
           </>
         ) : null}
 
-        {ctaLabel?.trim() && ctaHref?.trim() && !expired ? (
+        {ctaLabel?.trim() && ctaHref?.trim() && ready && !expired ? (
           <div className="mt-8">
             <Link
               href={ctaHref}

@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { toEmbedSrc } from "@/components/home/blocks/embed-frame";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  toEmbedSrc,
+  withEmbedPlayback,
+} from "@/components/home/blocks/embed-frame";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { cn } from "@/lib/utils";
 
@@ -36,11 +39,12 @@ export function VideoPlayerMedia({
 }: VideoPlayerMediaProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [inView, setInView] = useState(false);
 
   const directSrc = videoUrl.trim();
   const embedSrcRaw = embedUrl.trim();
   const direct = directSrc ? isDirectVideo(directSrc) : false;
-  const iframeSrc =
+  const baseIframeSrc =
     !direct && embedSrcRaw
       ? toEmbedSrc(embedSrcRaw)
       : !direct && directSrc
@@ -48,31 +52,44 @@ export function VideoPlayerMedia({
         : null;
   const nativeSrc = direct ? directSrc : null;
 
-  useEffect(() => {
-    const video = videoRef.current;
-    const container = containerRef.current;
-    if (!video || !nativeSrc || !autoplay) return;
+  const iframeSrc = useMemo(() => {
+    if (!baseIframeSrc) return null;
+    return withEmbedPlayback(baseIframeSrc, {
+      autoplay: autoplay && inView,
+      muted: muted || autoplay,
+      loop,
+    });
+  }, [autoplay, baseIframeSrc, inView, loop, muted]);
 
-    if (!container) return;
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !autoplay) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.35) {
-          void video.play().catch(() => {
-            /* autoplay blocked */
-          });
-        } else {
-          video.pause();
-        }
+        setInView(entry.isIntersecting && entry.intersectionRatio >= 0.35);
       },
       { threshold: [0, 0.35, 0.6] }
     );
 
     observer.observe(container);
     return () => observer.disconnect();
-  }, [autoplay, nativeSrc]);
+  }, [autoplay, baseIframeSrc, nativeSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !nativeSrc || !autoplay) return;
+
+    if (inView) {
+      void video.play().catch(() => {
+        /* autoplay blocked */
+      });
+    } else {
+      video.pause();
+    }
+  }, [autoplay, inView, nativeSrc]);
 
   return (
     <div
@@ -98,6 +115,7 @@ export function VideoPlayerMedia({
         />
       ) : iframeSrc ? (
         <iframe
+          key={iframeSrc}
           src={iframeSrc}
           title={title}
           className="absolute inset-0 h-full w-full border-0"

@@ -77,7 +77,7 @@ export function SectionFieldGrid({
                 : undefined
             }
           >
-            {key !== "imageUrl" ? (
+            {key !== "imageUrl" && key !== "posterImageUrl" ? (
               <Label className="text-xs">{SECTION_FIELD_LABELS[key]}</Label>
             ) : null}
             {options ? (

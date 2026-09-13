@@ -172,8 +172,8 @@ export function StoreSettingsCard({ isSuperAdmin }: StoreSettingsCardProps) {
                 <p className="text-sm font-medium text-neutral-900">Customer interest sheet</p>
                 <p className="mt-0.5 text-xs text-neutral-500">
                   {sheetsConfigured
-                    ? "Order and lead details sync to Google Sheets automatically."
-                    : "Set GOOGLE_SHEETS_* env vars and share the sheet with admin emails."}
+                    ? "Orders sync to the Orders tab; Contact form submissions go to the Contact tab."
+                    : "Set GOOGLE_SHEETS_* env vars and share the sheet with the service account."}
                 </p>
               </div>
               <span

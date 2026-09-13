@@ -26,10 +26,25 @@ export function ContactForm({ content }: ContactFormProps) {
   });
 
   const onSubmit = async (data: ContactInput) => {
-    void data;
-    await new Promise((r) => setTimeout(r, 600));
-    toast.success("Message sent — we'll get back to you within 1–2 business days.");
-    reset();
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+
+      if (!res.ok) {
+        throw new Error(body.error || "Could not send your message");
+      }
+
+      toast.success("Message sent — we'll get back to you within 1–2 business days.");
+      reset();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not send your message"
+      );
+    }
   };
 
   return (
