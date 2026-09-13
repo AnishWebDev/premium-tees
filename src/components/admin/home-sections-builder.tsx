@@ -176,6 +176,47 @@ export function HomeSectionsBuilder({
     setOpenId(section.id);
   };
 
+  const addComponentBar = canManageLayout ? (
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <Label className="text-xs font-medium text-neutral-600">
+            Component type
+          </Label>
+          <Select
+            value={addType}
+            onValueChange={(v) => setAddType(v as HomeSectionType)}
+          >
+            <SelectTrigger className="mt-1.5 bg-white">
+              <SelectValue placeholder="Choose a component…" />
+            </SelectTrigger>
+            <SelectContent>
+              {HOME_SECTION_CATALOG.map((item) => (
+                <SelectItem key={item.type} value={item.type}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="button" onClick={add} className="h-11 shrink-0">
+          <Plus className="mr-2 h-4 w-4" />
+          Add component
+        </Button>
+        {template ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 shrink-0"
+            onClick={() => onChange(defaultSectionsForTemplate(template))}
+          >
+            Reset to {template} preset
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <Card>
       <CardHeader>
@@ -189,12 +230,13 @@ export function HomeSectionsBuilder({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {addComponentBar}
         {visibleSections.length === 0 ? (
           <p className="text-sm text-neutral-500">
             No components on this {pageLabel.toLowerCase()} yet.
             {canManageLayout
-              ? " Pick a component type below and click Add."
-              : " Add components using the builder above."}
+              ? " Choose a type above and click Add component."
+              : ""}
           </p>
         ) : (
           <ul className="space-y-2">
@@ -396,75 +438,37 @@ export function HomeSectionsBuilder({
           </ul>
         )}
 
-        {canManageLayout && (
-          <div className="space-y-4 border-t border-neutral-100 pt-4">
-            {libraryComponents.length > 0 ? (
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <div className="flex-1">
-                  <p className="mb-2 text-xs font-medium text-neutral-500">
-                    Insert from library
-                  </p>
-                  <Select value={libraryPick} onValueChange={setLibraryPick}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pick a saved component…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {libraryComponents.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name} ({sectionLabel(item.type)})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={!libraryPick}
-                  onClick={insertFromLibrary}
-                >
-                  <Link2 className="mr-2 h-4 w-4" />
-                  Insert
-                </Button>
-              </div>
-            ) : null}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="flex-1">
-                <p className="mb-2 text-xs font-medium text-neutral-500">
-                  Add component
-                </p>
-                <Select
-                  value={addType}
-                  onValueChange={(v) => setAddType(v as HomeSectionType)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {HOME_SECTION_CATALOG.map((item) => (
-                      <SelectItem key={item.type} value={item.type}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button type="button" variant="secondary" onClick={add}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add
-              </Button>
-              {template ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onChange(defaultSectionsForTemplate(template))}
-                >
-                  Reset to {template} preset
-                </Button>
-              ) : null}
+        {libraryComponents.length > 0 && canManageLayout ? (
+          <div className="flex flex-col gap-3 border-t border-neutral-100 pt-4 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <Label className="text-xs font-medium text-neutral-600">
+                Insert shared component
+              </Label>
+              <Select value={libraryPick} onValueChange={setLibraryPick}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Pick a saved component…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {libraryComponents.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name} ({sectionLabel(item.type)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-11 shrink-0"
+              disabled={!libraryPick}
+              onClick={insertFromLibrary}
+            >
+              <Link2 className="mr-2 h-4 w-4" />
+              Insert
+            </Button>
           </div>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

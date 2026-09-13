@@ -10,18 +10,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { AllCmsContent, CmsKey } from "@/lib/cms-content";
-import type { CmsComponentRecord } from "@/lib/cms-components";
 import type { CmsPageRecord } from "@/lib/cms-pages";
-import {
-  HOME_SECTION_CATALOG,
-  componentSettingsFieldsForType,
-  defaultPropsForSection,
-  editableFieldsForType,
-  sectionLabel,
-  type HomeSectionProps,
-  type HomeSectionType,
-  type SectionContentSource,
-} from "@/lib/home-sections";
+import type { SectionContentSource } from "@/lib/home-sections";
 import type { HomeTemplateId } from "@/lib/home-templates";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
 import { pageKindForSlug, pagePathForSlug } from "@/lib/page-catalog";
@@ -33,7 +23,6 @@ import {
   cmsSaveKeyForPageSlug,
   siteSaveKeyForPageSlug,
 } from "@/components/admin/page-legacy-editor";
-import { SectionFieldGrid } from "@/components/admin/section-field-grid";
 import { SiteContentEditor } from "@/components/admin/site-content-editor";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,24 +45,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
-type MainTab =
-  | "site"
-  | "header"
-  | "footer"
-  | "pages"
-  | "components"
-  | "store-copy";
+type MainTab = "site" | "header" | "footer" | "pages" | "store-copy";
 
 type CmsStudioProps = {
   initialPages: CmsPageRecord[];
-  initialComponents: CmsComponentRecord[];
   initialSiteContent: AllSiteContent;
   initialCmsContent: AllCmsContent;
   contentSource: SectionContentSource;
@@ -85,9 +60,14 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: "header", label: "Header" },
   { key: "footer", label: "Footer" },
   { key: "pages", label: "Pages" },
-  { key: "components", label: "Components" },
   { key: "store-copy", label: "Store copy" },
 ];
+
+function pageUsesSectionBuilder(page: CmsPageRecord): boolean {
+  if (page.slug === "home") return true;
+  if (!page.isSystem) return true;
+  return pageKindForSlug(page.slug) === "sections";
+}
 
 const STORE_COPY_SUBTABS: { key: CmsKey; label: string }[] = [
   { key: "collections", label: "Collections" },
@@ -99,7 +79,6 @@ const STORE_COPY_SUBTABS: { key: CmsKey; label: string }[] = [
 
 export function CmsStudio({
   initialPages,
-  initialComponents,
   initialSiteContent,
   initialCmsContent,
   contentSource,
@@ -110,17 +89,10 @@ export function CmsStudio({
   const [siteContent, setSiteContent] = useState(initialSiteContent);
   const [cmsContent, setCmsContent] = useState(initialCmsContent);
   const [pages, setPages] = useState(initialPages);
-  const [components, setComponents] = useState(initialComponents);
   const [selectedPageId, setSelectedPageId] = useState(
     initialPages.find((p) => p.slug === "home")?.id ?? initialPages[0]?.id ?? ""
   );
-  const [selectedComponentId, setSelectedComponentId] = useState(
-    initialComponents[0]?.id ?? ""
-  );
   const [pageDraft, setPageDraft] = useState<CmsPageRecord | null>(null);
-  const [componentDraft, setComponentDraft] = useState<CmsComponentRecord | null>(
-    null
-  );
   const [saving, setSaving] = useState(false);
   const [creatingPage, setCreatingPage] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -140,16 +112,10 @@ export function CmsStudio({
   );
 
   const selectedPage = pages.find((p) => p.id === selectedPageId) ?? null;
-  const selectedComponent =
-    components.find((c) => c.id === selectedComponentId) ?? null;
 
   useEffect(() => {
     setPageDraft(selectedPage);
   }, [selectedPage]);
-
-  useEffect(() => {
-    setComponentDraft(selectedComponent);
-  }, [selectedComponent]);
 
   const saveSiteKey = async (key: ContentKey, data?: unknown) => {
     const payload = data ?? siteContent[key];
@@ -175,9 +141,8 @@ export function CmsStudio({
 
   const savePage = async () => {
     if (!pageDraft) return;
-    const kind = pageKindForSlug(pageDraft.slug);
 
-    if (kind === "sections") {
+    if (pageUsesSectionBuilder(pageDraft)) {
       const res = await fetch(`/api/admin/pages/${pageDraft.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -217,26 +182,6 @@ export function CmsStudio({
     }
   };
 
-  const saveComponent = async () => {
-    if (!componentDraft) return;
-    const res = await fetch(`/api/admin/components/${componentDraft.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: componentDraft.name,
-        type: componentDraft.type,
-        description: componentDraft.description,
-        props: componentDraft.props,
-      }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || "Save failed");
-    setComponents((prev) =>
-      prev.map((c) => (c.id === componentDraft.id ? body.component : c))
-    );
-    setComponentDraft(body.component);
-  };
-
   const saveStoreCopyTab = async () => {
     const res = await fetch("/api/admin/cms", {
       method: "PUT",
@@ -262,9 +207,6 @@ export function CmsStudio({
           break;
         case "pages":
           await savePage();
-          break;
-        case "components":
-          await saveComponent();
           break;
         case "store-copy":
           await saveStoreCopyTab();
@@ -324,11 +266,12 @@ export function CmsStudio({
     }
   };
 
-  const pageKind = pageDraft ? pageKindForSlug(pageDraft.slug) : "sections";
-  const usesSections = pageKind === "sections";
+  const usesSectionBuilder = pageDraft
+    ? pageUsesSectionBuilder(pageDraft)
+    : false;
 
   return (
-    <div data-admin-flush className="pb-24">
+    <div data-admin-flush className="pb-28">
       <div className="px-4 pt-4 md:px-6 md:pt-6">
         <h1 className="font-display text-2xl font-semibold text-neutral-950">
           Page content
@@ -392,63 +335,70 @@ export function CmsStudio({
                   below, just like the homepage.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="new-page-title">Page title</Label>
-                  <Input
-                    id="new-page-title"
-                    value={newTitle}
-                    placeholder="Gallery"
-                    onChange={(e) => {
-                      setNewTitle(e.target.value);
-                      setNewSlug(
-                        e.target.value
-                          .toLowerCase()
-                          .replace(/[^a-z0-9]+/g, "-")
-                          .replace(/^-+|-+$/g, "")
-                      );
-                    }}
-                  />
+              <CardContent className="space-y-3">
+                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-page-title">Page title</Label>
+                    <Input
+                      id="new-page-title"
+                      className="h-11"
+                      value={newTitle}
+                      placeholder="Gallery"
+                      onChange={(e) => {
+                        setNewTitle(e.target.value);
+                        setNewSlug(
+                          e.target.value
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .replace(/^-+|-+$/g, "")
+                        );
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-page-slug">URL slug</Label>
+                    <Input
+                      id="new-page-slug"
+                      className="h-11"
+                      value={newSlug}
+                      placeholder="gallery"
+                      onChange={(e) => setNewSlug(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    className="h-11 w-full shrink-0 md:w-auto"
+                    disabled={
+                      creatingPage || !newTitle.trim() || !newSlug.trim()
+                    }
+                    onClick={() => void createPage()}
+                  >
+                    {creatingPage ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="mr-2 h-4 w-4" />
+                    )}
+                    Create page
+                  </Button>
                 </div>
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="new-page-slug">URL slug</Label>
-                  <Input
-                    id="new-page-slug"
-                    value={newSlug}
-                    placeholder="gallery"
-                    onChange={(e) => setNewSlug(e.target.value)}
-                  />
-                  <p className="text-xs text-neutral-500">
-                    Live at /pages/{newSlug || "your-slug"} when published
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  disabled={creatingPage || !newTitle.trim() || !newSlug.trim()}
-                  onClick={() => void createPage()}
-                >
-                  {creatingPage ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="mr-2 h-4 w-4" />
-                  )}
-                  Create page
-                </Button>
+                <p className="text-xs text-neutral-500">
+                  Live at /pages/{newSlug || "your-slug"} when published
+                </p>
               </CardContent>
             </Card>
 
             {pageDraft ? (
               <>
                 <Card>
-                  <CardHeader className="gap-4 space-y-0 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="min-w-0 flex-1 space-y-3">
-                      <div>
+                  <CardHeader className="space-y-4">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                      <div className="min-w-0 flex-1 space-y-2">
                         <Label htmlFor="page-picker">Page</Label>
                         <Select
                           value={pageDraft.id}
                           onValueChange={setSelectedPageId}
                         >
-                          <SelectTrigger id="page-picker" className="mt-1">
+                          <SelectTrigger id="page-picker" className="h-11">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -471,102 +421,111 @@ export function CmsStudio({
                             ) : null}
                           </SelectContent>
                         </Select>
+                        <p className="text-xs text-neutral-500">
+                          Live at{" "}
+                          <a
+                            href={pagePathForSlug(pageDraft.slug)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-neutral-800 underline-offset-2 hover:underline"
+                          >
+                            {pagePathForSlug(pageDraft.slug)}
+                          </a>
+                        </p>
                       </div>
-                      <p className="text-xs text-neutral-500">
-                        Live at{" "}
-                        <a
-                          href={pagePathForSlug(pageDraft.slug)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-medium text-neutral-800 underline-offset-2 hover:underline"
-                        >
-                          {pagePathForSlug(pageDraft.slug)}
-                        </a>
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <a
-                          href={pagePathForSlug(pageDraft.slug)}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          Preview
-                        </a>
-                      </Button>
-                      {!pageDraft.isSystem ? (
+                      <div className="flex shrink-0 items-center gap-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className="text-red-600"
-                          onClick={() => void deletePage(pageDraft.id)}
+                          className="h-10"
+                          asChild
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
+                          <a
+                            href={pagePathForSlug(pageDraft.slug)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Preview
+                          </a>
                         </Button>
-                      ) : null}
+                        {!pageDraft.isSystem ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-10 text-red-600"
+                            onClick={() => void deletePage(pageDraft.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {usesSections ? (
-                      <>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div>
-                            <Label>Title</Label>
+                  {usesSectionBuilder ? (
+                    <CardContent className="space-y-4 border-t border-neutral-100 pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>Title</Label>
+                          <Input
+                            className="h-11"
+                            value={pageDraft.title}
+                            onChange={(e) =>
+                              setPageDraft({
+                                ...pageDraft,
+                                title: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        {!pageDraft.isSystem ? (
+                          <div className="space-y-2">
+                            <Label>Slug</Label>
                             <Input
-                              className="mt-1"
-                              value={pageDraft.title}
+                              className="h-11"
+                              value={pageDraft.slug}
                               onChange={(e) =>
-                                setPageDraft({ ...pageDraft, title: e.target.value })
+                                setPageDraft({
+                                  ...pageDraft,
+                                  slug: e.target.value,
+                                })
                               }
                             />
                           </div>
-                          {!pageDraft.isSystem ? (
-                            <div>
-                              <Label>Slug</Label>
-                              <Input
-                                className="mt-1"
-                                value={pageDraft.slug}
-                                onChange={(e) =>
-                                  setPageDraft({ ...pageDraft, slug: e.target.value })
+                        ) : null}
+                        {pageDraft.slug === "home" && canSelectHomeTemplate ? (
+                          <div className="flex items-end gap-2 sm:col-span-2">
+                            <div className="space-y-2">
+                              <Label>Home template</Label>
+                              <Select
+                                value={
+                                  (pageDraft.template as HomeTemplateId) ??
+                                  "editorial"
                                 }
-                              />
+                                onValueChange={(v) =>
+                                  setPageDraft({ ...pageDraft, template: v })
+                                }
+                              >
+                                <SelectTrigger className="h-11 w-[200px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {HOME_TEMPLATES.map((t) => (
+                                    <SelectItem key={t.id} value={t.id}>
+                                      {t.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
-                          ) : null}
-                        </div>
-                        {pageDraft.slug === "home" &&
-                        canSelectHomeTemplate ? (
-                          <div className="flex items-center gap-2">
-                            <Label className="text-sm">Home template</Label>
-                            <Select
-                              value={
-                                (pageDraft.template as HomeTemplateId) ??
-                                "editorial"
-                              }
-                              onValueChange={(v) =>
-                                setPageDraft({ ...pageDraft, template: v })
-                              }
-                            >
-                              <SelectTrigger className="w-[180px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {HOME_TEMPLATES.map((t) => (
-                                  <SelectItem key={t.id} value={t.id}>
-                                    {t.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
                           </div>
                         ) : null}
                         {!pageDraft.isSystem ? (
                           <>
-                            <div className="sm:col-span-2">
+                            <div className="space-y-2 sm:col-span-2">
                               <Label>Description (optional)</Label>
                               <Textarea
-                                className="mt-1"
                                 rows={2}
                                 value={pageDraft.description ?? ""}
                                 onChange={(e) =>
@@ -587,18 +546,19 @@ export function CmsStudio({
                                   })
                                 }
                               />
-                              Published — visible at {pagePathForSlug(pageDraft.slug)}
+                              Published — visible at{" "}
+                              {pagePathForSlug(pageDraft.slug)}
                             </label>
                           </>
                         ) : null}
-                      </>
-                    ) : null}
-                  </CardContent>
+                      </div>
+                    </CardContent>
+                  ) : null}
                 </Card>
 
-                {usesSections ? (
+                {usesSectionBuilder ? (
                   <HomeSectionsBuilder
-                    sections={pageDraft.sections}
+                    sections={pageDraft.sections ?? []}
                     template={
                       (pageDraft.template as HomeTemplateId) ?? "editorial"
                     }
@@ -626,21 +586,6 @@ export function CmsStudio({
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="components" className="mt-0">
-            <p className="mb-4 text-sm text-neutral-500">
-              Edit shared components that are linked on pages. To build a page,
-              use <strong className="font-medium text-neutral-800">Pages</strong>{" "}
-              → create a page → add components there.
-            </p>
-            <ComponentsPanel
-              components={components}
-              draft={componentDraft}
-              onSelect={setSelectedComponentId}
-              onDraftChange={setComponentDraft}
-              contentSource={contentSource}
-            />
           </TabsContent>
 
           <TabsContent value="store-copy" className="mt-0 space-y-4">
@@ -698,200 +643,6 @@ function FixedSaveBar({
           Save changes
         </Button>
       </div>
-    </div>
-  );
-}
-
-function ComponentsPanel({
-  components,
-  draft,
-  onSelect,
-  onDraftChange,
-  contentSource,
-}: {
-  components: CmsComponentRecord[];
-  draft: CmsComponentRecord | null;
-  onSelect: (id: string) => void;
-  onDraftChange: (c: CmsComponentRecord | null) => void;
-  contentSource: SectionContentSource;
-}) {
-  const setProp = (
-    key: keyof HomeSectionProps,
-    value: string | number | undefined
-  ) => {
-    if (!draft) return;
-    const props: HomeSectionProps = { ...(draft.props ?? {}) };
-    if (value === undefined || value === "") {
-      delete props[key];
-    } else if (key === "productLimit") {
-      const n = Number(value);
-      if (!n) delete props.productLimit;
-      else props.productLimit = n;
-    } else {
-      (props as Record<string, string>)[key] = String(value);
-    }
-    onDraftChange({
-      ...draft,
-      props: Object.keys(props).length > 0 ? props : {},
-    });
-  };
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-      <Card className="h-fit lg:sticky lg:top-24">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Shared components</CardTitle>
-          <CardDescription>
-            Linked blocks — edits apply on every page that uses them.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {components.length === 0 ? (
-            <p className="text-sm text-neutral-500">
-              No shared components yet. Add components directly on each page
-              under the Pages tab.
-            </p>
-          ) : (
-            <ul className="space-y-1">
-              {components.map((component) => (
-                <li key={component.id}>
-                  <button
-                    type="button"
-                    onClick={() => onSelect(component.id)}
-                    className={`flex w-full flex-col rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                      component.id === draft?.id
-                        ? "bg-neutral-950 text-white"
-                        : "text-neutral-700 hover:bg-neutral-100"
-                    }`}
-                  >
-                    <span className="truncate font-medium">{component.name}</span>
-                    <span
-                      className={`text-xs ${
-                        component.id === draft?.id
-                          ? "text-neutral-300"
-                          : "text-neutral-500"
-                      }`}
-                    >
-                      {sectionLabel(component.type)}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      {!draft ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-neutral-500">
-            {components.length > 0
-              ? "Select a shared component to edit."
-              : "Create a page under Pages, add components there, then save."}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>{draft.name}</CardTitle>
-            <CardDescription>
-              {sectionLabel(draft.type)} — updates every page using this block.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label>Name</Label>
-                <Input
-                  className="mt-1"
-                  value={draft.name}
-                  onChange={(e) =>
-                    onDraftChange({ ...draft, name: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label>Block type</Label>
-                <Select
-                  value={draft.type}
-                  onValueChange={(v) =>
-                    onDraftChange({ ...draft, type: v as HomeSectionType })
-                  }
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {HOME_SECTION_CATALOG.map((item) => (
-                      <SelectItem key={item.type} value={item.type}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <ComponentFieldsEditor
-              type={draft.type}
-              props={draft.props}
-              contentSource={contentSource}
-              onSetProp={setProp}
-            />
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-function ComponentFieldsEditor({
-  type,
-  props,
-  contentSource,
-  onSetProp,
-}: {
-  type: HomeSectionType;
-  props: HomeSectionProps;
-  contentSource: SectionContentSource;
-  onSetProp: (
-    key: keyof HomeSectionProps,
-    value: string | number | undefined
-  ) => void;
-}) {
-  const contentFields = editableFieldsForType(type);
-  const settingsFields = componentSettingsFieldsForType(type);
-  const defaults = defaultPropsForSection(type, contentSource);
-  const section = { id: "library", type, enabled: true, props };
-
-  return (
-    <div className="space-y-4 border-t border-neutral-100 pt-4">
-      {contentFields.length > 0 ? (
-        <SectionFieldGrid
-          section={section}
-          fields={contentFields}
-          defaults={defaults}
-          onSetProp={onSetProp}
-        />
-      ) : (
-        <p className="text-sm text-neutral-500">No editable fields.</p>
-      )}
-      {settingsFields.length > 0 ? (
-        <Accordion type="single" collapsible>
-          <AccordionItem value="settings" className="border-none">
-            <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">
-              Spacing & layout
-            </AccordionTrigger>
-            <AccordionContent className="pb-1 pt-2">
-              <SectionFieldGrid
-                section={section}
-                fields={settingsFields}
-                defaults={defaults}
-                onSetProp={onSetProp}
-              />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      ) : null}
     </div>
   );
 }
