@@ -11,6 +11,7 @@ import {
   updateCmsPage,
 } from "@/lib/cms-pages";
 import type { HomeSectionItem } from "@/lib/home-sections";
+import { pageBannerSchema } from "@/lib/page-banner";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -21,6 +22,7 @@ const putSchema = z.object({
   published: z.boolean().optional(),
   template: z.string().nullable().optional(),
   sections: z.array(z.unknown()).optional(),
+  banner: pageBannerSchema.optional(),
 });
 
 export async function GET(_request: Request, context: RouteContext) {
@@ -84,14 +86,21 @@ export async function PUT(request: Request, context: RouteContext) {
       published: data.published,
       template: data.template,
       sections: data.sections !== undefined ? nextSections : undefined,
+      ...(data.banner !== undefined ? { banner: data.banner } : {}),
     });
 
     revalidatePath("/", "layout");
     revalidatePath("/");
     revalidatePath("/admin/content");
-    if (page.slug === "home") {
-      revalidatePath("/");
-    } else {
+    revalidatePath("/shop");
+    revalidatePath("/collections");
+    revalidatePath("/about");
+    revalidatePath("/contact");
+    revalidatePath("/faq");
+    revalidatePath("/privacy");
+    revalidatePath("/terms");
+    revalidatePath("/shipping");
+    if (page.slug !== "home" && !page.isSystem) {
       revalidatePath(`/${page.slug}`);
     }
 

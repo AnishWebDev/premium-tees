@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { CmsPageView } from "@/components/cms/cms-page-view";
 import { getCmsPageBySlug } from "@/lib/cms-pages";
 import {
@@ -47,16 +48,7 @@ export default async function CustomCmsPageRoute({ params }: PageProps) {
 
   return (
     <div className="pb-16">
-      <header className="border-b border-neutral-200 bg-neutral-50/80">
-        <div className="container-narrow section-padding py-10 md:py-14">
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-950 md:text-4xl">
-            {page.title}
-          </h1>
-          {page.description ? (
-            <p className="mt-3 max-w-2xl text-neutral-600">{page.description}</p>
-          ) : null}
-        </div>
-      </header>
+      <PageBannerSlot slug={slug} />
       <CmsPageView
         content={content}
         sections={sections}

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { ChevronDown, GripVertical, Link2, Plus, Trash2 } from "lucide-react";
 import {
-  HOME_SECTION_CATALOG,
   componentSettingsFieldsForType,
+  getHomeSectionCatalogSorted,
   defaultPropsForSection,
   defaultSectionsForTemplate,
   editableFieldsForType,
@@ -195,7 +195,7 @@ export function HomeSectionsBuilder({
               <SelectValue placeholder="Select a component" />
             </SelectTrigger>
             <SelectContent>
-              {HOME_SECTION_CATALOG.map((item) => (
+              {getHomeSectionCatalogSorted().map((item) => (
                 <SelectItem key={item.type} value={item.type}>
                   {item.label}
                 </SelectItem>

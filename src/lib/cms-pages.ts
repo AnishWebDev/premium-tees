@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import type { HomeSectionItem } from "@/lib/home-sections";
 import { SYSTEM_PAGES } from "@/lib/page-catalog";
+import {
+  defaultPageBanner,
+  parsePageBanner,
+  type PageBannerData,
+} from "@/lib/page-banner";
 import { getContentBlock, upsertContentBlock } from "@/lib/site-content";
 
 export type CmsPageRecord = {
@@ -12,6 +17,7 @@ export type CmsPageRecord = {
   isSystem: boolean;
   template: string | null;
   sections: HomeSectionItem[];
+  banner: PageBannerData;
   sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
@@ -31,6 +37,7 @@ function toRecord(row: {
   isSystem: boolean;
   template: string | null;
   sections: unknown;
+  banner?: unknown;
   sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +51,12 @@ function toRecord(row: {
     isSystem: row.isSystem,
     template: row.template,
     sections: parseSections(row.sections),
+    banner: parsePageBanner(
+      row.banner,
+      row.title,
+      row.description,
+      row.slug
+    ),
     sortOrder: row.sortOrder,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -69,6 +82,7 @@ export async function ensureCmsPagesSeeded(): Promise<void> {
         isSystem: true,
         template: def.slug === "home" ? home.template : null,
         sections: def.slug === "home" ? home.sections : [],
+        banner: defaultPageBanner(def.title, null, def.slug),
         sortOrder: def.sortOrder,
       },
     });
@@ -113,6 +127,7 @@ export async function createCmsPage(input: {
       published: input.published ?? false,
       isSystem: false,
       sections: [],
+      banner: defaultPageBanner(input.title.trim(), input.description ?? null),
       sortOrder: 100,
     },
   });
@@ -128,6 +143,7 @@ export async function updateCmsPage(
     published?: boolean;
     template?: string | null;
     sections?: HomeSectionItem[];
+    banner?: unknown;
   }
 ): Promise<CmsPageRecord> {
   const existing = await prisma.cmsPage.findUnique({ where: { id } });
@@ -149,6 +165,18 @@ export async function updateCmsPage(
       ...(input.published !== undefined ? { published: input.published } : {}),
       ...(input.template !== undefined ? { template: input.template } : {}),
       ...(input.sections !== undefined ? { sections: input.sections } : {}),
+      ...(input.banner !== undefined
+        ? {
+            banner: parsePageBanner(
+              input.banner,
+              input.title?.trim() ?? existing.title,
+              input.description !== undefined
+                ? input.description
+                : existing.description,
+              slug ?? existing.slug
+            ),
+          }
+        : {}),
     },
   });
 

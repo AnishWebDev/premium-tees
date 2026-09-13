@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { getContentBlock } from "@/lib/site-content";
 import { ContactForm } from "./contact-form";
 
@@ -16,10 +17,13 @@ export default async function ContactPage() {
   const contact = await getContentBlock("contact");
 
   return (
-    <section className="section-padding">
+    <>
+      <PageBannerSlot slug="contact" />
+      <section className="section-padding">
       <div className="container-tight">
         <ContactForm content={contact} />
       </div>
     </section>
+    </>
   );
 }

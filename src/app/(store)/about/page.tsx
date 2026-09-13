@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { getContentBlock } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +20,7 @@ export default async function AboutPage() {
 
   return (
     <>
+      <PageBannerSlot slug="about" />
       <section className="section-padding">
         <div className="container-tight">
           <div className="mx-auto max-w-3xl text-center">

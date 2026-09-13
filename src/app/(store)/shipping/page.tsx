@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { getCommerceConfig } from "@/lib/commerce";
 import { getCmsBlock } from "@/lib/cms-content";
 import { getSiteIdentity } from "@/lib/site-identity";
@@ -19,19 +20,18 @@ export default async function ShippingPage() {
   const [commerce, legal] = await Promise.all([getCommerceConfig(), getCmsBlock("legal")]);
 
   return (
-    <div className="section-padding">
+    <>
+      <PageBannerSlot slug="shipping" />
+      <div className="section-padding">
       <div className="container-tight max-w-3xl">
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-[var(--foreground)] sm:text-5xl">
-          Shipping
-        </h1>
-        <p className="mt-4 text-[var(--muted-foreground)]">
+        <p className="text-[var(--muted-foreground)]">
           {legal.shippingIntro.replace(
             "{threshold}",
             formatPrice(commerce.freeShippingThreshold)
           )}
         </p>
 
-        <div className="mt-12 space-y-6">
+        <div className="mt-8 space-y-6">
           {commerce.shippingMethods.map((method) => (
             <div
               key={method.id}
@@ -75,5 +75,6 @@ export default async function ShippingPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

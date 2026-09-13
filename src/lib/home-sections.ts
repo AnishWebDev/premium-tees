@@ -721,6 +721,12 @@ export const HOME_SECTION_CATALOG: HomeSectionMeta[] = [
   },
 ];
 
+export function getHomeSectionCatalogSorted(): HomeSectionMeta[] {
+  return [...HOME_SECTION_CATALOG].sort((a, b) =>
+    a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
+  );
+}
+
 function sid(
   type: HomeSectionType,
   i: number,

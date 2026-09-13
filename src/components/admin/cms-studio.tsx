@@ -18,6 +18,7 @@ import { pageKindForSlug, pagePathForSlug } from "@/lib/page-catalog";
 import type { AllSiteContent, ContentKey } from "@/lib/site-content";
 import { CmsExtraEditor } from "@/components/admin/cms-extra-editor";
 import { HomeSectionsBuilder } from "@/components/admin/home-sections-builder";
+import { PageBannerEditor } from "@/components/admin/page-banner-editor";
 import {
   PageLegacyEditor,
   cmsSaveKeyForPageSlug,
@@ -142,27 +143,31 @@ export function CmsStudio({
   const savePage = async () => {
     if (!pageDraft) return;
 
-    if (pageUsesSectionBuilder(pageDraft)) {
-      const res = await fetch(`/api/admin/pages/${pageDraft.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: pageDraft.title,
-          slug: pageDraft.slug,
-          description: pageDraft.description,
-          published: pageDraft.published,
-          template: pageDraft.template,
-          sections: pageDraft.sections,
-        }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "Save failed");
-      setPages((prev) =>
-        prev.map((p) => (p.id === pageDraft.id ? body.page : p))
-      );
-      setPageDraft(body.page);
-      return;
-    }
+    const res = await fetch(`/api/admin/pages/${pageDraft.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: pageDraft.title,
+        slug: pageDraft.slug,
+        description: pageDraft.description,
+        published: pageDraft.published,
+        banner: pageDraft.banner,
+        ...(pageUsesSectionBuilder(pageDraft)
+          ? {
+              template: pageDraft.template,
+              sections: pageDraft.sections,
+            }
+          : {}),
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Save failed");
+    setPages((prev) =>
+      prev.map((p) => (p.id === pageDraft.id ? body.page : p))
+    );
+    setPageDraft(body.page);
+
+    if (pageUsesSectionBuilder(pageDraft)) return;
 
     const siteKey = siteSaveKeyForPageSlug(pageDraft.slug);
     if (siteKey) {
@@ -172,13 +177,13 @@ export function CmsStudio({
 
     const cmsKey = cmsSaveKeyForPageSlug(pageDraft.slug);
     if (cmsKey) {
-      const res = await fetch("/api/admin/cms", {
+      const cmsRes = await fetch("/api/admin/cms", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: cmsKey, data: cmsContent[cmsKey] }),
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "Save failed");
+      const cmsBody = await cmsRes.json().catch(() => ({}));
+      if (!cmsRes.ok) throw new Error(cmsBody.error || "Save failed");
     }
   };
 
@@ -563,6 +568,15 @@ export function CmsStudio({
                     </CardContent>
                   ) : null}
                 </Card>
+
+                <PageBannerEditor
+                  banner={pageDraft.banner}
+                  pageTitle={pageDraft.title}
+                  canEditComponentSettings={canSelectHomeTemplate}
+                  onChange={(banner) =>
+                    setPageDraft({ ...pageDraft, banner })
+                  }
+                />
 
                 {usesSectionBuilder ? (
                   <HomeSectionsBuilder

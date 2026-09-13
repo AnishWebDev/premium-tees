@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { getCmsBlock } from "@/lib/cms-content";
 import { LegalDocument } from "@/components/shared/legal-document";
 
@@ -16,10 +17,13 @@ export default async function PrivacyPage() {
   const legal = await getCmsBlock("legal");
 
   return (
-    <section className="section-padding">
+    <>
+      <PageBannerSlot slug="privacy" />
+      <section className="section-padding">
       <div className="container-tight">
         <LegalDocument page={legal.privacy} contactLabel="Contact us" />
       </div>
     </section>
+    </>
   );
 }

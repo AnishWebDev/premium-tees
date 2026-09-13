@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { getCmsBlock } from "@/lib/cms-content";
 import { getCategories } from "@/lib/products";
@@ -32,7 +33,9 @@ export default async function CollectionsPage() {
   ]);
 
   return (
-    <section className="section-padding">
+    <>
+      <PageBannerSlot slug="collections" />
+      <section className="section-padding">
       <div className="container-tight">
         <SectionHeading title={collectionsCopy.title} subtitle={collectionsCopy.subtitle} />
 
@@ -75,5 +78,6 @@ export default async function CollectionsPage() {
         </div>
       </div>
     </section>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getEnabledAudiences } from "@/lib/audience";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { getCmsBlock } from "@/lib/cms-content";
 import { getProducts, getCategories } from "@/lib/products";
 import { getSiteIdentity } from "@/lib/site-identity";
@@ -110,7 +111,9 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   };
 
   return (
-    <section className="section-padding">
+    <>
+      <PageBannerSlot slug="shop" />
+      <section className="section-padding">
       <div className="container-tight">
         <Suspense fallback={<div className="h-32 animate-pulse rounded-2xl bg-[var(--muted)]" />}>
           <ShopToolbar
@@ -189,5 +192,6 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         )}
       </div>
     </section>
+    </>
   );
 }

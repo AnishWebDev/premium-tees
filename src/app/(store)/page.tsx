@@ -1,3 +1,4 @@
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { HomeTemplate } from "@/components/home/templates";
 import { getCmsPageBySlug } from "@/lib/cms-pages";
 import {
@@ -42,6 +43,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <PageBannerSlot slug="home" />
       <HomeTemplate
         template={homePage?.template ?? content.home.template}
         content={content}

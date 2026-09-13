@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageBannerSlot } from "@/components/cms/page-banner-slot";
 import { getContentBlock } from "@/lib/site-content";
 import { SectionHeading } from "@/components/shared/section-heading";
 import {
@@ -35,7 +36,9 @@ export default async function FAQPage() {
   };
 
   return (
-    <section className="section-padding">
+    <>
+      <PageBannerSlot slug="faq" />
+      <section className="section-padding">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -55,5 +58,6 @@ export default async function FAQPage() {
         </Accordion>
       </div>
     </section>
+    </>
   );
 }
