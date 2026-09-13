@@ -34,6 +34,10 @@ export async function PUT(request: Request) {
 
     await upsertCmsBlock(parsed.data.key, parsed.data.data);
 
+    if (parsed.data.key === "storeCopy") {
+      revalidatePath("/", "layout");
+    }
+
     revalidatePath("/terms");
     revalidatePath("/privacy");
     revalidatePath("/shipping");

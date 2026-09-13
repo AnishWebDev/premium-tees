@@ -42,9 +42,23 @@ export type StoreCopyData = {
   cartEmptyDescription: string;
   notFoundTitle: string;
   notFoundDescription: string;
+  /** Optional image shown above the 404 heading */
+  notFoundImageUrl: string;
+  notFoundImageAlt: string;
+  /** Optional full-page background image */
+  notFoundBackgroundImageUrl: string;
   checkoutSuccessLead: string;
   checkoutSuccessPaid: string;
 };
+
+/** Fields for the editable 404 page (Page content → Store copy → Empty states). */
+export const NOT_FOUND_COPY_FIELDS = [
+  "notFoundTitle",
+  "notFoundDescription",
+  "notFoundImageUrl",
+  "notFoundImageAlt",
+  "notFoundBackgroundImageUrl",
+] as const satisfies readonly (keyof StoreCopyData)[];
 
 export type SizeGuideRow = {
   size: string;
@@ -71,8 +85,11 @@ export const STORE_COPY_LABELS: Record<keyof StoreCopyData, string> = {
   shopEmptyDescription: "Shop empty description",
   cartEmptyTitle: "Cart empty title",
   cartEmptyDescription: "Cart empty description",
-  notFoundTitle: "Not found title",
-  notFoundDescription: "Not found description",
+  notFoundTitle: "404 page title",
+  notFoundDescription: "404 page description",
+  notFoundImageUrl: "404 image above text (URL)",
+  notFoundImageAlt: "404 image alt text",
+  notFoundBackgroundImageUrl: "404 background image (URL)",
   checkoutSuccessLead: "Checkout success (lead capture)",
   checkoutSuccessPaid: "Checkout success (paid)",
 };
@@ -184,6 +201,9 @@ export const DEFAULT_CMS_CONTENT: AllCmsContent = {
     cartEmptyDescription: "Add something you love — we will keep it here.",
     notFoundTitle: "Page not found",
     notFoundDescription: "The page you are looking for does not exist or has moved.",
+    notFoundImageUrl: "",
+    notFoundImageAlt: "",
+    notFoundBackgroundImageUrl: "",
     checkoutSuccessLead:
       "Thanks — we received your details. Our team will reach out to confirm your order.",
     checkoutSuccessPaid: "Payment successful. We are preparing your order.",

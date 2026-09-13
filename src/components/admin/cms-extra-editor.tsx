@@ -5,12 +5,15 @@ import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   AUTH_COPY_LABELS,
+  NOT_FOUND_COPY_FIELDS,
   STORE_COPY_LABELS,
   type AllCmsContent,
   type CmsKey,
   type LegalSection,
   type SizeGuideRow,
+  type StoreCopyData,
 } from "@/lib/cms-content";
+import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -235,22 +238,62 @@ export function CmsExtraEditor({
             ) : null}
           </TabsContent>
 
-          <TabsContent value="storeCopy" className="space-y-4">
-            {(Object.keys(content.storeCopy) as (keyof typeof content.storeCopy)[]).map((key) => (
-              <div key={key} className="space-y-2">
-                <Label htmlFor={`copy-${key}`}>{STORE_COPY_LABELS[key]}</Label>
-                <Input
-                  id={`copy-${key}`}
-                  value={content.storeCopy[key]}
-                  onChange={(e) =>
-                    setContent((p) => ({
-                      ...p,
-                      storeCopy: { ...p.storeCopy, [key]: e.target.value },
-                    }))
-                  }
-                />
-              </div>
-            ))}
+          <TabsContent value="storeCopy" className="space-y-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">404 page</CardTitle>
+                <p className="text-sm text-neutral-500">
+                  Shown when a visitor opens a URL that does not exist. Add an
+                  optional image above the text and a background image.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {NOT_FOUND_COPY_FIELDS.map((key) => (
+                  <StoreCopyField
+                    key={key}
+                    fieldKey={key}
+                    value={content.storeCopy[key]}
+                    onChange={(value) =>
+                      setContent((p) => ({
+                        ...p,
+                        storeCopy: { ...p.storeCopy, [key]: value },
+                      }))
+                    }
+                  />
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Empty states & checkout</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(
+                  Object.keys(content.storeCopy) as (keyof StoreCopyData)[]
+                )
+                  .filter(
+                    (key) =>
+                      !NOT_FOUND_COPY_FIELDS.includes(
+                        key as (typeof NOT_FOUND_COPY_FIELDS)[number]
+                      )
+                  )
+                  .map((key) => (
+                    <StoreCopyField
+                      key={key}
+                      fieldKey={key}
+                      value={content.storeCopy[key]}
+                      onChange={(value) =>
+                        setContent((p) => ({
+                          ...p,
+                          storeCopy: { ...p.storeCopy, [key]: value },
+                        }))
+                      }
+                    />
+                  ))}
+              </CardContent>
+            </Card>
+
             {!hideSave ? (
               <SaveButton saving={saving === "storeCopy"} onClick={() => save("storeCopy")} />
             ) : null}
@@ -388,6 +431,59 @@ export async function saveAllCmsContent(content: AllCmsContent) {
       throw new Error(data.error || `Failed to save ${key}`);
     }
   }
+}
+
+function StoreCopyField({
+  fieldKey,
+  value,
+  onChange,
+}: {
+  fieldKey: keyof StoreCopyData;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const label = STORE_COPY_LABELS[fieldKey];
+  const isImageUrl =
+    fieldKey === "notFoundImageUrl" ||
+    fieldKey === "notFoundBackgroundImageUrl";
+  const isDescription =
+    fieldKey.endsWith("Description") || fieldKey === "notFoundDescription";
+
+  if (isImageUrl) {
+    return (
+      <ImageUrlField
+        label={label}
+        value={value}
+        onChange={onChange}
+        inputClassName="mt-1"
+      />
+    );
+  }
+
+  if (isDescription) {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`copy-${fieldKey}`}>{label}</Label>
+        <Textarea
+          id={`copy-${fieldKey}`}
+          rows={3}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={`copy-${fieldKey}`}>{label}</Label>
+      <Input
+        id={`copy-${fieldKey}`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
 }
 
 function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
