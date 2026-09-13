@@ -8,6 +8,7 @@ import {
   type HomeSectionItem,
   type HomeSectionProps,
 } from "@/lib/home-sections";
+import { toDateTimeLocalValue } from "@/lib/promo-schedule";
 import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,13 @@ const MULTILINE: HomeSectionFieldKey[] = [
   "subtitle",
   "subheadline",
   "marqueeItems",
+  "countdownExpiredMessage",
+];
+
+const DATETIME: HomeSectionFieldKey[] = [
+  "scheduleStartAt",
+  "scheduleEndAt",
+  "countdownTargetAt",
 ];
 
 type SectionFieldGridProps = {
@@ -49,6 +57,7 @@ export function SectionFieldGrid({
     <div className="grid gap-3 sm:grid-cols-2">
       {fields.map((key) => {
         const multiline = MULTILINE.includes(key);
+        const isDateTime = DATETIME.includes(key);
         const options = SECTION_FIELD_OPTIONS[key];
         const isColor = key === "backgroundColor" || key === "textColor";
         const value = effectiveSectionProp(section, key, defaults);
@@ -58,9 +67,11 @@ export function SectionFieldGrid({
             key={key}
             className={
               multiline ||
+              isDateTime ||
               key === "embedUrl" ||
               key === "imageUrl" ||
               key === "videoUrl" ||
+              key === "posterImageUrl" ||
               key === "body"
                 ? "sm:col-span-2"
                 : undefined
@@ -85,6 +96,13 @@ export function SectionFieldGrid({
                   ))}
                 </SelectContent>
               </Select>
+            ) : isDateTime ? (
+              <Input
+                className="mt-1.5"
+                type="datetime-local"
+                value={toDateTimeLocalValue(value)}
+                onChange={(e) => onSetProp(key, e.target.value)}
+              />
             ) : multiline ? (
               <Textarea
                 className="mt-1.5"
@@ -110,7 +128,7 @@ export function SectionFieldGrid({
                   onChange={(e) => onSetProp(key, e.target.value)}
                 />
               </div>
-            ) : key === "imageUrl" ? (
+            ) : key === "imageUrl" || key === "posterImageUrl" ? (
               <ImageUrlField
                 label={SECTION_FIELD_LABELS[key]}
                 value={value}

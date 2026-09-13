@@ -1,7 +1,7 @@
 "use client";
 
 import type { AllCmsContent, CmsKey, LegalSection } from "@/lib/cms-content";
-import { STORE_COPY_LABELS } from "@/lib/cms-content";
+import { SHOP_PAGE_COPY_FIELDS, STORE_COPY_LABELS } from "@/lib/cms-content";
 import type { ContentKey } from "@/lib/site-content";
 import { pageKindForSlug } from "@/lib/page-catalog";
 import { SiteContentEditor } from "@/components/admin/site-content-editor";
@@ -106,21 +106,37 @@ export function PageLegacyEditor({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {(["shopEmptyTitle", "shopEmptyDescription"] as const).map((key) => (
+          {SHOP_PAGE_COPY_FIELDS.map((key) => (
             <div key={key} className="space-y-2">
               <Label>{STORE_COPY_LABELS[key]}</Label>
-              <Input
-                value={cmsContent.storeCopy[key]}
-                onChange={(e) =>
-                  onCmsContentChange({
-                    ...cmsContent,
-                    storeCopy: {
-                      ...cmsContent.storeCopy,
-                      [key]: e.target.value,
-                    },
-                  })
-                }
-              />
+              {key === "shopEmptyDescription" ? (
+                <Textarea
+                  rows={3}
+                  value={cmsContent.storeCopy[key]}
+                  onChange={(e) =>
+                    onCmsContentChange({
+                      ...cmsContent,
+                      storeCopy: {
+                        ...cmsContent.storeCopy,
+                        [key]: e.target.value,
+                      },
+                    })
+                  }
+                />
+              ) : (
+                <Input
+                  value={cmsContent.storeCopy[key]}
+                  onChange={(e) =>
+                    onCmsContentChange({
+                      ...cmsContent,
+                      storeCopy: {
+                        ...cmsContent.storeCopy,
+                        [key]: e.target.value,
+                      },
+                    })
+                  }
+                />
+              )}
             </div>
           ))}
         </CardContent>

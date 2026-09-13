@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCmsBlock } from "@/lib/cms-content";
+import { notFoundPartStyle } from "@/lib/not-found-styles";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { Button } from "@/components/ui/button";
 
@@ -7,6 +8,14 @@ export default async function NotFound() {
   const storeCopy = await getCmsBlock("storeCopy");
   const heroImage = storeCopy.notFoundImageUrl.trim();
   const backgroundImage = storeCopy.notFoundBackgroundImageUrl.trim();
+
+  const codeStyle = notFoundPartStyle("code", storeCopy);
+  const titleStyle = notFoundPartStyle("title", storeCopy);
+  const descriptionStyle = notFoundPartStyle("description", storeCopy);
+
+  const codeLabel = storeCopy.notFoundCode.trim() || "404";
+  const shopLabel = storeCopy.notFoundShopLabel.trim() || "Browse shop";
+  const homeLabel = storeCopy.notFoundHomeLabel.trim() || "Go home";
 
   return (
     <div
@@ -44,21 +53,28 @@ export default async function NotFound() {
           </div>
         ) : null}
 
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
-          404
+        <p className={codeStyle.className} style={codeStyle.style}>
+          {codeLabel}
         </p>
-        <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight text-[var(--foreground)]">
+        <h1 className={`mt-4 ${titleStyle.className}`} style={titleStyle.style}>
           {storeCopy.notFoundTitle}
         </h1>
-        <p className="mt-4 text-sm leading-relaxed text-[var(--muted-foreground)]">
+        <p
+          className={`mt-4 ${descriptionStyle.className}`}
+          style={descriptionStyle.style}
+        >
           {storeCopy.notFoundDescription}
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-3">
-          <Button asChild variant="outline">
-            <Link href="/shop">Browse shop</Link>
+          <Button asChild variant="outline" className="no-underline">
+            <Link href="/shop" className="no-underline">
+              {shopLabel}
+            </Link>
           </Button>
-          <Button asChild>
-            <Link href="/">Go home</Link>
+          <Button asChild className="no-underline">
+            <Link href="/" className="no-underline">
+              {homeLabel}
+            </Link>
           </Button>
         </div>
       </div>

@@ -42,6 +42,13 @@ import { ProductRowList } from "@/components/home/blocks/product-row-list";
 import { ImageMosaic } from "@/components/home/blocks/image-mosaic";
 import { StackedPanels } from "@/components/home/blocks/stacked-panels";
 import { EmbedFrame } from "@/components/home/blocks/embed-frame";
+import { CountdownOffer } from "@/components/home/blocks/countdown-offer";
+import { PromoHelloBar } from "@/components/home/blocks/promo-hello-bar";
+import {
+  VideoPlayerBlock,
+  videoPlayerSettingsFromProps,
+} from "@/components/home/blocks/video-player-block";
+import { countdownParts, isWithinSchedule } from "@/lib/promo-schedule";
 import { TrailHero } from "@/components/home/blocks/trail-hero";
 import { TrustBar } from "@/components/home/blocks/trust-bar";
 import {
@@ -658,6 +665,65 @@ function renderSection(section: HomeSectionItem, props: HomeTemplateProps) {
             ""
           }
           caption={o.subtitle?.trim() ? o.subtitle : undefined}
+        />
+      );
+    case "videoPlayer": {
+      const playback = videoPlayerSettingsFromProps(o);
+      return (
+        <VideoPlayerBlock
+          title={sectionText(o.title, "Watch our story")}
+          subtitle={o.subtitle}
+          videoUrl={sectionText(o.videoUrl, content.hero.videoUrl ?? "")}
+          embedUrl={o.embedUrl}
+          posterImageUrl={sectionText(o.posterImageUrl, content.hero.imageUrl)}
+          ctaLabel={o.ctaLabel}
+          ctaHref={o.ctaHref}
+          mediaAspect={o.mediaAspect}
+          borderRadius={o.borderRadius}
+          bgStyle={o.bgStyle}
+          backgroundColor={o.backgroundColor}
+          textColor={o.textColor}
+          {...playback}
+        />
+      );
+    }
+    case "promoHelloBar":
+      return (
+        <PromoHelloBar
+          sectionId={section.id}
+          message={sectionText(
+            o.body,
+            "Free shipping on orders over ₹2,000 — this week only"
+          )}
+          linkHref={o.ctaHref}
+          linkLabel={o.ctaLabel}
+          scheduleStartAt={o.scheduleStartAt}
+          scheduleEndAt={o.scheduleEndAt}
+          bgStyle={o.bgStyle}
+          backgroundColor={o.backgroundColor}
+          textColor={o.textColor}
+          settingSticky={o.settingSticky}
+          settingDismissible={o.settingDismissible}
+          initiallyVisible={isWithinSchedule(o.scheduleStartAt, o.scheduleEndAt)}
+        />
+      );
+    case "countdownOffer":
+      return (
+        <CountdownOffer
+          title={sectionText(o.title, "Launch weekend sale")}
+          subtitle={o.subtitle}
+          countdownTargetAt={o.countdownTargetAt}
+          expiredMessage={sectionText(
+            o.countdownExpiredMessage,
+            "This offer has ended."
+          )}
+          ctaLabel={o.ctaLabel}
+          ctaHref={o.ctaHref}
+          bgStyle={o.bgStyle}
+          backgroundColor={o.backgroundColor}
+          textColor={o.textColor}
+          borderRadius={o.borderRadius}
+          initialParts={countdownParts(o.countdownTargetAt)}
         />
       );
     case "contentCard": {

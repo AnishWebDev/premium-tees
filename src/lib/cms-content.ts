@@ -40,25 +40,72 @@ export type StoreCopyData = {
   shopEmptyDescription: string;
   cartEmptyTitle: string;
   cartEmptyDescription: string;
+  notFoundCode: string;
   notFoundTitle: string;
   notFoundDescription: string;
+  notFoundShopLabel: string;
+  notFoundHomeLabel: string;
   /** Optional image shown above the 404 heading */
   notFoundImageUrl: string;
   notFoundImageAlt: string;
   /** Optional full-page background image */
   notFoundBackgroundImageUrl: string;
+  notFoundCodeColor: string;
+  notFoundCodeFontSize: string;
+  notFoundCodeFontFamily: string;
+  notFoundTitleColor: string;
+  notFoundTitleFontSize: string;
+  notFoundTitleFontFamily: string;
+  notFoundDescriptionColor: string;
+  notFoundDescriptionFontSize: string;
+  notFoundDescriptionFontFamily: string;
   checkoutSuccessLead: string;
   checkoutSuccessPaid: string;
 };
 
-/** Fields for the editable 404 page (Page content → Store copy → Empty states). */
-export const NOT_FOUND_COPY_FIELDS = [
+/** CMS blocks edited under Page content → Global copy (not under Pages). */
+export const GLOBAL_CMS_TAB_KEYS = ["storeCopy", "sizeGuide", "auth"] as const;
+
+/** Shop empty catalog copy — edit under Pages → Shop. */
+export const SHOP_PAGE_COPY_FIELDS = [
+  "shopEmptyTitle",
+  "shopEmptyDescription",
+] as const satisfies readonly (keyof StoreCopyData)[];
+
+/** Cart, checkout, etc. — edit under Global copy → 404 & messages. */
+export const GLOBAL_MISC_COPY_FIELDS = [
+  "cartEmptyTitle",
+  "cartEmptyDescription",
+  "checkoutSuccessLead",
+  "checkoutSuccessPaid",
+] as const satisfies readonly (keyof StoreCopyData)[];
+
+/** Fields for the editable 404 page (Global copy → 404 & messages). */
+export const NOT_FOUND_CONTENT_FIELDS = [
+  "notFoundCode",
   "notFoundTitle",
   "notFoundDescription",
+  "notFoundShopLabel",
+  "notFoundHomeLabel",
   "notFoundImageUrl",
   "notFoundImageAlt",
   "notFoundBackgroundImageUrl",
 ] as const satisfies readonly (keyof StoreCopyData)[];
+
+export const NOT_FOUND_TYPOGRAPHY_FIELDS = [
+  "notFoundCodeColor",
+  "notFoundCodeFontSize",
+  "notFoundCodeFontFamily",
+  "notFoundTitleColor",
+  "notFoundTitleFontSize",
+  "notFoundTitleFontFamily",
+  "notFoundDescriptionColor",
+  "notFoundDescriptionFontSize",
+  "notFoundDescriptionFontFamily",
+] as const satisfies readonly (keyof StoreCopyData)[];
+
+/** @deprecated Use NOT_FOUND_CONTENT_FIELDS */
+export const NOT_FOUND_COPY_FIELDS = NOT_FOUND_CONTENT_FIELDS;
 
 export type SizeGuideRow = {
   size: string;
@@ -85,11 +132,23 @@ export const STORE_COPY_LABELS: Record<keyof StoreCopyData, string> = {
   shopEmptyDescription: "Shop empty description",
   cartEmptyTitle: "Cart empty title",
   cartEmptyDescription: "Cart empty description",
+  notFoundCode: "Error code label",
   notFoundTitle: "404 page title",
   notFoundDescription: "404 page description",
+  notFoundShopLabel: "Browse shop button label",
+  notFoundHomeLabel: "Go home button label",
   notFoundImageUrl: "404 image above text (URL)",
   notFoundImageAlt: "404 image alt text",
   notFoundBackgroundImageUrl: "404 background image (URL)",
+  notFoundCodeColor: "Error code color",
+  notFoundCodeFontSize: "Error code font size",
+  notFoundCodeFontFamily: "Error code font family",
+  notFoundTitleColor: "Title color",
+  notFoundTitleFontSize: "Title font size",
+  notFoundTitleFontFamily: "Title font family",
+  notFoundDescriptionColor: "Description color",
+  notFoundDescriptionFontSize: "Description font size",
+  notFoundDescriptionFontFamily: "Description font family",
   checkoutSuccessLead: "Checkout success (lead capture)",
   checkoutSuccessPaid: "Checkout success (paid)",
 };
@@ -199,11 +258,23 @@ export const DEFAULT_CMS_CONTENT: AllCmsContent = {
     shopEmptyDescription: "Try adjusting your filters or search term.",
     cartEmptyTitle: "Your cart is empty",
     cartEmptyDescription: "Add something you love — we will keep it here.",
+    notFoundCode: "404",
     notFoundTitle: "Page not found",
     notFoundDescription: "The page you are looking for does not exist or has moved.",
+    notFoundShopLabel: "Browse shop",
+    notFoundHomeLabel: "Go home",
     notFoundImageUrl: "",
     notFoundImageAlt: "",
     notFoundBackgroundImageUrl: "",
+    notFoundCodeColor: "",
+    notFoundCodeFontSize: "",
+    notFoundCodeFontFamily: "",
+    notFoundTitleColor: "",
+    notFoundTitleFontSize: "",
+    notFoundTitleFontFamily: "",
+    notFoundDescriptionColor: "",
+    notFoundDescriptionFontSize: "",
+    notFoundDescriptionFontFamily: "",
     checkoutSuccessLead:
       "Thanks — we received your details. Our team will reach out to confirm your order.",
     checkoutSuccessPaid: "Payment successful. We are preparing your order.",

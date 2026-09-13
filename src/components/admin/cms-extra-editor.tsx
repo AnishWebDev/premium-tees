@@ -5,15 +5,14 @@ import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   AUTH_COPY_LABELS,
-  NOT_FOUND_COPY_FIELDS,
+  GLOBAL_CMS_TAB_KEYS,
+  GLOBAL_MISC_COPY_FIELDS,
   STORE_COPY_LABELS,
   type AllCmsContent,
   type CmsKey,
-  type LegalSection,
   type SizeGuideRow,
-  type StoreCopyData,
 } from "@/lib/cms-content";
-import { ImageUrlField } from "@/components/admin/image-url-field";
+import { NotFoundPageEditor } from "@/components/admin/not-found-page-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,9 +32,7 @@ type CmsExtraEditorProps = {
 };
 
 const TABS: { key: CmsKey; label: string }[] = [
-  { key: "collections", label: "Collections" },
-  { key: "legal", label: "Legal" },
-  { key: "storeCopy", label: "Store copy" },
+  { key: "storeCopy", label: "404 & messages" },
   { key: "sizeGuide", label: "Size guide" },
   { key: "auth", label: "Auth pages" },
 ];
@@ -46,7 +43,7 @@ export function CmsExtraEditor({
   hideHeader = false,
   content: controlledContent,
   onContentChange,
-  defaultTab = "collections",
+  defaultTab = "storeCopy",
   singleTab,
 }: CmsExtraEditorProps) {
   const [internalContent, setInternalContent] = useState(initialContent);
@@ -80,26 +77,6 @@ export function CmsExtraEditor({
     }
   };
 
-  const updateLegalSection = (
-    page: "terms" | "privacy",
-    index: number,
-    field: keyof LegalSection,
-    value: string | string[]
-  ) => {
-    setContent((prev) => ({
-      ...prev,
-      legal: {
-        ...prev.legal,
-        [page]: {
-          ...prev.legal[page],
-          sections: prev.legal[page].sections.map((s, i) =>
-            i === index ? { ...s, [field]: value } : s
-          ),
-        },
-      },
-    }));
-  };
-
   const activeTab = singleTab ?? defaultTab;
 
   const inner = (
@@ -114,141 +91,20 @@ export function CmsExtraEditor({
           </TabsList>
           ) : null}
 
-          <TabsContent value="collections" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="collections-title">Page title</Label>
-              <Input
-                id="collections-title"
-                value={content.collections.title}
-                onChange={(e) =>
-                  setContent((p) => ({
-                    ...p,
-                    collections: { ...p.collections, title: e.target.value },
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="collections-subtitle">Subtitle</Label>
-              <Textarea
-                id="collections-subtitle"
-                value={content.collections.subtitle}
-                onChange={(e) =>
-                  setContent((p) => ({
-                    ...p,
-                    collections: { ...p.collections, subtitle: e.target.value },
-                  }))
-                }
-              />
-            </div>
-            {!hideSave ? (
-              <SaveButton saving={saving === "collections"} onClick={() => save("collections")} />
-            ) : null}
-          </TabsContent>
-
-          <TabsContent value="legal" className="space-y-6">
-            {(["terms", "privacy"] as const).map((pageKey) => (
-              <div key={pageKey} className="rounded-lg border border-neutral-200 p-4 space-y-3">
-                <h3 className="font-medium capitalize">{pageKey}</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Title</Label>
-                    <Input
-                      value={content.legal[pageKey].title}
-                      onChange={(e) =>
-                        setContent((p) => ({
-                          ...p,
-                          legal: {
-                            ...p.legal,
-                            [pageKey]: { ...p.legal[pageKey], title: e.target.value },
-                          },
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Last updated</Label>
-                    <Input
-                      value={content.legal[pageKey].lastUpdated}
-                      onChange={(e) =>
-                        setContent((p) => ({
-                          ...p,
-                          legal: {
-                            ...p.legal,
-                            [pageKey]: { ...p.legal[pageKey], lastUpdated: e.target.value },
-                          },
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Contact email</Label>
-                  <Input
-                    value={content.legal[pageKey].contactEmail}
-                    onChange={(e) =>
-                      setContent((p) => ({
-                        ...p,
-                        legal: {
-                          ...p.legal,
-                          [pageKey]: { ...p.legal[pageKey], contactEmail: e.target.value },
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                {content.legal[pageKey].sections.map((section, index) => (
-                  <div key={index} className="space-y-2 rounded border border-neutral-100 p-3">
-                    <Input
-                      value={section.heading}
-                      placeholder="Section heading"
-                      onChange={(e) => updateLegalSection(pageKey, index, "heading", e.target.value)}
-                    />
-                    <Textarea
-                      value={section.paragraphs.join("\n\n")}
-                      placeholder="Paragraphs (blank line between)"
-                      rows={4}
-                      onChange={(e) =>
-                        updateLegalSection(
-                          pageKey,
-                          index,
-                          "paragraphs",
-                          e.target.value.split(/\n\n+/).filter(Boolean)
-                        )
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-            ))}
-            <div className="space-y-2">
-              <Label>Shipping page intro</Label>
-              <Textarea
-                value={content.legal.shippingIntro}
-                onChange={(e) =>
-                  setContent((p) => ({
-                    ...p,
-                    legal: { ...p.legal, shippingIntro: e.target.value },
-                  }))
-                }
-              />
-            </div>
-            {!hideSave ? (
-              <SaveButton saving={saving === "legal"} onClick={() => save("legal")} />
-            ) : null}
-          </TabsContent>
-
           <TabsContent value="storeCopy" className="space-y-6">
+            <NotFoundPageEditor
+              storeCopy={content.storeCopy}
+              onChange={(storeCopy) =>
+                setContent((p) => ({ ...p, storeCopy }))
+              }
+            />
+
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">404 page</CardTitle>
-                <p className="text-sm text-neutral-500">
-                  Shown when a visitor opens a URL that does not exist. Add an
-                  optional image above the text and a background image.
-                </p>
+                <CardTitle className="text-base">Cart & checkout messages</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {NOT_FOUND_COPY_FIELDS.map((key) => (
+                {GLOBAL_MISC_COPY_FIELDS.map((key) => (
                   <StoreCopyField
                     key={key}
                     fieldKey={key}
@@ -261,36 +117,6 @@ export function CmsExtraEditor({
                     }
                   />
                 ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Empty states & checkout</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(
-                  Object.keys(content.storeCopy) as (keyof StoreCopyData)[]
-                )
-                  .filter(
-                    (key) =>
-                      !NOT_FOUND_COPY_FIELDS.includes(
-                        key as (typeof NOT_FOUND_COPY_FIELDS)[number]
-                      )
-                  )
-                  .map((key) => (
-                    <StoreCopyField
-                      key={key}
-                      fieldKey={key}
-                      value={content.storeCopy[key]}
-                      onChange={(value) =>
-                        setContent((p) => ({
-                          ...p,
-                          storeCopy: { ...p.storeCopy, [key]: value },
-                        }))
-                      }
-                    />
-                  ))}
               </CardContent>
             </Card>
 
@@ -408,9 +234,10 @@ export function CmsExtraEditor({
   return (
     <Card className="rounded-lg shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base">Store copy</CardTitle>
+        <CardTitle className="text-base">Global copy</CardTitle>
         <p className="text-sm text-neutral-500">
-          Size guide, empty states, login copy, and other storefront strings.
+          404 screen, cart empty state, checkout messages, size guide, and login
+          copy. Page-specific content is under Pages.
         </p>
       </CardHeader>
       <CardContent>{inner}</CardContent>
@@ -418,9 +245,9 @@ export function CmsExtraEditor({
   );
 }
 
-/** Save all CMS blocks (used by unified Page content save bar). */
+/** Save global CMS blocks (404, size guide, auth). */
 export async function saveAllCmsContent(content: AllCmsContent) {
-  for (const key of TABS.map((t) => t.key)) {
+  for (const key of GLOBAL_CMS_TAB_KEYS) {
     const res = await fetch("/api/admin/cms", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -438,27 +265,12 @@ function StoreCopyField({
   value,
   onChange,
 }: {
-  fieldKey: keyof StoreCopyData;
+  fieldKey: (typeof GLOBAL_MISC_COPY_FIELDS)[number];
   value: string;
   onChange: (value: string) => void;
 }) {
   const label = STORE_COPY_LABELS[fieldKey];
-  const isImageUrl =
-    fieldKey === "notFoundImageUrl" ||
-    fieldKey === "notFoundBackgroundImageUrl";
-  const isDescription =
-    fieldKey.endsWith("Description") || fieldKey === "notFoundDescription";
-
-  if (isImageUrl) {
-    return (
-      <ImageUrlField
-        label={label}
-        value={value}
-        onChange={onChange}
-        inputClassName="mt-1"
-      />
-    );
-  }
+  const isDescription = fieldKey.endsWith("Description");
 
   if (isDescription) {
     return (

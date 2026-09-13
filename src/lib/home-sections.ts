@@ -76,6 +76,9 @@ export const HOME_SECTION_TYPES = [
   "trailHero",
   "trustBar",
   "productGrid",
+  "videoPlayer",
+  "promoHelloBar",
+  "countdownOffer",
 ] as const;
 
 export type HomeSectionType = (typeof HOME_SECTION_TYPES)[number];
@@ -128,6 +131,23 @@ export type HomeSectionProps = {
   cellsJson?: string;
   /** Image gallery items as JSON array of GalleryImageItem */
   imagesJson?: string;
+  /** Promo hello bar / countdown — show from (ISO or datetime-local) */
+  scheduleStartAt?: string;
+  /** Promo hello bar / countdown — show until */
+  scheduleEndAt?: string;
+  /** Countdown offer — target end date/time */
+  countdownTargetAt?: string;
+  /** Countdown offer — copy after timer hits zero */
+  countdownExpiredMessage?: string;
+  /** Poster image for video player */
+  posterImageUrl?: string;
+  /** yes/no toggles — SuperAdmin component settings */
+  settingSticky?: string;
+  settingDismissible?: string;
+  settingAutoplay?: string;
+  settingMuted?: string;
+  settingLoop?: string;
+  settingShowControls?: string;
 };
 
 /** One tile inside a content-card section. */
@@ -202,6 +222,33 @@ const IMAGE_GALLERY_SETTINGS_FIELDS: HomeSectionFieldKey[] = [
   "backgroundColor",
 ];
 
+const VIDEO_PLAYER_SETTINGS_FIELDS: HomeSectionFieldKey[] = [
+  "mediaAspect",
+  "borderRadius",
+  "bgStyle",
+  "backgroundColor",
+  "textColor",
+  "settingAutoplay",
+  "settingMuted",
+  "settingLoop",
+  "settingShowControls",
+];
+
+const PROMO_HELLO_BAR_SETTINGS_FIELDS: HomeSectionFieldKey[] = [
+  "bgStyle",
+  "backgroundColor",
+  "textColor",
+  "settingSticky",
+  "settingDismissible",
+];
+
+const COUNTDOWN_OFFER_SETTINGS_FIELDS: HomeSectionFieldKey[] = [
+  "bgStyle",
+  "backgroundColor",
+  "textColor",
+  "borderRadius",
+];
+
 /** Padding, spacing, and block-level styling — SuperAdmin component settings panel. */
 export function componentSettingsFieldsForType(
   type: HomeSectionType
@@ -211,6 +258,15 @@ export function componentSettingsFieldsForType(
   }
   if (type === "imageGallery") {
     return [...IMAGE_GALLERY_SETTINGS_FIELDS, ...SECTION_SPACING_FIELDS];
+  }
+  if (type === "videoPlayer") {
+    return [...VIDEO_PLAYER_SETTINGS_FIELDS, ...SECTION_SPACING_FIELDS];
+  }
+  if (type === "promoHelloBar") {
+    return [...PROMO_HELLO_BAR_SETTINGS_FIELDS, ...SECTION_SPACING_FIELDS];
+  }
+  if (type === "countdownOffer") {
+    return [...COUNTDOWN_OFFER_SETTINGS_FIELDS, ...SECTION_SPACING_FIELDS];
   }
   return [...SECTION_SPACING_FIELDS];
 }
@@ -351,6 +407,33 @@ export function editableFieldsForType(
         "linkHref",
         "productLimit",
       ]);
+    case "videoPlayer":
+      return contentFields([
+        "title",
+        "subtitle",
+        "videoUrl",
+        "embedUrl",
+        "posterImageUrl",
+        "ctaLabel",
+        "ctaHref",
+      ]);
+    case "promoHelloBar":
+      return contentFields([
+        "body",
+        "ctaLabel",
+        "ctaHref",
+        "scheduleStartAt",
+        "scheduleEndAt",
+      ]);
+    case "countdownOffer":
+      return contentFields([
+        "title",
+        "subtitle",
+        "countdownTargetAt",
+        "countdownExpiredMessage",
+        "ctaLabel",
+        "ctaHref",
+      ]);
     default:
       return contentFields(["title", "subtitle"]);
   }
@@ -393,6 +476,17 @@ export const SECTION_FIELD_LABELS: Record<HomeSectionFieldKey, string> = {
   cardsJson: "Cards data",
   cellsJson: "Mosaic tiles data",
   imagesJson: "Gallery images data",
+  scheduleStartAt: "Show from (date & time)",
+  scheduleEndAt: "Show until (date & time)",
+  countdownTargetAt: "Offer ends at (date & time)",
+  countdownExpiredMessage: "Message when offer ends",
+  posterImageUrl: "Poster image (optional)",
+  settingSticky: "Stick to top while scrolling",
+  settingDismissible: "Allow visitors to dismiss",
+  settingAutoplay: "Autoplay video",
+  settingMuted: "Start video muted",
+  settingLoop: "Loop video",
+  settingShowControls: "Show video controls",
 };
 
 /** Dropdown choices for enum-like section fields. */
@@ -474,6 +568,30 @@ export const SECTION_FIELD_OPTIONS: Partial<
     { value: "4", label: "4 per row" },
     { value: "5", label: "5 per row" },
     { value: "6", label: "6 per row" },
+  ],
+  settingSticky: [
+    { value: "no", label: "No" },
+    { value: "yes", label: "Yes" },
+  ],
+  settingDismissible: [
+    { value: "no", label: "No" },
+    { value: "yes", label: "Yes" },
+  ],
+  settingAutoplay: [
+    { value: "no", label: "No" },
+    { value: "yes", label: "Yes" },
+  ],
+  settingMuted: [
+    { value: "yes", label: "Yes (recommended)" },
+    { value: "no", label: "No" },
+  ],
+  settingLoop: [
+    { value: "no", label: "No" },
+    { value: "yes", label: "Yes" },
+  ],
+  settingShowControls: [
+    { value: "yes", label: "Yes" },
+    { value: "no", label: "No" },
   ],
 };
 
@@ -746,6 +864,45 @@ export function defaultPropsForSection(
           },
         ] satisfies ContentCardItem[]),
       };
+    case "videoPlayer":
+      return {
+        title: "Watch our story",
+        subtitle: "A short film about how we make every tee.",
+        videoUrl: hero.videoUrl ?? "",
+        embedUrl: "",
+        posterImageUrl: hero.imageUrl,
+        ctaLabel: hero.primaryCtaLabel,
+        ctaHref: hero.primaryCtaHref,
+        mediaAspect: "video",
+        borderRadius: "lg",
+        bgStyle: "theme",
+        settingMuted: "yes",
+        settingShowControls: "yes",
+        settingAutoplay: "no",
+        settingLoop: "no",
+      };
+    case "promoHelloBar":
+      return {
+        body: "Free shipping on orders over ₹2,000 — this week only",
+        ctaLabel: "Shop now",
+        ctaHref: "/shop",
+        scheduleStartAt: "",
+        scheduleEndAt: "",
+        bgStyle: "accent",
+        settingSticky: "no",
+        settingDismissible: "yes",
+      };
+    case "countdownOffer":
+      return {
+        title: "Launch weekend sale",
+        subtitle: "Extra 15% off essentials before the timer runs out.",
+        countdownTargetAt: "",
+        countdownExpiredMessage: "This offer has ended — explore the full collection.",
+        ctaLabel: hero.primaryCtaLabel,
+        ctaHref: "/shop",
+        bgStyle: "muted",
+        borderRadius: "lg",
+      };
     default:
       return {};
   }
@@ -795,7 +952,22 @@ export const HOME_SECTION_CATALOG: HomeSectionMeta[] = [
   { type: "instagram", label: "Instagram", description: "Instagram gallery" },
   { type: "newsletter", label: "Newsletter", description: "Light newsletter signup" },
   { type: "newsletterBand", label: "Newsletter band", description: "Inverted newsletter band" },
-  { type: "embedFrame", label: "Embed / film", description: "YouTube/Vimeo campaign film" },
+  { type: "embedFrame", label: "Video embed (legacy)", description: "YouTube or Vimeo embed with heading" },
+  {
+    type: "videoPlayer",
+    label: "Video player",
+    description: "Self-hosted .mp4 or YouTube/Vimeo with poster and caption",
+  },
+  {
+    type: "promoHelloBar",
+    label: "Promo hello bar",
+    description: "Timed promo strip with optional link and dismiss button",
+  },
+  {
+    type: "countdownOffer",
+    label: "Countdown offer",
+    description: "Sale countdown with end date and expired message",
+  },
   {
     type: "contentCard",
     label: "Content card",
@@ -1068,6 +1240,17 @@ function normalizeSectionProps(raw: unknown): HomeSectionProps | undefined {
     "cardsJson",
     "cellsJson",
     "imagesJson",
+    "scheduleStartAt",
+    "scheduleEndAt",
+    "countdownTargetAt",
+    "countdownExpiredMessage",
+    "posterImageUrl",
+    "settingSticky",
+    "settingDismissible",
+    "settingAutoplay",
+    "settingMuted",
+    "settingLoop",
+    "settingShowControls",
   ];
   for (const key of strings) {
     if (typeof p[key] === "string") {

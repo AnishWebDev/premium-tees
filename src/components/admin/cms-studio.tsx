@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-type MainTab = "site" | "header" | "footer" | "pages" | "store-copy";
+type MainTab = "site" | "header" | "footer" | "pages" | "global-copy";
 
 type CmsStudioProps = {
   initialPages: CmsPageRecord[];
@@ -61,7 +61,7 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: "header", label: "Header" },
   { key: "footer", label: "Footer" },
   { key: "pages", label: "Pages" },
-  { key: "store-copy", label: "Store copy" },
+  { key: "global-copy", label: "Global copy" },
 ];
 
 function pageUsesSectionBuilder(page: CmsPageRecord): boolean {
@@ -70,10 +70,8 @@ function pageUsesSectionBuilder(page: CmsPageRecord): boolean {
   return pageKindForSlug(page.slug) === "sections";
 }
 
-const STORE_COPY_SUBTABS: { key: CmsKey; label: string }[] = [
-  { key: "collections", label: "Collections" },
-  { key: "legal", label: "Legal" },
-  { key: "storeCopy", label: "Empty states" },
+const GLOBAL_COPY_SUBTABS: { key: CmsKey; label: string }[] = [
+  { key: "storeCopy", label: "404 & messages" },
   { key: "sizeGuide", label: "Size guide" },
   { key: "auth", label: "Auth pages" },
 ];
@@ -85,8 +83,8 @@ export function CmsStudio({
   contentSource,
   canSelectHomeTemplate,
 }: CmsStudioProps) {
-  const [mainTab, setMainTab] = useState<MainTab>("pages");
-  const [storeCopyTab, setStoreCopyTab] = useState<CmsKey>("collections");
+  const [mainTab, setMainTab] = useState<MainTab>("site");
+  const [globalCopyTab, setGlobalCopyTab] = useState<CmsKey>("storeCopy");
   const [siteContent, setSiteContent] = useState(initialSiteContent);
   const [cmsContent, setCmsContent] = useState(initialCmsContent);
   const [pages, setPages] = useState(initialPages);
@@ -187,11 +185,14 @@ export function CmsStudio({
     }
   };
 
-  const saveStoreCopyTab = async () => {
+  const saveGlobalCopyTab = async () => {
     const res = await fetch("/api/admin/cms", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: storeCopyTab, data: cmsContent[storeCopyTab] }),
+      body: JSON.stringify({
+        key: globalCopyTab,
+        data: cmsContent[globalCopyTab],
+      }),
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error || "Save failed");
@@ -213,8 +214,8 @@ export function CmsStudio({
         case "pages":
           await savePage();
           break;
-        case "store-copy":
-          await saveStoreCopyTab();
+        case "global-copy":
+          await saveGlobalCopyTab();
           break;
       }
       toast.success("Saved — live site updates within about a minute");
@@ -611,18 +612,19 @@ export function CmsStudio({
             )}
           </TabsContent>
 
-          <TabsContent value="store-copy" className="mt-0 space-y-4">
+          <TabsContent value="global-copy" className="mt-0 space-y-4">
             <p className="text-sm text-neutral-500">
-              Global storefront strings — size guide, empty states, login copy, and
-              more. Legal page bodies are edited under Pages → Privacy / Terms /
-              Shipping.
+              Site-wide strings that are not tied to a single page — 404 screen,
+              cart empty state, checkout messages, size guide, and login/register
+              copy. Page-specific content (Collections, Legal, Shop empty catalog)
+              is under <strong>Pages</strong>.
             </p>
             <Tabs
-              value={storeCopyTab}
-              onValueChange={(v) => setStoreCopyTab(v as CmsKey)}
+              value={globalCopyTab}
+              onValueChange={(v) => setGlobalCopyTab(v as CmsKey)}
             >
               <TabsList className="mb-4 flex h-auto flex-wrap gap-1">
-                {STORE_COPY_SUBTABS.map((tab) => (
+                {GLOBAL_COPY_SUBTABS.map((tab) => (
                   <TabsTrigger key={tab.key} value={tab.key}>
                     {tab.label}
                   </TabsTrigger>
@@ -630,13 +632,13 @@ export function CmsStudio({
               </TabsList>
             </Tabs>
             <CmsExtraEditor
-              key={storeCopyTab}
+              key={globalCopyTab}
               initialContent={cmsContent}
               content={cmsContent}
               onContentChange={setCmsContent}
               hideSave
               hideHeader
-              singleTab={storeCopyTab}
+              singleTab={globalCopyTab}
             />
           </TabsContent>
         </div>
