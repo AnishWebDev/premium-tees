@@ -180,21 +180,21 @@ export function HomeSectionsBuilder({
     <Card>
       <CardHeader>
         <CardTitle>
-          {canManageLayout ? "Page layout" : `${pageLabel} sections`}
+          {canManageLayout ? "Page components" : `${pageLabel} components`}
         </CardTitle>
         <CardDescription>
           {canManageLayout
-            ? "Drag to reorder, add blocks from scratch or from your component library, and hide sections without deleting them."
-            : `Edit content for sections on this ${pageLabel.toLowerCase()}. Layout changes require SuperAdmin.`}
+            ? "Add components, drag to reorder, hide without deleting, and edit each block’s content — same as the homepage."
+            : `Edit content for components on this ${pageLabel.toLowerCase()}.`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {visibleSections.length === 0 ? (
           <p className="text-sm text-neutral-500">
-            No sections on this {pageLabel.toLowerCase()} yet.
+            No components on this {pageLabel.toLowerCase()} yet.
             {canManageLayout
-              ? " Add a block below, insert from the library, or pick a template preset."
-              : " Ask a SuperAdmin to add sections to the layout."}
+              ? " Pick a component type below and click Add."
+              : " Add components using the builder above."}
           </p>
         ) : (
           <ul className="space-y-2">
@@ -431,7 +431,7 @@ export function HomeSectionsBuilder({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="flex-1">
                 <p className="mb-2 text-xs font-medium text-neutral-500">
-                  Add new block
+                  Add component
                 </p>
                 <Select
                   value={addType}

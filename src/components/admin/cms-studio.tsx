@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ExternalLink,
   Loader2,
@@ -49,10 +49,12 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Accordion,
@@ -128,15 +130,18 @@ export function CmsStudio({
     () => [...pages].sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title)),
     [pages]
   );
+  const systemPages = useMemo(
+    () => sortedPages.filter((p) => p.isSystem),
+    [sortedPages]
+  );
+  const customPages = useMemo(
+    () => sortedPages.filter((p) => !p.isSystem),
+    [sortedPages]
+  );
 
   const selectedPage = pages.find((p) => p.id === selectedPageId) ?? null;
   const selectedComponent =
     components.find((c) => c.id === selectedComponentId) ?? null;
-
-  const libraryRefs = useMemo(
-    () => components.map((c) => ({ id: c.id, name: c.name, type: c.type })),
-    [components]
-  );
 
   useEffect(() => {
     setPageDraft(selectedPage);
@@ -145,11 +150,6 @@ export function CmsStudio({
   useEffect(() => {
     setComponentDraft(selectedComponent);
   }, [selectedComponent]);
-
-  const focusComponent = useCallback((id: string) => {
-    setMainTab("components");
-    setSelectedComponentId(id);
-  }, []);
 
   const saveSiteKey = async (key: ContentKey, data?: unknown) => {
     const payload = data ?? siteContent[key];
@@ -324,52 +324,6 @@ export function CmsStudio({
     }
   };
 
-  const createComponent = async (name: string, type: HomeSectionType) => {
-    setSaving(true);
-    try {
-      const props = defaultPropsForSection(type, contentSource);
-      const res = await fetch("/api/admin/components", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, type, props }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "Create failed");
-      const refresh = await fetch("/api/admin/components");
-      const data = await refresh.json();
-      setComponents(data.components);
-      setSelectedComponentId(body.component.id);
-      setMainTab("components");
-      toast.success("Component created");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Could not create component"
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const deleteComponent = async (id: string) => {
-    if (!confirm("Delete this component from the library?")) return;
-    setSaving(true);
-    try {
-      const res = await fetch(`/api/admin/components/${id}`, { method: "DELETE" });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || "Delete failed");
-      const next = components.filter((c) => c.id !== id);
-      setComponents(next);
-      setSelectedComponentId(next[0]?.id ?? "");
-      toast.success("Component deleted");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Could not delete component"
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const pageKind = pageDraft ? pageKindForSlug(pageDraft.slug) : "sections";
   const usesSections = pageKind === "sections";
 
@@ -380,8 +334,7 @@ export function CmsStudio({
           Page content
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-neutral-500">
-          Site identity, page layouts, reusable components, and storefront copy —
-          all in one place.
+          Create pages, add components like the homepage, and edit site-wide copy.
         </p>
       </div>
 
@@ -431,6 +384,59 @@ export function CmsStudio({
           </TabsContent>
 
           <TabsContent value="pages" className="mt-0 space-y-6">
+            <Card className="border-dashed border-neutral-300 bg-neutral-50/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Create a new page</CardTitle>
+                <CardDescription>
+                  e.g. a Gallery page — then add image grids, hero blocks, and more
+                  below, just like the homepage.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="new-page-title">Page title</Label>
+                  <Input
+                    id="new-page-title"
+                    value={newTitle}
+                    placeholder="Gallery"
+                    onChange={(e) => {
+                      setNewTitle(e.target.value);
+                      setNewSlug(
+                        e.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, "-")
+                          .replace(/^-+|-+$/g, "")
+                      );
+                    }}
+                  />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="new-page-slug">URL slug</Label>
+                  <Input
+                    id="new-page-slug"
+                    value={newSlug}
+                    placeholder="gallery"
+                    onChange={(e) => setNewSlug(e.target.value)}
+                  />
+                  <p className="text-xs text-neutral-500">
+                    Live at /pages/{newSlug || "your-slug"} when published
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  disabled={creatingPage || !newTitle.trim() || !newSlug.trim()}
+                  onClick={() => void createPage()}
+                >
+                  {creatingPage ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="mr-2 h-4 w-4" />
+                  )}
+                  Create page
+                </Button>
+              </CardContent>
+            </Card>
+
             {pageDraft ? (
               <>
                 <Card>
@@ -446,14 +452,23 @@ export function CmsStudio({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {sortedPages.map((page) => (
-                              <SelectItem key={page.id} value={page.id}>
-                                {page.title}
-                                {!page.isSystem && !page.published
-                                  ? " (draft)"
-                                  : ""}
-                              </SelectItem>
-                            ))}
+                            <SelectGroup>
+                              {systemPages.map((page) => (
+                                <SelectItem key={page.id} value={page.id}>
+                                  {page.title}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                            {customPages.length > 0 ? (
+                              <SelectGroup>
+                                {customPages.map((page) => (
+                                  <SelectItem key={page.id} value={page.id}>
+                                    {page.title}
+                                    {!page.published ? " (draft)" : ""}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            ) : null}
                           </SelectContent>
                         </Select>
                       </div>
@@ -547,18 +562,34 @@ export function CmsStudio({
                           </div>
                         ) : null}
                         {!pageDraft.isSystem ? (
-                          <label className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={pageDraft.published}
-                              onCheckedChange={(v) =>
-                                setPageDraft({
-                                  ...pageDraft,
-                                  published: v === true,
-                                })
-                              }
-                            />
-                            Published
-                          </label>
+                          <>
+                            <div className="sm:col-span-2">
+                              <Label>Description (optional)</Label>
+                              <Textarea
+                                className="mt-1"
+                                rows={2}
+                                value={pageDraft.description ?? ""}
+                                onChange={(e) =>
+                                  setPageDraft({
+                                    ...pageDraft,
+                                    description: e.target.value || null,
+                                  })
+                                }
+                              />
+                            </div>
+                            <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                              <Checkbox
+                                checked={pageDraft.published}
+                                onCheckedChange={(v) =>
+                                  setPageDraft({
+                                    ...pageDraft,
+                                    published: v === true,
+                                  })
+                                }
+                              />
+                              Published — visible at {pagePathForSlug(pageDraft.slug)}
+                            </label>
+                          </>
                         ) : null}
                       </>
                     ) : null}
@@ -573,8 +604,6 @@ export function CmsStudio({
                     }
                     content={contentSource}
                     canManageLayout
-                    libraryComponents={libraryRefs}
-                    onEditLibraryComponent={focusComponent}
                     pageLabel={pageDraft.title}
                     onChange={(sections) =>
                       setPageDraft({ ...pageDraft, sections })
@@ -589,57 +618,6 @@ export function CmsStudio({
                     onCmsContentChange={setCmsContent}
                   />
                 )}
-
-                {!pageDraft.isSystem ? (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Add custom page</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                      <div className="flex-1 space-y-2">
-                        <Label>Title</Label>
-                        <Input
-                          value={newTitle}
-                          placeholder="Landing page title"
-                          onChange={(e) => {
-                            setNewTitle(e.target.value);
-                            if (!newSlug) {
-                              setNewSlug(
-                                e.target.value
-                                  .toLowerCase()
-                                  .replace(/[^a-z0-9]+/g, "-")
-                                  .replace(/^-+|-+$/g, "")
-                              );
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <Label>Slug</Label>
-                        <Input
-                          value={newSlug}
-                          placeholder="my-page"
-                          onChange={(e) => setNewSlug(e.target.value)}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={
-                          creatingPage || !newTitle.trim() || !newSlug.trim()
-                        }
-                        onClick={() => void createPage()}
-                      >
-                        {creatingPage ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Plus className="mr-2 h-4 w-4" />
-                        )}
-                        Create
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : null}
               </>
             ) : (
               <Card>
@@ -651,13 +629,16 @@ export function CmsStudio({
           </TabsContent>
 
           <TabsContent value="components" className="mt-0">
+            <p className="mb-4 text-sm text-neutral-500">
+              Edit shared components that are linked on pages. To build a page,
+              use <strong className="font-medium text-neutral-800">Pages</strong>{" "}
+              → create a page → add components there.
+            </p>
             <ComponentsPanel
               components={components}
               draft={componentDraft}
               onSelect={setSelectedComponentId}
               onDraftChange={setComponentDraft}
-              onCreate={createComponent}
-              onDelete={deleteComponent}
               contentSource={contentSource}
             />
           </TabsContent>
@@ -726,21 +707,14 @@ function ComponentsPanel({
   draft,
   onSelect,
   onDraftChange,
-  onCreate,
-  onDelete,
   contentSource,
 }: {
   components: CmsComponentRecord[];
   draft: CmsComponentRecord | null;
   onSelect: (id: string) => void;
   onDraftChange: (c: CmsComponentRecord | null) => void;
-  onCreate: (name: string, type: HomeSectionType) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
   contentSource: SectionContentSource;
 }) {
-  const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<HomeSectionType>("heroStatic");
-
   const setProp = (
     key: keyof HomeSectionProps,
     value: string | number | undefined
@@ -766,14 +740,17 @@ function ComponentsPanel({
     <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
       <Card className="h-fit lg:sticky lg:top-24">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Component library</CardTitle>
+          <CardTitle className="text-base">Shared components</CardTitle>
           <CardDescription>
-            Reusable blocks — edit once, use on any page.
+            Linked blocks — edits apply on every page that uses them.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {components.length === 0 ? (
-            <p className="text-sm text-neutral-500">No components yet.</p>
+            <p className="text-sm text-neutral-500">
+              No shared components yet. Add components directly on each page
+              under the Pages tab.
+            </p>
           ) : (
             <ul className="space-y-1">
               {components.map((component) => (
@@ -802,68 +779,24 @@ function ComponentsPanel({
               ))}
             </ul>
           )}
-          <div className="space-y-2 border-t border-neutral-100 pt-3">
-            <Label className="text-xs">New component</Label>
-            <Input
-              placeholder="Name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-            <Select
-              value={newType}
-              onValueChange={(v) => setNewType(v as HomeSectionType)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {HOME_SECTION_CATALOG.map((item) => (
-                  <SelectItem key={item.type} value={item.type}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              disabled={!newName.trim()}
-              onClick={() =>
-                void onCreate(newName.trim(), newType).then(() => setNewName(""))
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
       {!draft ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-neutral-500">
-            Select or create a component.
+            {components.length > 0
+              ? "Select a shared component to edit."
+              : "Create a page under Pages, add components there, then save."}
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle>{draft.name}</CardTitle>
-              <CardDescription>
-                {sectionLabel(draft.type)} — updates every page using this block.
-              </CardDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-600"
-              onClick={() => void onDelete(draft.id)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
+          <CardHeader>
+            <CardTitle>{draft.name}</CardTitle>
+            <CardDescription>
+              {sectionLabel(draft.type)} — updates every page using this block.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
