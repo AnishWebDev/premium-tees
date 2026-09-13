@@ -5,7 +5,7 @@ import {
   galleryRoundedClass,
 } from "@/components/home/blocks/image-gallery";
 import { VideoPlayerMedia } from "@/components/home/blocks/video-player-media";
-import { isSettingEnabled } from "@/lib/promo-schedule";
+import { isSettingEnabled, parseYesNoSetting } from "@/lib/promo-schedule";
 import { cn } from "@/lib/utils";
 
 type VideoPlayerBlockProps = {
@@ -21,6 +21,7 @@ type VideoPlayerBlockProps = {
   bgStyle?: string;
   backgroundColor?: string;
   textColor?: string;
+  playerId?: string;
   autoplay?: boolean;
   muted?: boolean;
   loop?: boolean;
@@ -40,9 +41,10 @@ export function VideoPlayerBlock({
   bgStyle = "theme",
   backgroundColor = "",
   textColor = "",
+  playerId,
   autoplay = false,
   muted = true,
-  loop = false,
+  loop = true,
   showControls = true,
 }: VideoPlayerBlockProps) {
   const aspectClass = galleryAspectClass(mediaAspect);
@@ -76,6 +78,7 @@ export function VideoPlayerBlock({
 
         <div className="mt-8">
           <VideoPlayerMedia
+            playerId={playerId}
             title={title}
             videoUrl={videoUrl}
             embedUrl={embedUrl}
@@ -109,11 +112,8 @@ export function videoPlayerSettingsFromProps(props: {
 }) {
   return {
     autoplay: isSettingEnabled(props.settingAutoplay),
-    muted:
-      props.settingMuted?.trim()
-        ? isSettingEnabled(props.settingMuted)
-        : true,
-    loop: isSettingEnabled(props.settingLoop),
+    muted: parseYesNoSetting(props.settingMuted, true),
+    loop: parseYesNoSetting(props.settingLoop, true),
     showControls: props.settingShowControls
       ? isSettingEnabled(props.settingShowControls)
       : true,

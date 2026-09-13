@@ -15,6 +15,8 @@ export type EmbedPlaybackOptions = {
   autoplay?: boolean;
   muted?: boolean;
   loop?: boolean;
+  /** Required for YouTube pause / state events from the parent page. */
+  origin?: string;
 };
 
 /** Append autoplay / loop params for YouTube, Vimeo, and similar embeds. */
@@ -29,33 +31,22 @@ export function withEmbedPlayback(
       host.includes("youtube") || host.includes("youtube-nocookie");
 
     const hostIsVimeo = host === "vimeo.com" || host === "player.vimeo.com";
-    const shouldMute =
-      options.muted === true || (options.autoplay && options.muted !== false);
+    const startMuted = options.muted === true;
 
     if (hostIsVimeo) {
-      if (shouldMute) {
-        url.searchParams.set("muted", "1");
-      } else if (options.muted === false) {
-        url.searchParams.set("muted", "0");
-      } else {
-        url.searchParams.delete("muted");
-      }
+      if (startMuted) url.searchParams.set("muted", "1");
+      else url.searchParams.delete("muted");
     } else if (isYoutube) {
-      if (shouldMute) {
-        url.searchParams.set("mute", "1");
-      } else if (options.muted === false) {
-        url.searchParams.set("mute", "0");
-      } else {
-        url.searchParams.delete("mute");
-      }
+      if (startMuted) url.searchParams.set("mute", "1");
+      else url.searchParams.delete("mute");
+      url.searchParams.set("enablejsapi", "1");
+      url.searchParams.set("rel", "0");
+      if (options.origin) url.searchParams.set("origin", options.origin);
     }
 
     if (options.autoplay) {
       url.searchParams.set("autoplay", "1");
       url.searchParams.set("playsinline", "1");
-      // Autoplay in browsers requires muted embeds.
-      if (isYoutube) url.searchParams.set("mute", "1");
-      if (hostIsVimeo) url.searchParams.set("muted", "1");
     } else {
       url.searchParams.delete("autoplay");
       url.searchParams.delete("playsinline");

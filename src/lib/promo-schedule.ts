@@ -11,6 +11,14 @@ export function isSettingEnabled(value?: string): boolean {
   return v === "yes" || v === "true" || v === "1";
 }
 
+/** Parse CMS yes/no toggles; uses default when unset. */
+export function parseYesNoSetting(value: string | undefined, defaultValue: boolean): boolean {
+  const v = value?.trim().toLowerCase();
+  if (v === "no" || v === "false" || v === "0") return false;
+  if (v === "yes" || v === "true" || v === "1") return true;
+  return defaultValue;
+}
+
 /** Empty start/end means no limit on that side. */
 export function isWithinSchedule(
   start?: string,

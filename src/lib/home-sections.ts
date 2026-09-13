@@ -584,7 +584,7 @@ export const SECTION_FIELD_OPTIONS: Partial<
   ],
   settingMuted: [
     { value: "yes", label: "Yes (recommended)" },
-    { value: "no", label: "No" },
+    { value: "no", label: "No — sound on play (autoplay may be blocked)" },
   ],
   settingLoop: [
     { value: "no", label: "No" },
@@ -880,7 +880,7 @@ export function defaultPropsForSection(
         settingMuted: "yes",
         settingShowControls: "yes",
         settingAutoplay: "no",
-        settingLoop: "no",
+        settingLoop: "yes",
       };
     case "promoHelloBar":
       return {

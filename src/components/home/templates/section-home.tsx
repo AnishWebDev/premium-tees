@@ -669,6 +669,7 @@ function renderSection(section: HomeSectionItem, props: HomeTemplateProps) {
       const playback = videoPlayerSettingsFromProps(o);
       return (
         <VideoPlayerBlock
+          playerId={section.id}
           title={sectionText(o.title, "Watch our story")}
           subtitle={o.subtitle}
           videoUrl={sectionText(o.videoUrl, content.hero.videoUrl ?? "")}

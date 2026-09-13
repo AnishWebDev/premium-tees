@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   toEmbedSrc,
   withEmbedPlayback,
 } from "@/components/home/blocks/embed-frame";
 import { RemoteImage } from "@/components/shared/remote-image";
+import {
+  activateVideoPlayer,
+  isYoutubePlayingMessage,
+  pauseEmbedIframe,
+  registerVideoPlayer,
+} from "@/lib/video-playback-coordinator";
 import { cn } from "@/lib/utils";
 
 type VideoPlayerMediaProps = {
+  playerId?: string;
   title: string;
   videoUrl?: string;
   embedUrl?: string;
@@ -26,6 +33,7 @@ function isDirectVideo(url: string) {
 }
 
 export function VideoPlayerMedia({
+  playerId: playerIdProp,
   title,
   videoUrl = "",
   embedUrl = "",
@@ -34,12 +42,20 @@ export function VideoPlayerMedia({
   roundedClass,
   autoplay = false,
   muted = true,
-  loop = false,
+  loop = true,
   showControls = true,
 }: VideoPlayerMediaProps) {
+  const generatedId = useId();
+  const playerId = playerIdProp ?? generatedId;
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [inView, setInView] = useState(false);
+  const [embedOrigin, setEmbedOrigin] = useState("");
+
+  useEffect(() => {
+    setEmbedOrigin(window.location.origin);
+  }, []);
 
   const directSrc = videoUrl.trim();
   const embedSrcRaw = embedUrl.trim();
@@ -54,14 +70,32 @@ export function VideoPlayerMedia({
 
   const iframeSrc = useMemo(() => {
     if (!baseIframeSrc) return null;
-    const autoplayActive = autoplay && inView;
     return withEmbedPlayback(baseIframeSrc, {
-      autoplay: autoplayActive,
-      // Respect "Start muted" even without autoplay; force mute when autoplaying.
-      muted: autoplayActive ? true : muted,
+      autoplay: autoplay && inView,
+      muted,
       loop,
+      origin: embedOrigin || undefined,
     });
-  }, [autoplay, baseIframeSrc, inView, loop, muted]);
+  }, [autoplay, baseIframeSrc, embedOrigin, inView, loop, muted]);
+
+  const pausePlayback = useCallback(() => {
+    const video = videoRef.current;
+    if (video && !video.paused) {
+      video.pause();
+    }
+    const iframe = iframeRef.current;
+    if (iframe && iframeSrc) {
+      pauseEmbedIframe(iframe, iframeSrc);
+    }
+  }, [iframeSrc]);
+
+  const claimPlayback = useCallback(() => {
+    activateVideoPlayer(playerId);
+  }, [playerId]);
+
+  useEffect(() => {
+    return registerVideoPlayer(playerId, pausePlayback);
+  }, [pausePlayback, playerId]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -83,21 +117,51 @@ export function VideoPlayerMedia({
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !nativeSrc) return;
-    video.muted = autoplay ? true : muted;
-  }, [autoplay, muted, nativeSrc]);
+    video.muted = muted;
+    video.loop = loop;
+  }, [loop, muted, nativeSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !nativeSrc) return;
+
+    const onPlay = () => claimPlayback();
+    video.addEventListener("play", onPlay);
+    return () => video.removeEventListener("play", onPlay);
+  }, [claimPlayback, nativeSrc]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !nativeSrc || !autoplay) return;
 
     if (inView) {
+      claimPlayback();
       void video.play().catch(() => {
         /* autoplay blocked */
       });
     } else {
       video.pause();
     }
-  }, [autoplay, inView, nativeSrc]);
+  }, [autoplay, claimPlayback, inView, nativeSrc]);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframeSrc || !autoplay || !inView) return;
+    claimPlayback();
+  }, [autoplay, claimPlayback, iframeSrc, inView]);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframeSrc?.includes("youtube")) return;
+
+    const onMessage = (event: MessageEvent) => {
+      if (!isYoutubePlayingMessage(event, iframe)) return;
+      claimPlayback();
+    };
+
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [claimPlayback, iframeSrc]);
 
   return (
     <div
@@ -115,7 +179,7 @@ export function VideoPlayerMedia({
           src={nativeSrc}
           poster={posterImageUrl.trim() || undefined}
           controls={showControls}
-          muted={autoplay ? true : muted}
+          muted={muted}
           loop={loop}
           playsInline
           preload={autoplay ? "metadata" : "none"}
@@ -123,6 +187,7 @@ export function VideoPlayerMedia({
         />
       ) : iframeSrc ? (
         <iframe
+          ref={iframeRef}
           key={iframeSrc}
           src={iframeSrc}
           title={title}
