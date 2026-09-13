@@ -70,6 +70,12 @@ type SiteContentEditorProps = {
   visibleTabs?: ContentKey[];
   title?: string;
   description?: string;
+  /** Render a single tab panel without chrome (for Page content embed). */
+  embedMode?: boolean;
+  activeTab?: ContentKey;
+  hideSave?: boolean;
+  content?: AllSiteContent;
+  onContentChange?: (content: AllSiteContent) => void;
 };
 
 const BASE_TABS: { key: ContentKey; label: string }[] = [
@@ -94,8 +100,23 @@ export function SiteContentEditor({
   visibleTabs,
   title = "Site content",
   description = "Update homepage, about, FAQ, and marketing copy without touching code.",
+  embedMode = false,
+  activeTab,
+  hideSave = false,
+  content: controlledContent,
+  onContentChange,
 }: SiteContentEditorProps) {
-  const [content, setContent] = useState(initialContent);
+  const [internalContent, setInternalContent] = useState(initialContent);
+  const content = controlledContent ?? internalContent;
+  const setContent = (
+    updater: AllSiteContent | ((prev: AllSiteContent) => AllSiteContent)
+  ) => {
+    const prev = controlledContent ?? internalContent;
+    const next =
+      typeof updater === "function" ? updater(prev) : updater;
+    if (onContentChange) onContentChange(next);
+    else setInternalContent(next);
+  };
   const [saving, setSaving] = useState<ContentKey | null>(null);
   const [hasStyleDefaults, setHasStyleDefaults] = useState(initialHasDefaults);
   const [defaultsBusy, setDefaultsBusy] = useState<"save" | "reset" | null>(
@@ -151,41 +172,22 @@ export function SiteContentEditor({
     }
   };
 
-  const SaveButton = ({ keyName }: { keyName: ContentKey }) => (
-    <Button onClick={() => save(keyName)} disabled={saving === keyName}>
-      {saving === keyName ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Saving…
-        </>
-      ) : (
-        "Save changes"
-      )}
-    </Button>
-  );
+  const SaveButton = ({ keyName }: { keyName: ContentKey }) =>
+    hideSave ? null : (
+      <Button onClick={() => save(keyName)} disabled={saving === keyName}>
+        {saving === keyName ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Saving…
+          </>
+        ) : (
+          "Save changes"
+        )}
+      </Button>
+    );
 
-  return (
-    // data-admin-flush clears AdminShell main padding so sticky tabs sit at true top-0
-    <div data-admin-flush>
-      <div className="px-4 pt-4 md:px-6 md:pt-6">
-        <h1 className="font-display text-2xl font-semibold text-neutral-950">
-          {title}
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500">{description}</p>
-      </div>
-
-      <Tabs defaultValue={tabs[0]?.key ?? "site"}>
-        <div className="sticky top-0 z-20 border-b border-neutral-200 bg-[var(--background)] px-4 py-2 md:px-6">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-[var(--muted)] p-1">
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.key} value={tab.key}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-
-        <div className="space-y-6 px-4 py-6 md:px-6">
+  const tabPanels = (
+    <>
         <TabsContent value="site" className="mt-0">
           <Card>
             <CardHeader>
@@ -220,16 +222,18 @@ export function SiteContentEditor({
                 }
                 multiline
               />
-              <Button onClick={saveSiteIdentity} disabled={saving === "site"}>
-                {saving === "site" ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving…
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </Button>
+              {!hideSave ? (
+                <Button onClick={saveSiteIdentity} disabled={saving === "site"}>
+                  {saving === "site" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving…
+                    </>
+                  ) : (
+                    "Save changes"
+                  )}
+                </Button>
+              ) : null}
             </CardContent>
           </Card>
         </TabsContent>
@@ -420,7 +424,38 @@ export function SiteContentEditor({
             />
           </TabsContent>
         )}
+    </>
+  );
+
+  if (embedMode && activeTab) {
+    return (
+      <Tabs value={activeTab} className="mt-0">
+        {tabPanels}
+      </Tabs>
+    );
+  }
+
+  return (
+    <div data-admin-flush>
+      <div className="px-4 pt-4 md:px-6 md:pt-6">
+        <h1 className="font-display text-2xl font-semibold text-neutral-950">
+          {title}
+        </h1>
+        <p className="mt-1 text-sm text-neutral-500">{description}</p>
+      </div>
+
+      <Tabs defaultValue={tabs[0]?.key ?? "site"}>
+        <div className="sticky top-0 z-20 border-b border-neutral-200 bg-[var(--background)] px-4 py-2 md:px-6">
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-[var(--muted)] p-1">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.key} value={tab.key}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </div>
+
+        <div className="space-y-6 px-4 py-6 md:px-6">{tabPanels}</div>
       </Tabs>
     </div>
   );

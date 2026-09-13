@@ -20,6 +20,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type CmsExtraEditorProps = {
   initialContent: AllCmsContent;
+  hideSave?: boolean;
+  hideHeader?: boolean;
+  content?: AllCmsContent;
+  onContentChange?: (content: AllCmsContent) => void;
+  defaultTab?: CmsKey;
+  /** Show only one section (no inner tab list). */
+  singleTab?: CmsKey;
 };
 
 const TABS: { key: CmsKey; label: string }[] = [
@@ -30,8 +37,26 @@ const TABS: { key: CmsKey; label: string }[] = [
   { key: "auth", label: "Auth pages" },
 ];
 
-export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
-  const [content, setContent] = useState(initialContent);
+export function CmsExtraEditor({
+  initialContent,
+  hideSave = false,
+  hideHeader = false,
+  content: controlledContent,
+  onContentChange,
+  defaultTab = "collections",
+  singleTab,
+}: CmsExtraEditorProps) {
+  const [internalContent, setInternalContent] = useState(initialContent);
+  const content = controlledContent ?? internalContent;
+  const setContent = (
+    updater: AllCmsContent | ((prev: AllCmsContent) => AllCmsContent)
+  ) => {
+    const prev = controlledContent ?? internalContent;
+    const next =
+      typeof updater === "function" ? updater(prev) : updater;
+    if (onContentChange) onContentChange(next);
+    else setInternalContent(next);
+  };
   const [saving, setSaving] = useState<CmsKey | null>(null);
 
   const save = async (key: CmsKey) => {
@@ -72,16 +97,11 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
     }));
   };
 
-  return (
-    <Card className="rounded-lg shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-base">Pages & store copy</CardTitle>
-        <p className="text-sm text-neutral-500">
-          Legal pages, collections heading, size guide, empty states, and login copy.
-        </p>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="collections">
+  const activeTab = singleTab ?? defaultTab;
+
+  const inner = (
+        <Tabs value={activeTab} defaultValue={defaultTab}>
+          {!singleTab ? (
           <TabsList className="mb-6 flex h-auto flex-wrap gap-1">
             {TABS.map((tab) => (
               <TabsTrigger key={tab.key} value={tab.key}>
@@ -89,6 +109,7 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
               </TabsTrigger>
             ))}
           </TabsList>
+          ) : null}
 
           <TabsContent value="collections" className="space-y-4">
             <div className="space-y-2">
@@ -117,7 +138,9 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
                 }
               />
             </div>
-            <SaveButton saving={saving === "collections"} onClick={() => save("collections")} />
+            {!hideSave ? (
+              <SaveButton saving={saving === "collections"} onClick={() => save("collections")} />
+            ) : null}
           </TabsContent>
 
           <TabsContent value="legal" className="space-y-6">
@@ -207,7 +230,9 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
                 }
               />
             </div>
-            <SaveButton saving={saving === "legal"} onClick={() => save("legal")} />
+            {!hideSave ? (
+              <SaveButton saving={saving === "legal"} onClick={() => save("legal")} />
+            ) : null}
           </TabsContent>
 
           <TabsContent value="storeCopy" className="space-y-4">
@@ -226,7 +251,9 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
                 />
               </div>
             ))}
-            <SaveButton saving={saving === "storeCopy"} onClick={() => save("storeCopy")} />
+            {!hideSave ? (
+              <SaveButton saving={saving === "storeCopy"} onClick={() => save("storeCopy")} />
+            ) : null}
           </TabsContent>
 
           <TabsContent value="sizeGuide" className="space-y-4">
@@ -305,7 +332,9 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
                 }
               />
             </div>
-            <SaveButton saving={saving === "sizeGuide"} onClick={() => save("sizeGuide")} />
+            {!hideSave ? (
+              <SaveButton saving={saving === "sizeGuide"} onClick={() => save("sizeGuide")} />
+            ) : null}
           </TabsContent>
 
           <TabsContent value="auth" className="space-y-4">
@@ -324,12 +353,41 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
                 />
               </div>
             ))}
-            <SaveButton saving={saving === "auth"} onClick={() => save("auth")} />
+            {!hideSave ? (
+              <SaveButton saving={saving === "auth"} onClick={() => save("auth")} />
+            ) : null}
           </TabsContent>
         </Tabs>
-      </CardContent>
+  );
+
+  if (hideHeader) return inner;
+
+  return (
+    <Card className="rounded-lg shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-base">Store copy</CardTitle>
+        <p className="text-sm text-neutral-500">
+          Size guide, empty states, login copy, and other storefront strings.
+        </p>
+      </CardHeader>
+      <CardContent>{inner}</CardContent>
     </Card>
   );
+}
+
+/** Save all CMS blocks (used by unified Page content save bar). */
+export async function saveAllCmsContent(content: AllCmsContent) {
+  for (const key of TABS.map((t) => t.key)) {
+    const res = await fetch("/api/admin/cms", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, data: content[key] }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Failed to save ${key}`);
+    }
+  }
 }
 
 function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {

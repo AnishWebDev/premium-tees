@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/roles";
+import { getAllCmsContent } from "@/lib/cms-content";
 import { listCmsComponents } from "@/lib/cms-components";
 import { listCmsPages } from "@/lib/cms-pages";
 import { getAllSiteContent } from "@/lib/site-content";
@@ -24,20 +25,23 @@ function toSectionContentSource(
 }
 
 export default async function AdminContentPage() {
-  const [pages, components, content, session] = await Promise.all([
-    listCmsPages(),
-    listCmsComponents(),
-    getAllSiteContent(),
-    auth(),
-  ]);
+  const [pages, components, siteContent, cmsContent, session] =
+    await Promise.all([
+      listCmsPages(),
+      listCmsComponents(),
+      getAllSiteContent(),
+      getAllCmsContent(),
+      auth(),
+    ]);
   const superAdmin = isSuperAdmin(session?.user?.role);
 
   return (
     <CmsStudio
       initialPages={pages}
       initialComponents={components}
-      contentSource={toSectionContentSource(content)}
-      canManageLayout={superAdmin}
+      initialSiteContent={siteContent}
+      initialCmsContent={cmsContent}
+      contentSource={toSectionContentSource(siteContent)}
       canSelectHomeTemplate={superAdmin}
     />
   );

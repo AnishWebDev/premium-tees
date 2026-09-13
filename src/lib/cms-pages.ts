@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { HomeSectionItem } from "@/lib/home-sections";
+import { SYSTEM_PAGES } from "@/lib/page-catalog";
 import { getContentBlock, upsertContentBlock } from "@/lib/site-content";
 
 export type CmsPageRecord = {
@@ -49,24 +50,29 @@ function toRecord(row: {
   };
 }
 
-/** Seed homepage from legacy SiteContent on first run. */
+/** Ensure all system storefront pages exist (home seeds sections from legacy content). */
 export async function ensureCmsPagesSeeded(): Promise<void> {
-  const count = await prisma.cmsPage.count();
-  if (count > 0) return;
-
   const home = await getContentBlock("home");
-  await prisma.cmsPage.create({
-    data: {
-      slug: "home",
-      title: "Homepage",
-      description: "Main storefront landing page",
-      published: true,
-      isSystem: true,
-      template: home.template,
-      sections: home.sections,
-      sortOrder: 0,
-    },
-  });
+
+  for (const def of SYSTEM_PAGES) {
+    const existing = await prisma.cmsPage.findUnique({
+      where: { slug: def.slug },
+    });
+    if (existing) continue;
+
+    await prisma.cmsPage.create({
+      data: {
+        slug: def.slug,
+        title: def.title,
+        description: null,
+        published: def.published ?? true,
+        isSystem: true,
+        template: def.slug === "home" ? home.template : null,
+        sections: def.slug === "home" ? home.sections : [],
+        sortOrder: def.sortOrder,
+      },
+    });
+  }
 }
 
 export async function listCmsPages(): Promise<CmsPageRecord[]> {
@@ -175,17 +181,16 @@ export function normalizeSlug(raw: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/** Slugs that cannot be used for new custom pages. */
 export const RESERVED_PAGE_SLUGS = new Set([
-  "home",
+  ...SYSTEM_PAGES.map((p) => p.slug),
   "admin",
   "api",
-  "shop",
   "cart",
   "checkout",
   "login",
   "register",
   "account",
-  "collections",
   "product",
   "pages",
 ]);

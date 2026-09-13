@@ -72,21 +72,10 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
-    let nextSections = existing.sections;
-    if (data.sections !== undefined) {
-      if (superAdmin) {
-        nextSections = data.sections as HomeSectionItem[];
-      } else {
-        const incomingById = new Map(
-          (data.sections as HomeSectionItem[]).map((s) => [s.id, s] as const)
-        );
-        nextSections = existing.sections.map((s) => {
-          const patch = incomingById.get(s.id);
-          if (!patch) return s;
-          return { ...s, props: patch.props ?? s.props };
-        });
-      }
-    }
+    const nextSections =
+      data.sections !== undefined
+        ? (data.sections as HomeSectionItem[])
+        : existing.sections;
 
     const page = await updateCmsPage(id, {
       slug: data.slug,
