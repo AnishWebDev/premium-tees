@@ -457,7 +457,7 @@ export function HomeSectionsBuilder({
                         <Accordion
                           type="single"
                           collapsible
-                          className="border-t border-[var(--border)]/35 pt-2"
+                          className="border-t border-neutral-100 pt-2"
                         >
                           <AccordionItem value="settings" className="border-none">
                             <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">

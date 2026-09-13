@@ -93,7 +93,11 @@ export function PageBannerEditor({
         </div>
 
         {canEditComponentSettings ? (
-          <Accordion type="single" collapsible className="border-t pt-2">
+          <Accordion
+            type="single"
+            collapsible
+            className="border-t border-[var(--border)]/35 pt-2"
+          >
             <AccordionItem value="settings" className="border-none">
               <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">
                 Component settings
