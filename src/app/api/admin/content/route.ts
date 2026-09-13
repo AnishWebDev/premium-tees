@@ -11,6 +11,7 @@ import {
   type HomeData,
   upsertContentBlock,
 } from "@/lib/site-content";
+import { normalizeTheme, type ThemeData } from "@/lib/theme";
 import { SITE_IDENTITY_TAG } from "@/lib/site-identity";
 
 export async function GET() {
@@ -55,6 +56,16 @@ export async function PUT(request: Request) {
     }
 
     let payload = data;
+    if (key === "theme") {
+      const existing = normalizeTheme(await getContentBlock("theme"));
+      const incoming = normalizeTheme(data);
+      payload = isSuperAdmin(session.user.role)
+        ? incoming
+        : ({
+            ...incoming,
+            hideScrollbar: existing.hideScrollbar,
+          } satisfies ThemeData);
+    }
     if (key === "home") {
       const existing = await getContentBlock("home");
       const incoming = data as HomeData;

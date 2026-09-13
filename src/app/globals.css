@@ -15,6 +15,19 @@
   --animate-accordion-up: accordion-up 0.2s ease-out;
 }
 
+html.hide-scrollbar,
+html.hide-scrollbar body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.hide-scrollbar::-webkit-scrollbar,
+html.hide-scrollbar body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 :root {
   --background: #fafafa;
   --foreground: #0a0a0a;

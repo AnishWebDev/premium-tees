@@ -535,17 +535,5 @@ export function themeToCssVariables(theme: ThemeData) {
   --link-weight: ${link.weight};
   color-scheme: dark;
 }
-${
-  normalized.hideScrollbar
-    ? `
-html {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-html::-webkit-scrollbar {
-  display: none;
-}`
-    : ""
-}
 `.trim();
 }

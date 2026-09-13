@@ -5,7 +5,10 @@ import { ThemeStyle } from "@/components/theme/theme-style";
 import { fontVariableClassName } from "@/lib/fonts";
 import { SITE_URL } from "@/lib/constants";
 import { getSiteIdentity } from "@/lib/site-identity";
+import { getContentBlock } from "@/lib/site-content";
 import { getStoreSettings } from "@/lib/store-settings";
+import { normalizeTheme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -72,13 +75,19 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [site, storeSettings] = await Promise.all([
+  const [site, storeSettings, theme] = await Promise.all([
     getSiteIdentity(),
     getStoreSettings(),
+    getContentBlock("theme"),
   ]);
+  const hideScrollbar = normalizeTheme(theme).hideScrollbar;
 
   return (
-    <html lang="en" className={fontVariableClassName} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn(fontVariableClassName, hideScrollbar && "hide-scrollbar")}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-[var(--background)] font-sans text-[var(--foreground)] antialiased">
         <GoogleAnalytics analyticsId={storeSettings.seo.analyticsId} />
         <ThemeStyle />
