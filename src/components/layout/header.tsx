@@ -91,12 +91,11 @@ export function Header({
             <span className="relative block h-8 w-8 shrink-0 sm:h-9 sm:w-9">
               <RemoteImage
                 src={logoImageUrl}
-                alt=""
+                alt={logoImageAlt.trim() || `${siteName} logo`}
                 fill
                 sizes="36px"
                 className="object-contain"
                 priority
-                aria-hidden
               />
             </span>
           )}

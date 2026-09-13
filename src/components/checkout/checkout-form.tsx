@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -262,9 +263,9 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
     return (
       <p className="text-sm text-[var(--muted-foreground)]">
         Your cart is empty.{" "}
-        <a href="/shop" className="theme-link">
+        <Link href="/shop" className="theme-link">
           Continue shopping
-        </a>
+        </Link>
       </p>
     );
   }

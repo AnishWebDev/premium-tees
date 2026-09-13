@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -187,9 +188,9 @@ export function ProductReviews({
         </form>
       ) : (
         <p className="text-sm text-[var(--muted-foreground)]">
-          <a href="/login" className="font-medium text-[var(--foreground)] underline-offset-4 hover:underline">
+          <Link href="/login" className="font-medium text-[var(--foreground)] underline-offset-4 hover:underline">
             Sign in
-          </a>{" "}
+          </Link>{" "}
           to leave a review.
         </p>
       )}

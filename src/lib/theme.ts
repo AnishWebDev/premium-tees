@@ -308,7 +308,8 @@ export function createSavedThemePreset(
   if (existingIds.includes(id)) {
     id = `${id}-${Date.now().toString(36)}`;
   }
-  const { presetId: _presetId, ...themeFields } = normalizeTheme(theme);
+  const { presetId, ...themeFields } = normalizeTheme(theme);
+  void presetId;
   return {
     id,
     name: name.trim(),
@@ -340,8 +341,10 @@ export function themeMatchesPreset(
 ): boolean {
   const match = themeFromPreset(presetId, savedPresets);
   if (!match) return false;
-  const { presetId: _a, ...a } = match;
-  const { presetId: _b, ...b } = normalizeTheme(theme);
+  const { presetId: matchPresetId, ...a } = match;
+  const { presetId: themePresetId, ...b } = normalizeTheme(theme);
+  void matchPresetId;
+  void themePresetId;
   return JSON.stringify(a) === JSON.stringify(b);
 }
 

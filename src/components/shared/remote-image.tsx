@@ -28,7 +28,12 @@ function shouldOptimize(src: ImageProps["src"]): boolean {
 }
 
 /** Image that accepts any https URL — unknown hosts load directly (unoptimized). */
-export function RemoteImage({ src, unoptimized, ...props }: ImageProps) {
+export function RemoteImage({
+  src,
+  unoptimized,
+  alt = "",
+  ...props
+}: ImageProps) {
   const resolved = resolveSrc(src);
   const optimize =
     typeof resolved === "string" && resolved.startsWith("http")
@@ -39,6 +44,7 @@ export function RemoteImage({ src, unoptimized, ...props }: ImageProps) {
     <Image
       {...props}
       src={resolved}
+      alt={alt}
       unoptimized={unoptimized ?? !optimize}
     />
   );
