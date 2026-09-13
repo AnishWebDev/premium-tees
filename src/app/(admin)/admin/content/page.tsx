@@ -1,31 +1,44 @@
 import { auth } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/roles";
-import { getAllCmsContent } from "@/lib/cms-content";
+import { listCmsComponents } from "@/lib/cms-components";
+import { listCmsPages } from "@/lib/cms-pages";
 import { getAllSiteContent } from "@/lib/site-content";
-import { getStyleDefaults } from "@/lib/style-defaults";
-import { CmsExtraEditor } from "@/components/admin/cms-extra-editor";
-import { SiteContentEditor } from "@/components/admin/site-content-editor";
+import { CmsStudio } from "@/components/admin/cms-studio";
+import type { SectionContentSource } from "@/lib/home-sections";
 
 export const dynamic = "force-dynamic";
 
+function toSectionContentSource(
+  content: Awaited<ReturnType<typeof getAllSiteContent>>
+): SectionContentSource {
+  return {
+    site: content.site,
+    hero: content.hero,
+    home: content.home,
+    about: content.about,
+    testimonials: content.testimonials,
+    faq: content.faq,
+    instagram: content.instagram,
+    newsletter: content.newsletter,
+  };
+}
+
 export default async function AdminContentPage() {
-  const [content, cmsContent, session, styleDefaults] = await Promise.all([
+  const [pages, components, content, session] = await Promise.all([
+    listCmsPages(),
+    listCmsComponents(),
     getAllSiteContent(),
-    getAllCmsContent(),
     auth(),
-    getStyleDefaults(),
   ]);
   const superAdmin = isSuperAdmin(session?.user?.role);
 
   return (
-    <div className="space-y-8">
-      <SiteContentEditor
-        initialContent={content}
-        canSelectHomeTemplate={superAdmin}
-        hasStyleDefaults={Boolean(styleDefaults)}
-        canEditFooterCredit={superAdmin}
-      />
-      <CmsExtraEditor initialContent={cmsContent} />
-    </div>
+    <CmsStudio
+      initialPages={pages}
+      initialComponents={components}
+      contentSource={toSectionContentSource(content)}
+      canManageLayout={superAdmin}
+      canSelectHomeTemplate={superAdmin}
+    />
   );
 }

@@ -23,6 +23,7 @@ import { HOME_TEMPLATES } from "@/lib/home-templates";
 import { defaultSectionsForTemplate } from "@/lib/home-sections";
 import { fontFamilyStack } from "@/lib/fonts";
 import { FONT_CATALOG } from "@/lib/theme";
+import { EditorSectionsAccordion } from "@/components/admin/editor-sections-accordion";
 import { HomeSectionsBuilder } from "@/components/admin/home-sections-builder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +66,10 @@ type SiteContentEditorProps = {
   hasStyleDefaults?: boolean;
   /** SuperAdmin-only footer credit styling */
   canEditFooterCredit?: boolean;
+  /** Limit which tabs appear (defaults to all). */
+  visibleTabs?: ContentKey[];
+  title?: string;
+  description?: string;
 };
 
 const BASE_TABS: { key: ContentKey; label: string }[] = [
@@ -86,6 +91,9 @@ export function SiteContentEditor({
   canSelectHomeTemplate = false,
   hasStyleDefaults: initialHasDefaults = false,
   canEditFooterCredit = false,
+  visibleTabs,
+  title = "Site content",
+  description = "Update homepage, about, FAQ, and marketing copy without touching code.",
 }: SiteContentEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [saving, setSaving] = useState<ContentKey | null>(null);
@@ -94,9 +102,12 @@ export function SiteContentEditor({
     null
   );
 
-  const tabs = canEditFooterCredit
+  const allTabs = canEditFooterCredit
     ? [...BASE_TABS, { key: "footerCredit" as const, label: "Footer credit" }]
     : BASE_TABS;
+  const tabs = visibleTabs
+    ? allTabs.filter((tab) => visibleTabs.includes(tab.key))
+    : allTabs;
 
   const save = async (key: ContentKey) => {
     setSaving(key);
@@ -158,14 +169,12 @@ export function SiteContentEditor({
     <div data-admin-flush>
       <div className="px-4 pt-4 md:px-6 md:pt-6">
         <h1 className="font-display text-2xl font-semibold text-neutral-950">
-          Site content
+          {title}
         </h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Update homepage, about, FAQ, and marketing copy without touching code.
-        </p>
+        <p className="mt-1 text-sm text-neutral-500">{description}</p>
       </div>
 
-      <Tabs defaultValue="site">
+      <Tabs defaultValue={tabs[0]?.key ?? "site"}>
         <div className="sticky top-0 z-20 border-b border-neutral-200 bg-[var(--background)] px-4 py-2 md:px-6">
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-[var(--muted)] p-1">
             {tabs.map((tab) => (
@@ -362,26 +371,38 @@ export function SiteContentEditor({
               <CardTitle>Newsletter block</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field
-                label="Title"
-                value={content.newsletter.title}
-                onChange={(v) =>
-                  setContent((c) => ({
-                    ...c,
-                    newsletter: { ...c.newsletter, title: v },
-                  }))
-                }
-              />
-              <Field
-                label="Subtitle"
-                value={content.newsletter.subtitle}
-                onChange={(v) =>
-                  setContent((c) => ({
-                    ...c,
-                    newsletter: { ...c.newsletter, subtitle: v },
-                  }))
-                }
-                multiline
+              <EditorSectionsAccordion
+                sections={[
+                  {
+                    id: "copy",
+                    title: "Newsletter copy",
+                    content: (
+                      <>
+                        <Field
+                          label="Title"
+                          value={content.newsletter.title}
+                          onChange={(v) =>
+                            setContent((c) => ({
+                              ...c,
+                              newsletter: { ...c.newsletter, title: v },
+                            }))
+                          }
+                        />
+                        <Field
+                          label="Subtitle"
+                          value={content.newsletter.subtitle}
+                          onChange={(v) =>
+                            setContent((c) => ({
+                              ...c,
+                              newsletter: { ...c.newsletter, subtitle: v },
+                            }))
+                          }
+                          multiline
+                        />
+                      </>
+                    ),
+                  },
+                ]}
               />
               <SaveButton keyName="newsletter" />
             </CardContent>
@@ -751,11 +772,21 @@ function HeaderEditor({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <NavLinksEditor
-          label="Main navigation"
-          description="Desktop and mobile menu links."
-          links={data.navLinks}
-          onChange={(navLinks) => set({ navLinks })}
+        <EditorSectionsAccordion
+          sections={[
+            {
+              id: "nav",
+              title: "Main navigation",
+              content: (
+                <NavLinksEditor
+                  label="Menu links"
+                  description="Desktop and mobile menu links."
+                  links={data.navLinks}
+                  onChange={(navLinks) => set({ navLinks })}
+                />
+              ),
+            },
+          ]}
         />
         {saveButton}
       </CardContent>
@@ -783,58 +814,87 @@ function FooterEditor({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <ImageUrlField
-          label="Banner image URL"
-          value={data.bannerImageUrl}
-          onChange={(bannerImageUrl) => set({ bannerImageUrl })}
-          hint="Wide landscape photo works best."
-        />
-        <Field
-          label="Banner image alt text"
-          value={data.bannerImageAlt}
-          onChange={(bannerImageAlt) => set({ bannerImageAlt })}
-        />
-        <Field
-          label="Tagline under site name"
-          value={data.tagline}
-          onChange={(tagline) => set({ tagline })}
-        />
-        <div className="space-y-3">
-          <div>
-            <p className="text-sm font-medium text-neutral-900">Trust strip</p>
-            <p className="text-xs text-neutral-500">Four columns shown above the copyright row.</p>
-          </div>
-          {data.trustItems.map((item, index) => (
-            <div
-              key={`trust-${index}`}
-              className="grid gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-2"
-            >
-              <Field
-                label={`Column ${index + 1} title`}
-                value={item.title}
-                onChange={(title) => {
-                  const trustItems = [...data.trustItems];
-                  trustItems[index] = { ...item, title };
-                  set({ trustItems });
-                }}
-              />
-              <Field
-                label={`Column ${index + 1} subtitle`}
-                value={item.subtitle}
-                onChange={(subtitle) => {
-                  const trustItems = [...data.trustItems];
-                  trustItems[index] = { ...item, subtitle };
-                  set({ trustItems });
-                }}
-              />
-            </div>
-          ))}
-        </div>
-        <NavLinksEditor
-          label="Footer links"
-          description="Privacy, terms, FAQ, and other essentials."
-          links={data.essentialLinks}
-          onChange={(essentialLinks) => set({ essentialLinks })}
+        <EditorSectionsAccordion
+          sections={[
+            {
+              id: "banner",
+              title: "Banner image",
+              content: (
+                <>
+                  <ImageUrlField
+                    label="Banner image URL"
+                    value={data.bannerImageUrl}
+                    onChange={(bannerImageUrl) => set({ bannerImageUrl })}
+                    hint="Wide landscape photo works best."
+                  />
+                  <Field
+                    label="Banner image alt text"
+                    value={data.bannerImageAlt}
+                    onChange={(bannerImageAlt) => set({ bannerImageAlt })}
+                  />
+                </>
+              ),
+            },
+            {
+              id: "tagline",
+              title: "Tagline",
+              content: (
+                <Field
+                  label="Tagline under site name"
+                  value={data.tagline}
+                  onChange={(tagline) => set({ tagline })}
+                />
+              ),
+            },
+            {
+              id: "trust",
+              title: "Trust strip",
+              content: (
+                <div className="space-y-3">
+                  <p className="text-xs text-neutral-500">
+                    Four columns shown above the copyright row.
+                  </p>
+                  {data.trustItems.map((item, index) => (
+                    <div
+                      key={`trust-${index}`}
+                      className="grid gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-2"
+                    >
+                      <Field
+                        label={`Column ${index + 1} title`}
+                        value={item.title}
+                        onChange={(title) => {
+                          const trustItems = [...data.trustItems];
+                          trustItems[index] = { ...item, title };
+                          set({ trustItems });
+                        }}
+                      />
+                      <Field
+                        label={`Column ${index + 1} subtitle`}
+                        value={item.subtitle}
+                        onChange={(subtitle) => {
+                          const trustItems = [...data.trustItems];
+                          trustItems[index] = { ...item, subtitle };
+                          set({ trustItems });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ),
+            },
+            {
+              id: "links",
+              title: "Footer links",
+              content: (
+                <NavLinksEditor
+                  label="Essential links"
+                  description="Privacy, terms, FAQ, and other essentials."
+                  links={data.essentialLinks}
+                  onChange={(essentialLinks) => set({ essentialLinks })}
+                />
+              ),
+            },
+          ]}
         />
         {saveButton}
       </CardContent>
@@ -863,56 +923,80 @@ function ContactEditor({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Field
-          label="Page title"
-          value={data.title}
-          onChange={(v) => set("title", v)}
-        />
-        <Field
-          label="Intro"
-          value={data.subtitle}
-          onChange={(v) => set("subtitle", v)}
-          multiline
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Email"
-            value={data.email}
-            onChange={(v) => set("email", v)}
-            placeholder="hello@example.com"
-          />
-          <Field
-            label="Phone (optional)"
-            value={data.phone}
-            onChange={(v) => set("phone", v)}
-            placeholder="+1 …"
-          />
-          <Field
-            label="Phone hours / note"
-            value={data.phoneHours}
-            onChange={(v) => set("phoneHours", v)}
-            placeholder="Mon–Fri, 9am–5pm"
-          />
-          <Field
-            label="Studio label"
-            value={data.studioLabel}
-            onChange={(v) => set("studioLabel", v)}
-          />
-          <Field
-            label="Studio line 1"
-            value={data.studioLine1}
-            onChange={(v) => set("studioLine1", v)}
-          />
-          <Field
-            label="Studio line 2"
-            value={data.studioLine2}
-            onChange={(v) => set("studioLine2", v)}
-          />
-        </div>
-        <Field
-          label="Form title"
-          value={data.formTitle}
-          onChange={(v) => set("formTitle", v)}
+        <EditorSectionsAccordion
+          sections={[
+            {
+              id: "intro",
+              title: "Page intro",
+              content: (
+                <>
+                  <Field
+                    label="Page title"
+                    value={data.title}
+                    onChange={(v) => set("title", v)}
+                  />
+                  <Field
+                    label="Intro"
+                    value={data.subtitle}
+                    onChange={(v) => set("subtitle", v)}
+                    multiline
+                  />
+                </>
+              ),
+            },
+            {
+              id: "details",
+              title: "Contact details",
+              content: (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label="Email"
+                    value={data.email}
+                    onChange={(v) => set("email", v)}
+                    placeholder="hello@example.com"
+                  />
+                  <Field
+                    label="Phone (optional)"
+                    value={data.phone}
+                    onChange={(v) => set("phone", v)}
+                    placeholder="+1 …"
+                  />
+                  <Field
+                    label="Phone hours / note"
+                    value={data.phoneHours}
+                    onChange={(v) => set("phoneHours", v)}
+                    placeholder="Mon–Fri, 9am–5pm"
+                  />
+                  <Field
+                    label="Studio label"
+                    value={data.studioLabel}
+                    onChange={(v) => set("studioLabel", v)}
+                  />
+                  <Field
+                    label="Studio line 1"
+                    value={data.studioLine1}
+                    onChange={(v) => set("studioLine1", v)}
+                  />
+                  <Field
+                    label="Studio line 2"
+                    value={data.studioLine2}
+                    onChange={(v) => set("studioLine2", v)}
+                  />
+                </div>
+              ),
+            },
+            {
+              id: "form",
+              title: "Contact form",
+              content: (
+                <Field
+                  label="Form title"
+                  value={data.formTitle}
+                  onChange={(v) => set("formTitle", v)}
+                />
+              ),
+            },
+          ]}
         />
         {saveButton}
       </CardContent>
@@ -937,47 +1021,73 @@ function HeroEditor({
         <CardDescription>First thing visitors see on the homepage.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Field label="Brand label" value={data.brand} onChange={(v) => set({ brand: v })} />
-        <Field label="Headline" value={data.headline} onChange={(v) => set({ headline: v })} />
-        <Field
-          label="Supporting text"
-          value={data.subheadline}
-          onChange={(v) => set({ subheadline: v })}
-          multiline
+        <EditorSectionsAccordion
+          sections={[
+            {
+              id: "copy",
+              title: "Hero copy",
+              content: (
+                <>
+                  <Field label="Brand label" value={data.brand} onChange={(v) => set({ brand: v })} />
+                  <Field label="Headline" value={data.headline} onChange={(v) => set({ headline: v })} />
+                  <Field
+                    label="Supporting text"
+                    value={data.subheadline}
+                    onChange={(v) => set({ subheadline: v })}
+                    multiline
+                  />
+                </>
+              ),
+            },
+            {
+              id: "media",
+              title: "Hero media",
+              content: (
+                <>
+                  <ImageUrlField
+                    label="Poster / fallback image URL"
+                    value={data.imageUrl}
+                    onChange={(v) => set({ imageUrl: v })}
+                  />
+                  <Field
+                    label="Hero video URL (optional)"
+                    value={data.videoUrl ?? ""}
+                    onChange={(v) => set({ videoUrl: v || undefined })}
+                    placeholder="https://...mp4 — leave empty for parallax image"
+                  />
+                </>
+              ),
+            },
+            {
+              id: "buttons",
+              title: "Buttons",
+              content: (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label="Primary button label"
+                    value={data.primaryCtaLabel}
+                    onChange={(v) => set({ primaryCtaLabel: v })}
+                  />
+                  <Field
+                    label="Primary button link"
+                    value={data.primaryCtaHref}
+                    onChange={(v) => set({ primaryCtaHref: v })}
+                  />
+                  <Field
+                    label="Secondary button label"
+                    value={data.secondaryCtaLabel}
+                    onChange={(v) => set({ secondaryCtaLabel: v })}
+                  />
+                  <Field
+                    label="Secondary button link"
+                    value={data.secondaryCtaHref}
+                    onChange={(v) => set({ secondaryCtaHref: v })}
+                  />
+                </div>
+              ),
+            },
+          ]}
         />
-        <ImageUrlField
-          label="Poster / fallback image URL"
-          value={data.imageUrl}
-          onChange={(v) => set({ imageUrl: v })}
-        />
-        <Field
-          label="Hero video URL (optional)"
-          value={data.videoUrl ?? ""}
-          onChange={(v) => set({ videoUrl: v || undefined })}
-          placeholder="https://...mp4 — leave empty for parallax image"
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Primary button label"
-            value={data.primaryCtaLabel}
-            onChange={(v) => set({ primaryCtaLabel: v })}
-          />
-          <Field
-            label="Primary button link"
-            value={data.primaryCtaHref}
-            onChange={(v) => set({ primaryCtaHref: v })}
-          />
-          <Field
-            label="Secondary button label"
-            value={data.secondaryCtaLabel}
-            onChange={(v) => set({ secondaryCtaLabel: v })}
-          />
-          <Field
-            label="Secondary button link"
-            value={data.secondaryCtaHref}
-            onChange={(v) => set({ secondaryCtaHref: v })}
-          />
-        </div>
         {saveButton}
       </CardContent>
     </Card>
@@ -1152,119 +1262,159 @@ function AboutEditor({
         <CardTitle>About page</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Field label="Eyebrow" value={data.eyebrow} onChange={(v) => set({ eyebrow: v })} />
-        <Field label="Title" value={data.title} onChange={(v) => set({ title: v })} />
-        <Field label="Intro" value={data.intro} onChange={(v) => set({ intro: v })} multiline />
-        <Field
-          label="Story title"
-          value={data.storyTitle}
-          onChange={(v) => set({ storyTitle: v })}
+        <EditorSectionsAccordion
+          defaultOpen={["intro", "story"]}
+          sections={[
+            {
+              id: "intro",
+              title: "Page intro",
+              content: (
+                <>
+                  <Field label="Eyebrow" value={data.eyebrow} onChange={(v) => set({ eyebrow: v })} />
+                  <Field label="Title" value={data.title} onChange={(v) => set({ title: v })} />
+                  <Field label="Intro" value={data.intro} onChange={(v) => set({ intro: v })} multiline />
+                </>
+              ),
+            },
+            {
+              id: "story",
+              title: "Story",
+              content: (
+                <>
+                  <Field
+                    label="Story title"
+                    value={data.storyTitle}
+                    onChange={(v) => set({ storyTitle: v })}
+                  />
+                  {data.storyParagraphs.map((p, i) => (
+                    <Field
+                      key={i}
+                      label={`Story paragraph ${i + 1}`}
+                      value={p}
+                      onChange={(v) => {
+                        const storyParagraphs = [...data.storyParagraphs];
+                        storyParagraphs[i] = v;
+                        set({ storyParagraphs });
+                      }}
+                      multiline
+                    />
+                  ))}
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => set({ storyParagraphs: [...data.storyParagraphs, ""] })}
+                    >
+                      <Plus className="mr-1 h-4 w-4" /> Add paragraph
+                    </Button>
+                    {data.storyParagraphs.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          set({ storyParagraphs: data.storyParagraphs.slice(0, -1) })
+                        }
+                      >
+                        <Trash2 className="mr-1 h-4 w-4" /> Remove last
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ),
+            },
+            {
+              id: "values-header",
+              title: "Values section",
+              content: (
+                <>
+                  <Field
+                    label="Values title"
+                    value={data.valuesTitle}
+                    onChange={(v) => set({ valuesTitle: v })}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      set({ values: [...data.values, { title: "", body: "" }] })
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" /> Add value
+                  </Button>
+                </>
+              ),
+            },
+            ...data.values.map((item, i) => ({
+              id: `value-${i}`,
+              title: item.title.trim() || `Value ${i + 1}`,
+              content: (
+                <>
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        set({ values: data.values.filter((_, idx) => idx !== i) })
+                      }
+                    >
+                      <Trash2 className="mr-1 h-4 w-4" /> Remove
+                    </Button>
+                  </div>
+                  <Field
+                    label="Title"
+                    value={item.title}
+                    onChange={(v) => {
+                      const values = [...data.values];
+                      values[i] = { ...item, title: v };
+                      set({ values });
+                    }}
+                  />
+                  <Field
+                    label="Body"
+                    value={item.body}
+                    onChange={(v) => {
+                      const values = [...data.values];
+                      values[i] = { ...item, body: v };
+                      set({ values });
+                    }}
+                    multiline
+                  />
+                </>
+              ),
+            })),
+            {
+              id: "cta",
+              title: "Call to action",
+              content: (
+                <>
+                  <Field label="CTA title" value={data.ctaTitle} onChange={(v) => set({ ctaTitle: v })} />
+                  <Field
+                    label="CTA subtitle"
+                    value={data.ctaSubtitle}
+                    onChange={(v) => set({ ctaSubtitle: v })}
+                    multiline
+                  />
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field
+                      label="CTA button label"
+                      value={data.ctaLabel}
+                      onChange={(v) => set({ ctaLabel: v })}
+                    />
+                    <Field
+                      label="CTA button link"
+                      value={data.ctaHref}
+                      onChange={(v) => set({ ctaHref: v })}
+                    />
+                  </div>
+                </>
+              ),
+            },
+          ]}
         />
-        {data.storyParagraphs.map((p, i) => (
-          <Field
-            key={i}
-            label={`Story paragraph ${i + 1}`}
-            value={p}
-            onChange={(v) => {
-              const storyParagraphs = [...data.storyParagraphs];
-              storyParagraphs[i] = v;
-              set({ storyParagraphs });
-            }}
-            multiline
-          />
-        ))}
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => set({ storyParagraphs: [...data.storyParagraphs, ""] })}
-          >
-            <Plus className="mr-1 h-4 w-4" /> Add paragraph
-          </Button>
-          {data.storyParagraphs.length > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                set({ storyParagraphs: data.storyParagraphs.slice(0, -1) })
-              }
-            >
-              <Trash2 className="mr-1 h-4 w-4" /> Remove last
-            </Button>
-          )}
-        </div>
-        <Field
-          label="Values title"
-          value={data.valuesTitle}
-          onChange={(v) => set({ valuesTitle: v })}
-        />
-        {data.values.map((item, i) => (
-          <div key={i} className="space-y-3 rounded-xl border border-neutral-200 p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Value {i + 1}</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  set({ values: data.values.filter((_, idx) => idx !== i) })
-                }
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            <Field
-              label="Title"
-              value={item.title}
-              onChange={(v) => {
-                const values = [...data.values];
-                values[i] = { ...item, title: v };
-                set({ values });
-              }}
-            />
-            <Field
-              label="Body"
-              value={item.body}
-              onChange={(v) => {
-                const values = [...data.values];
-                values[i] = { ...item, body: v };
-                set({ values });
-              }}
-              multiline
-            />
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            set({ values: [...data.values, { title: "", body: "" }] })
-          }
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add value
-        </Button>
-        <Field label="CTA title" value={data.ctaTitle} onChange={(v) => set({ ctaTitle: v })} />
-        <Field
-          label="CTA subtitle"
-          value={data.ctaSubtitle}
-          onChange={(v) => set({ ctaSubtitle: v })}
-          multiline
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="CTA button label"
-            value={data.ctaLabel}
-            onChange={(v) => set({ ctaLabel: v })}
-          />
-          <Field
-            label="CTA button link"
-            value={data.ctaHref}
-            onChange={(v) => set({ ctaHref: v })}
-          />
-        </div>
         {saveButton}
       </CardContent>
     </Card>
@@ -1286,99 +1436,115 @@ function TestimonialsEditor({
         <CardTitle>Testimonials</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Field
-          label="Section title"
-          value={data.title}
-          onChange={(v) => onChange({ ...data, title: v })}
+        <EditorSectionsAccordion
+          defaultOpen={["header"]}
+          sections={[
+            {
+              id: "header",
+              title: "Section header",
+              content: (
+                <>
+                  <Field
+                    label="Section title"
+                    value={data.title}
+                    onChange={(v) => onChange({ ...data, title: v })}
+                  />
+                  <Field
+                    label="Section subtitle"
+                    value={data.subtitle}
+                    onChange={(v) => onChange({ ...data, subtitle: v })}
+                    multiline
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      onChange({
+                        ...data,
+                        items: [
+                          ...data.items,
+                          {
+                            id: crypto.randomUUID(),
+                            name: "",
+                            role: "",
+                            quote: "",
+                            rating: 5,
+                          },
+                        ],
+                      })
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" /> Add testimonial
+                  </Button>
+                </>
+              ),
+            },
+            ...data.items.map((item, i) => ({
+              id: item.id,
+              title: item.name.trim() || `Testimonial ${i + 1}`,
+              content: (
+                <>
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        onChange({
+                          ...data,
+                          items: data.items.filter((_, idx) => idx !== i),
+                        })
+                      }
+                    >
+                      <Trash2 className="mr-1 h-4 w-4" /> Remove
+                    </Button>
+                  </div>
+                  <Field
+                    label="Name"
+                    value={item.name}
+                    onChange={(v) => {
+                      const items = [...data.items];
+                      items[i] = { ...item, name: v };
+                      onChange({ ...data, items });
+                    }}
+                  />
+                  <Field
+                    label="Role"
+                    value={item.role}
+                    onChange={(v) => {
+                      const items = [...data.items];
+                      items[i] = { ...item, role: v };
+                      onChange({ ...data, items });
+                    }}
+                  />
+                  <Field
+                    label="Quote"
+                    value={item.quote}
+                    onChange={(v) => {
+                      const items = [...data.items];
+                      items[i] = { ...item, quote: v };
+                      onChange({ ...data, items });
+                    }}
+                    multiline
+                  />
+                  <Field
+                    label="Rating (1–5)"
+                    value={String(item.rating)}
+                    onChange={(v) => {
+                      const items = [...data.items];
+                      items[i] = {
+                        ...item,
+                        rating: Math.min(5, Math.max(1, Number(v) || 5)),
+                      };
+                      onChange({ ...data, items });
+                    }}
+                  />
+                </>
+              ),
+            })),
+          ]}
         />
-        <Field
-          label="Section subtitle"
-          value={data.subtitle}
-          onChange={(v) => onChange({ ...data, subtitle: v })}
-          multiline
-        />
-        {data.items.map((item, i) => (
-          <div key={item.id} className="space-y-3 rounded-xl border border-neutral-200 p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Quote {i + 1}</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  onChange({
-                    ...data,
-                    items: data.items.filter((_, idx) => idx !== i),
-                  })
-                }
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            <Field
-              label="Name"
-              value={item.name}
-              onChange={(v) => {
-                const items = [...data.items];
-                items[i] = { ...item, name: v };
-                onChange({ ...data, items });
-              }}
-            />
-            <Field
-              label="Role"
-              value={item.role}
-              onChange={(v) => {
-                const items = [...data.items];
-                items[i] = { ...item, role: v };
-                onChange({ ...data, items });
-              }}
-            />
-            <Field
-              label="Quote"
-              value={item.quote}
-              onChange={(v) => {
-                const items = [...data.items];
-                items[i] = { ...item, quote: v };
-                onChange({ ...data, items });
-              }}
-              multiline
-            />
-            <Field
-              label="Rating (1–5)"
-              value={String(item.rating)}
-              onChange={(v) => {
-                const items = [...data.items];
-                items[i] = {
-                  ...item,
-                  rating: Math.min(5, Math.max(1, Number(v) || 5)),
-                };
-                onChange({ ...data, items });
-              }}
-            />
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            onChange({
-              ...data,
-              items: [
-                ...data.items,
-                {
-                  id: crypto.randomUUID(),
-                  name: "",
-                  role: "",
-                  quote: "",
-                  rating: 5,
-                },
-              ],
-            })
-          }
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add testimonial
-        </Button>
         {saveButton}
       </CardContent>
     </Card>
@@ -1400,69 +1566,85 @@ function FaqEditor({
         <CardTitle>FAQ</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Field
-          label="Page title"
-          value={data.title}
-          onChange={(v) => onChange({ ...data, title: v })}
+        <EditorSectionsAccordion
+          defaultOpen={["header"]}
+          sections={[
+            {
+              id: "header",
+              title: "Page header",
+              content: (
+                <>
+                  <Field
+                    label="Page title"
+                    value={data.title}
+                    onChange={(v) => onChange({ ...data, title: v })}
+                  />
+                  <Field
+                    label="Page subtitle"
+                    value={data.subtitle}
+                    onChange={(v) => onChange({ ...data, subtitle: v })}
+                    multiline
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      onChange({
+                        ...data,
+                        items: [...data.items, { question: "", answer: "" }],
+                      })
+                    }
+                  >
+                    <Plus className="mr-1 h-4 w-4" /> Add FAQ
+                  </Button>
+                </>
+              ),
+            },
+            ...data.items.map((item, i) => ({
+              id: `faq-${i}`,
+              title: item.question.trim() || `Question ${i + 1}`,
+              content: (
+                <>
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        onChange({
+                          ...data,
+                          items: data.items.filter((_, idx) => idx !== i),
+                        })
+                      }
+                    >
+                      <Trash2 className="mr-1 h-4 w-4" /> Remove
+                    </Button>
+                  </div>
+                  <Field
+                    label="Question"
+                    value={item.question}
+                    onChange={(v) => {
+                      const items = [...data.items];
+                      items[i] = { ...item, question: v };
+                      onChange({ ...data, items });
+                    }}
+                  />
+                  <Field
+                    label="Answer"
+                    value={item.answer}
+                    onChange={(v) => {
+                      const items = [...data.items];
+                      items[i] = { ...item, answer: v };
+                      onChange({ ...data, items });
+                    }}
+                    multiline
+                  />
+                </>
+              ),
+            })),
+          ]}
         />
-        <Field
-          label="Page subtitle"
-          value={data.subtitle}
-          onChange={(v) => onChange({ ...data, subtitle: v })}
-          multiline
-        />
-        {data.items.map((item, i) => (
-          <div key={i} className="space-y-3 rounded-xl border border-neutral-200 p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">Question {i + 1}</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  onChange({
-                    ...data,
-                    items: data.items.filter((_, idx) => idx !== i),
-                  })
-                }
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            <Field
-              label="Question"
-              value={item.question}
-              onChange={(v) => {
-                const items = [...data.items];
-                items[i] = { ...item, question: v };
-                onChange({ ...data, items });
-              }}
-            />
-            <Field
-              label="Answer"
-              value={item.answer}
-              onChange={(v) => {
-                const items = [...data.items];
-                items[i] = { ...item, answer: v };
-                onChange({ ...data, items });
-              }}
-              multiline
-            />
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            onChange({
-              ...data,
-              items: [...data.items, { question: "", answer: "" }],
-            })
-          }
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add FAQ
-        </Button>
         {saveButton}
       </CardContent>
     </Card>
@@ -1485,60 +1667,77 @@ function InstagramEditor({
         <CardDescription>Paste image URLs (one per field).</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Field
-          label="Section title"
-          value={data.title}
-          onChange={(v) => onChange({ ...data, title: v })}
+        <EditorSectionsAccordion
+          defaultOpen={["header"]}
+          sections={[
+            {
+              id: "header",
+              title: "Section header",
+              content: (
+                <>
+                  <Field
+                    label="Section title"
+                    value={data.title}
+                    onChange={(v) => onChange({ ...data, title: v })}
+                  />
+                  <Field
+                    label="Section subtitle"
+                    value={data.subtitle}
+                    onChange={(v) => onChange({ ...data, subtitle: v })}
+                    multiline
+                  />
+                  <Field
+                    label="Profile / link URL"
+                    value={data.profileUrl}
+                    onChange={(v) => onChange({ ...data, profileUrl: v })}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onChange({ ...data, images: [...data.images, ""] })}
+                  >
+                    <Plus className="mr-1 h-4 w-4" /> Add image
+                  </Button>
+                </>
+              ),
+            },
+            ...data.images.map((url, i) => ({
+              id: `image-${i}`,
+              title: `Image ${i + 1}`,
+              content: (
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <ImageUrlField
+                      label="Image URL"
+                      value={url}
+                      onChange={(v) => {
+                        const images = [...data.images];
+                        images[i] = v;
+                        onChange({ ...data, images });
+                      }}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="mt-8 shrink-0"
+                    aria-label={`Remove image ${i + 1}`}
+                    onClick={() =>
+                      onChange({
+                        ...data,
+                        images: data.images.filter((_, idx) => idx !== i),
+                      })
+                    }
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ),
+            })),
+          ]}
         />
-        <Field
-          label="Section subtitle"
-          value={data.subtitle}
-          onChange={(v) => onChange({ ...data, subtitle: v })}
-          multiline
-        />
-        <Field
-          label="Profile / link URL"
-          value={data.profileUrl}
-          onChange={(v) => onChange({ ...data, profileUrl: v })}
-        />
-        {data.images.map((url, i) => (
-          <div key={i} className="flex gap-2">
-            <div className="flex-1">
-              <ImageUrlField
-                label={`Image ${i + 1} URL`}
-                value={url}
-                onChange={(v) => {
-                  const images = [...data.images];
-                  images[i] = v;
-                  onChange({ ...data, images });
-                }}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="mt-8 shrink-0"
-              aria-label={`Remove image ${i + 1}`}
-              onClick={() =>
-                onChange({
-                  ...data,
-                  images: data.images.filter((_, idx) => idx !== i),
-                })
-              }
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onChange({ ...data, images: [...data.images, ""] })}
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add image
-        </Button>
         {saveButton}
       </CardContent>
     </Card>

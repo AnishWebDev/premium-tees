@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, GripVertical, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, GripVertical, Link2, Plus, Trash2 } from "lucide-react";
 import {
   HOME_SECTION_CATALOG,
-  SECTION_FIELD_LABELS,
-  SECTION_FIELD_OPTIONS,
+  componentSettingsFieldsForType,
   defaultPropsForSection,
   defaultSectionsForTemplate,
   editableFieldsForType,
-  effectiveSectionProp,
   resolveContentCards,
   sectionLabel,
   type ContentCardItem,
@@ -20,6 +18,7 @@ import {
   type SectionContentSource,
 } from "@/lib/home-sections";
 import type { HomeTemplateId } from "@/lib/home-templates";
+import { SectionFieldGrid } from "@/components/admin/section-field-grid";
 import { cn } from "@/lib/utils";
 import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -42,6 +47,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+export type LibraryComponentRef = {
+  id: string;
+  name: string;
+  type: HomeSectionType;
+};
+
 type HomeSectionsBuilderProps = {
   sections: HomeSectionItem[];
   template: HomeTemplateId;
@@ -49,14 +60,11 @@ type HomeSectionsBuilderProps = {
   onChange: (sections: HomeSectionItem[]) => void;
   /** SuperAdmin: reorder / add / remove. Admin: edit fields only. */
   canManageLayout?: boolean;
+  /** Reusable components from the library */
+  libraryComponents?: LibraryComponentRef[];
+  onEditLibraryComponent?: (id: string) => void;
+  pageLabel?: string;
 };
-
-const MULTILINE: HomeSectionFieldKey[] = [
-  "body",
-  "subtitle",
-  "subheadline",
-  "marqueeItems",
-];
 
 export function HomeSectionsBuilder({
   sections,
@@ -64,10 +72,16 @@ export function HomeSectionsBuilder({
   content,
   onChange,
   canManageLayout = false,
+  libraryComponents = [],
+  onEditLibraryComponent,
+  pageLabel = "page",
 }: HomeSectionsBuilderProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [addType, setAddType] = useState<HomeSectionType>("embedFrame");
+  const [libraryPick, setLibraryPick] = useState<string>("");
   const [openId, setOpenId] = useState<string | null>(null);
+
+  const libraryById = new Map(libraryComponents.map((c) => [c.id, c]));
 
   /** Admins only edit enabled blocks that are on the live page. */
   const visibleSections = canManageLayout
@@ -126,6 +140,30 @@ export function HomeSectionsBuilder({
     setOpenId(id);
   };
 
+  const insertFromLibrary = () => {
+    if (!canManageLayout || !libraryPick) return;
+    const comp = libraryById.get(libraryPick);
+    if (!comp) return;
+    const id = `ref-${comp.id}-${Date.now().toString(36)}`;
+    onChange([
+      ...sections,
+      {
+        id,
+        type: comp.type,
+        enabled: true,
+        componentRefId: comp.id,
+      },
+    ]);
+    setOpenId(id);
+    setLibraryPick("");
+  };
+
+  const unlinkComponent = (id: string) => {
+    const section = sections.find((s) => s.id === id);
+    if (!section?.componentRefId) return;
+    update(id, { componentRefId: undefined });
+  };
+
   const openEditor = (section: HomeSectionItem) => {
     const defaults = defaultPropsForSection(section.type, content);
     if (openId === section.id) {
@@ -142,29 +180,40 @@ export function HomeSectionsBuilder({
     <Card>
       <CardHeader>
         <CardTitle>
-          {canManageLayout ? "Page layout" : "Homepage sections"}
+          {canManageLayout ? "Page layout" : `${pageLabel} sections`}
         </CardTitle>
         <CardDescription>
           {canManageLayout
-            ? "Drag to reorder, add or remove blocks, and edit each block’s fields. Admins can edit these same blocks but cannot change the layout."
-            : "Edit copy for each block currently on the homepage. Layout (order / add / remove) is managed by SuperAdmin."}
+            ? "Drag to reorder, add blocks from scratch or from your component library, and hide sections without deleting them."
+            : `Edit content for sections on this ${pageLabel.toLowerCase()}. Layout changes require SuperAdmin.`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {visibleSections.length === 0 ? (
           <p className="text-sm text-neutral-500">
-            No homepage sections yet.
+            No sections on this {pageLabel.toLowerCase()} yet.
             {canManageLayout
-              ? " Add a block below or pick a template preset."
+              ? " Add a block below, insert from the library, or pick a template preset."
               : " Ask a SuperAdmin to add sections to the layout."}
           </p>
         ) : (
           <ul className="space-y-2">
             {visibleSections.map((section) => {
               const index = sections.findIndex((s) => s.id === section.id);
-              const fields = editableFieldsForType(section.type);
+              const linked = section.componentRefId
+                ? libraryById.get(section.componentRefId)
+                : undefined;
+              const contentFields = editableFieldsForType(section.type);
+              const settingsFields = canManageLayout
+                ? componentSettingsFieldsForType(section.type)
+                : [];
               const defaults = defaultPropsForSection(section.type, content);
               const open = openId === section.id;
+
+              const handleSetProp = (
+                key: HomeSectionFieldKey,
+                value: string | number | undefined
+              ) => setProp(section.id, key, value);
 
               return (
                 <li
@@ -208,12 +257,23 @@ export function HomeSectionsBuilder({
                           }
                         />
                         <span className="truncate font-medium text-neutral-950">
-                          {sectionLabel(section.type)}
+                          {linked ? linked.name : sectionLabel(section.type)}
                         </span>
+                        {linked ? (
+                          <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800">
+                            <Link2 className="h-2.5 w-2.5" />
+                            Library
+                          </span>
+                        ) : null}
                       </label>
                     ) : (
                       <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-950">
-                        {sectionLabel(section.type)}
+                        {linked ? linked.name : sectionLabel(section.type)}
+                        {linked ? (
+                          <span className="ml-2 inline-flex items-center gap-0.5 rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800">
+                            Library
+                          </span>
+                        ) : null}
                       </span>
                     )}
                     <Button
@@ -247,136 +307,73 @@ export function HomeSectionsBuilder({
 
                   {open && (
                     <div className="space-y-3 border-t border-neutral-100 px-3 py-3">
-                      {fields.length === 0 ? (
+                      {linked ? (
+                        <div className="rounded-lg border border-violet-200 bg-violet-50/60 px-3 py-2 text-xs text-violet-900">
+                          <p>
+                            Linked to library component{" "}
+                            <strong>{linked.name}</strong>. Fields below override
+                            the shared component on this page only.
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {onEditLibraryComponent ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-7 border-violet-300 bg-white text-xs"
+                                onClick={() =>
+                                  onEditLibraryComponent(linked.id)
+                                }
+                              >
+                                Edit shared component
+                              </Button>
+                            ) : null}
+                            {canManageLayout ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-violet-800"
+                                onClick={() => unlinkComponent(section.id)}
+                              >
+                                Unlink (keep as inline copy)
+                              </Button>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+                      {contentFields.length === 0 ? (
                         <p className="text-xs text-neutral-500">
                           No direct fields for this block.
                         </p>
                       ) : (
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          {fields.map((key) => {
-                            const multiline = MULTILINE.includes(key);
-                            const options = SECTION_FIELD_OPTIONS[key];
-                            const isColor =
-                              key === "backgroundColor" || key === "textColor";
-                            const value = effectiveSectionProp(
-                              section,
-                              key,
-                              defaults
-                            );
-                            return (
-                              <div
-                                key={key}
-                                className={
-                                  multiline ||
-                                  key === "embedUrl" ||
-                                  key === "imageUrl" ||
-                                  key === "videoUrl" ||
-                                  key === "body"
-                                    ? "sm:col-span-2"
-                                    : undefined
-                                }
-                              >
-                                {key !== "imageUrl" ? (
-                                  <Label className="text-xs">
-                                    {SECTION_FIELD_LABELS[key]}
-                                  </Label>
-                                ) : null}
-                                {options ? (
-                                  <Select
-                                    value={value || options[0]?.value}
-                                    onValueChange={(v) =>
-                                      setProp(section.id, key, v)
-                                    }
-                                  >
-                                    <SelectTrigger className="mt-1.5">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {options.map((opt) => (
-                                        <SelectItem
-                                          key={opt.value}
-                                          value={opt.value}
-                                        >
-                                          {opt.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : multiline ? (
-                                  <Textarea
-                                    className="mt-1.5"
-                                    rows={
-                                      key === "body"
-                                        ? 5
-                                        : key === "marqueeItems"
-                                          ? 2
-                                          : 3
-                                    }
-                                    value={value}
-                                    onChange={(e) =>
-                                      setProp(section.id, key, e.target.value)
-                                    }
-                                  />
-                                ) : isColor ? (
-                                  <div className="mt-1.5 flex items-center gap-2">
-                                    <Input
-                                      type="color"
-                                      className="h-10 w-14 cursor-pointer p-1"
-                                      value={
-                                        /^#[0-9a-fA-F]{6}$/.test(value)
-                                          ? value
-                                          : "#f4f4f5"
-                                      }
-                                      onChange={(e) =>
-                                        setProp(section.id, key, e.target.value)
-                                      }
-                                    />
-                                    <Input
-                                      value={value}
-                                      placeholder="#000000 or leave blank"
-                                      onChange={(e) =>
-                                        setProp(section.id, key, e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                ) : key === "imageUrl" ? (
-                                  <ImageUrlField
-                                    label={SECTION_FIELD_LABELS[key]}
-                                    value={value}
-                                    onChange={(v) => setProp(section.id, key, v)}
-                                    className="mt-0"
-                                    inputClassName="mt-1.5"
-                                  />
-                                ) : (
-                                  <Input
-                                    className="mt-1.5"
-                                    type={
-                                      key === "productLimit" ? "number" : "text"
-                                    }
-                                    min={
-                                      key === "productLimit" ? 1 : undefined
-                                    }
-                                    max={
-                                      key === "productLimit" ? 24 : undefined
-                                    }
-                                    value={value}
-                                    onChange={(e) =>
-                                      setProp(
-                                        section.id,
-                                        key,
-                                        key === "productLimit"
-                                          ? e.target.value
-                                            ? Number(e.target.value)
-                                            : undefined
-                                          : e.target.value
-                                      )
-                                    }
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
+                        <SectionFieldGrid
+                          section={section}
+                          fields={contentFields}
+                          defaults={defaults}
+                          onSetProp={handleSetProp}
+                        />
+                      )}
+
+                      {canManageLayout && settingsFields.length > 0 && (
+                        <Accordion type="single" collapsible className="border-t border-neutral-100 pt-2">
+                          <AccordionItem value="settings" className="border-none">
+                            <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">
+                              Component settings
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-1 pt-2 text-neutral-950">
+                              <p className="mb-3 text-xs text-neutral-500">
+                                Section padding and spacing — SuperAdmin only.
+                              </p>
+                              <SectionFieldGrid
+                                section={section}
+                                fields={settingsFields}
+                                defaults={defaults}
+                                onSetProp={handleSetProp}
+                              />
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
                       )}
 
                       {section.type === "contentCard" && (
@@ -400,38 +397,72 @@ export function HomeSectionsBuilder({
         )}
 
         {canManageLayout && (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <p className="mb-2 text-xs font-medium text-neutral-500">
-                Add block
-              </p>
-              <Select
-                value={addType}
-                onValueChange={(v) => setAddType(v as HomeSectionType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HOME_SECTION_CATALOG.map((item) => (
-                    <SelectItem key={item.type} value={item.type}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-4 border-t border-neutral-100 pt-4">
+            {libraryComponents.length > 0 ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex-1">
+                  <p className="mb-2 text-xs font-medium text-neutral-500">
+                    Insert from library
+                  </p>
+                  <Select value={libraryPick} onValueChange={setLibraryPick}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pick a saved component…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {libraryComponents.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name} ({sectionLabel(item.type)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!libraryPick}
+                  onClick={insertFromLibrary}
+                >
+                  <Link2 className="mr-2 h-4 w-4" />
+                  Insert
+                </Button>
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <p className="mb-2 text-xs font-medium text-neutral-500">
+                  Add new block
+                </p>
+                <Select
+                  value={addType}
+                  onValueChange={(v) => setAddType(v as HomeSectionType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HOME_SECTION_CATALOG.map((item) => (
+                      <SelectItem key={item.type} value={item.type}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="button" variant="secondary" onClick={add}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+              </Button>
+              {template ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onChange(defaultSectionsForTemplate(template))}
+                >
+                  Reset to {template} preset
+                </Button>
+              ) : null}
             </div>
-            <Button type="button" variant="secondary" onClick={add}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onChange(defaultSectionsForTemplate(template))}
-            >
-              Reset to {template} preset
-            </Button>
           </div>
         )}
       </CardContent>

@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/content", label: "Site content", icon: FileText },
+  { href: "/admin/content", label: "Pages & components", icon: FileText },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tag },
   { href: "/admin/inventory", label: "Inventory", icon: Boxes },

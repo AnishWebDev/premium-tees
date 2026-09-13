@@ -679,13 +679,16 @@ function renderSection(section: HomeSectionItem, props: HomeTemplateProps) {
   }
 }
 
-/** Renders homepage from SuperAdmin-ordered section list. */
-export function SectionHome(props: HomeTemplateProps) {
-  const sections = props.content.home.sections.filter((s) => s.enabled);
+/** Renders an ordered, enabled section list (homepage or CMS pages). */
+export function PageSectionsView({
+  sections,
+  ...props
+}: HomeTemplateProps & { sections: HomeSectionItem[] }) {
+  const visible = sections.filter((s) => s.enabled);
 
   return (
     <>
-      {sections.map((section) => {
+      {visible.map((section) => {
         const spacing = sectionSpacingClass(section.props);
         const killDefaultY = overridesSectionPaddingY(section.props);
         return (
@@ -703,4 +706,12 @@ export function SectionHome(props: HomeTemplateProps) {
       })}
     </>
   );
+}
+
+/** Renders homepage from SuperAdmin-ordered section list. */
+export function SectionHome(
+  props: HomeTemplateProps & { sections?: HomeSectionItem[] }
+) {
+  const sections = props.sections ?? props.content.home.sections;
+  return <PageSectionsView {...props} sections={sections} />;
 }

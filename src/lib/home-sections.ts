@@ -140,6 +140,8 @@ export type HomeSectionItem = {
   id: string;
   type: HomeSectionType;
   enabled: boolean;
+  /** When set, props merge library component props with page-level overrides. */
+  componentRefId?: string;
   props?: HomeSectionProps;
 };
 
@@ -153,8 +155,20 @@ export const SECTION_SPACING_FIELDS: HomeSectionFieldKey[] = [
   "paddingRight",
 ];
 
-function withSpacing(fields: HomeSectionFieldKey[]): HomeSectionFieldKey[] {
-  return [...fields, ...SECTION_SPACING_FIELDS];
+/** Content fields only — section padding lives in component settings (SuperAdmin). */
+function contentFields(fields: HomeSectionFieldKey[]): HomeSectionFieldKey[] {
+  return fields;
+}
+
+/** Padding + layout spacing — SuperAdmin component settings panel. */
+export function componentSettingsFieldsForType(
+  type: HomeSectionType
+): HomeSectionFieldKey[] {
+  const fields: HomeSectionFieldKey[] = [...SECTION_SPACING_FIELDS];
+  if (type === "contentCard") {
+    return ["padding", ...fields];
+  }
+  return fields;
 }
 
 /** Unique editable fields per block type (plus section spacing on all). */
@@ -165,7 +179,7 @@ export function editableFieldsForType(
     case "heroCinematic":
     case "heroStatic":
     case "heroMedia":
-      return withSpacing([
+      return contentFields([
         "brand",
         "headline",
         "subheadline",
@@ -177,7 +191,7 @@ export function editableFieldsForType(
         "secondaryCtaHref",
       ]);
     case "editorialMasthead":
-      return withSpacing([
+      return contentFields([
         "brand",
         "headline",
         "subheadline",
@@ -185,18 +199,18 @@ export function editableFieldsForType(
         "ctaHref",
       ]);
     case "carousel":
-      return withSpacing(["title", "subtitle", "imageUrl"]);
+      return contentFields(["title", "subtitle", "imageUrl"]);
     case "marquee":
-      return withSpacing(["marqueeItems"]);
+      return contentFields(["marqueeItems"]);
     case "promoBanner":
-      return withSpacing(["eyebrow", "title", "ctaLabel", "ctaHref"]);
+      return contentFields(["eyebrow", "title", "ctaLabel", "ctaHref"]);
     case "categoryPills":
-      return withSpacing(["title"]);
+      return contentFields(["title"]);
     case "valuePillars":
-      return withSpacing(["title", "subtitle"]);
+      return contentFields(["title", "subtitle"]);
     case "chapterStory":
     case "chapterAlt":
-      return withSpacing([
+      return contentFields([
         "chapter",
         "title",
         "body",
@@ -205,7 +219,7 @@ export function editableFieldsForType(
         "imageUrl",
       ]);
     case "lookScroll":
-      return withSpacing([
+      return contentFields([
         "title",
         "subtitle",
         "linkLabel",
@@ -213,10 +227,10 @@ export function editableFieldsForType(
         "productLimit",
       ]);
     case "lookGrid":
-      return withSpacing(["productLimit"]);
+      return contentFields(["productLimit"]);
     case "essentialsGrid":
     case "essentialsFeatured":
-      return withSpacing([
+      return contentFields([
         "title",
         "subtitle",
         "linkLabel",
@@ -224,14 +238,14 @@ export function editableFieldsForType(
         "productLimit",
       ]);
     case "featureDrop":
-      return withSpacing(["eyebrow", "body"]);
+      return contentFields(["eyebrow", "body"]);
     case "pullQuote":
-      return withSpacing(["eyebrow", "body"]);
+      return contentFields(["eyebrow", "body"]);
     case "productRows":
-      return withSpacing(["title", "linkLabel", "linkHref", "productLimit"]);
+      return contentFields(["title", "linkLabel", "linkHref", "productLimit"]);
     case "bestSellersShelf":
     case "newArrivalsShelf":
-      return withSpacing([
+      return contentFields([
         "title",
         "subtitle",
         "linkLabel",
@@ -240,15 +254,15 @@ export function editableFieldsForType(
       ]);
     case "categoriesCards":
     case "categoriesList":
-      return withSpacing(["title", "subtitle"]);
+      return contentFields(["title", "subtitle"]);
     case "imageMosaic":
-      return withSpacing(["eyebrow", "title"]);
+      return contentFields(["eyebrow", "title"]);
     case "stackedPanels":
-      return withSpacing(["subtitle"]);
+      return contentFields(["subtitle"]);
     case "storySplit":
     case "storyInline":
     case "mission":
-      return withSpacing([
+      return contentFields([
         "eyebrow",
         "title",
         "body",
@@ -260,14 +274,14 @@ export function editableFieldsForType(
     case "faq":
     case "newsletter":
     case "newsletterBand":
-      return withSpacing(["title", "subtitle"]);
+      return contentFields(["title", "subtitle"]);
     case "instagram":
-      return withSpacing(["title", "subtitle", "profileUrl"]);
+      return contentFields(["title", "subtitle", "profileUrl"]);
     case "embedFrame":
-      return withSpacing(["eyebrow", "title", "embedUrl", "subtitle"]);
+      return contentFields(["eyebrow", "title", "embedUrl", "subtitle"]);
     case "contentCard":
       // Card copy lives in cardsJson editor; these are shared style + grid
-      return withSpacing([
+      return contentFields([
         "columns",
         "mediaLayout",
         "mediaAspect",
@@ -276,10 +290,9 @@ export function editableFieldsForType(
         "bgStyle",
         "backgroundColor",
         "textColor",
-        "padding",
       ]);
     case "trailHero":
-      return withSpacing([
+      return contentFields([
         "eyebrow",
         "brand",
         "headline",
@@ -292,9 +305,9 @@ export function editableFieldsForType(
         "linkHref",
       ]);
     case "trustBar":
-      return withSpacing(["title", "subtitle", "linkLabel", "linkHref"]);
+      return contentFields(["title", "subtitle", "linkLabel", "linkHref"]);
     case "productGrid":
-      return withSpacing([
+      return contentFields([
         "title",
         "subtitle",
         "linkLabel",
@@ -302,7 +315,7 @@ export function editableFieldsForType(
         "productLimit",
       ]);
     default:
-      return withSpacing(["title", "subtitle"]);
+      return contentFields(["title", "subtitle"]);
   }
 }
 
