@@ -160,14 +160,4 @@ export function galleryRoundedClass(borderRadius?: string): string {
   return ROUNDED[borderRadius ?? "md"] ?? ROUNDED.md;
 }
 
-export function galleryBandClass(bgStyle?: string, backgroundColor?: string): string {
-  if (backgroundColor?.trim()) return "";
-  switch (bgStyle) {
-    case "muted":
-      return "bg-[var(--muted)]/40";
-    case "accent":
-      return "bg-[var(--accent)]/10";
-    default:
-      return "bg-[var(--background)]";
-  }
-}
+export { galleryBandClass } from "@/lib/surface-context";

@@ -1,51 +1,15 @@
 "use client";
 
 import type { ThemeData } from "@/lib/theme";
-import { fontWeightToCss } from "@/lib/theme";
+import { fontWeightToCss, themeButtonTokens } from "@/lib/theme";
 import { FONT_CSS_VAR } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type ThemePreviewPanelProps = {
   theme: ThemeData;
   className?: string;
 };
-
-function buttonRadiusPx(theme: ThemeData) {
-  if (theme.buttonRadius === "pill") return 9999;
-  if (theme.buttonRadius === "square") return 4;
-  return 12;
-}
-
-function buttonStyles(theme: ThemeData, variant: "solid" | "outline" | "soft") {
-  const radius = buttonRadiusPx(theme);
-  const weight = Number(fontWeightToCss(theme.buttonWeight));
-
-  if (variant === "outline") {
-    return {
-      background: "transparent",
-      color: theme.accent,
-      border: `1px solid ${theme.accent}`,
-      borderRadius: radius,
-      fontWeight: weight,
-    };
-  }
-  if (variant === "soft") {
-    return {
-      background: theme.muted,
-      color: theme.accent,
-      border: `1px solid ${theme.muted}`,
-      borderRadius: radius,
-      fontWeight: weight,
-    };
-  }
-  return {
-    background: theme.accent,
-    color: theme.accentForeground,
-    border: `1px solid ${theme.accent}`,
-    borderRadius: radius,
-    fontWeight: weight,
-  };
-}
 
 function linkStyles(theme: ThemeData): React.CSSProperties {
   switch (theme.linkStyle) {
@@ -63,10 +27,36 @@ function linkStyles(theme: ThemeData): React.CSSProperties {
       return {
         color: theme.foreground,
         textDecoration: "underline",
-        textUnderlineOffset: 4,
         fontWeight: 500,
       };
   }
+}
+
+function themeVarStyle(theme: ThemeData): React.CSSProperties {
+  const tokens = themeButtonTokens(theme);
+  const radius =
+    theme.buttonRadius === "pill"
+      ? "9999px"
+      : theme.buttonRadius === "square"
+        ? "0.25rem"
+        : "0.75rem";
+  return {
+    ["--background" as string]: theme.background,
+    ["--foreground" as string]: theme.foreground,
+    ["--muted" as string]: theme.muted,
+    ["--muted-foreground" as string]: theme.mutedForeground,
+    ["--border" as string]: theme.border,
+    ["--accent" as string]: theme.accent,
+    ["--accent-foreground" as string]: theme.accentForeground,
+    ["--button-bg" as string]: tokens.bg,
+    ["--button-fg" as string]: tokens.fg,
+    ["--button-border" as string]: tokens.border,
+    ["--button-hover-bg" as string]: tokens.hoverBg,
+    ["--button-hover-fg" as string]: tokens.hoverFg,
+    ["--button-hover-border" as string]: tokens.hoverBorder,
+    ["--button-radius" as string]: radius,
+    ["--button-weight" as string]: fontWeightToCss(theme.buttonWeight),
+  };
 }
 
 export function ThemePreviewPanel({ theme, className }: ThemePreviewPanelProps) {
@@ -76,9 +66,15 @@ export function ThemePreviewPanel({ theme, className }: ThemePreviewPanelProps) 
     FONT_CSS_VAR[theme.fontDisplay] ??
     `"${theme.fontDisplay}", Georgia, serif`;
 
+  const fillLabel =
+    theme.buttonStyle === "outline"
+      ? "Outline fill"
+      : theme.buttonStyle === "soft"
+        ? "Soft fill"
+        : "Solid fill";
+
   return (
-    <div className={cn("space-y-3", className)}>
-      <p className="text-sm font-medium text-neutral-950">Live preview</p>
+    <div className={cn("sticky top-24", className)}>
       <div
         className="overflow-hidden rounded-xl border border-neutral-200 shadow-sm"
         style={{
@@ -86,30 +82,31 @@ export function ThemePreviewPanel({ theme, className }: ThemePreviewPanelProps) 
           color: theme.foreground,
           fontFamily: sans,
           fontWeight: Number(fontWeightToCss(theme.fontSansWeight)),
+          ...themeVarStyle(theme),
         }}
       >
         <div
-          className="px-4 py-2 text-center text-xs font-medium"
+          className="px-4 py-3 text-xs font-medium uppercase tracking-wider"
           style={{
             background: theme.foreground,
             color: theme.background,
           }}
         >
-          Promo hello bar sample
+          Live preview
         </div>
 
         <div
-          className="border-b px-4 py-3"
+          className="border-b px-4 py-5"
           style={{ borderColor: theme.border }}
         >
           <p
-            className="text-lg"
+            className="font-display text-2xl"
             style={{
               fontFamily: display,
               fontWeight: Number(fontWeightToCss(theme.fontDisplayWeight)),
             }}
           >
-            Display heading
+            Headline
           </p>
           <p className="mt-1 text-xs" style={{ color: theme.mutedForeground }}>
             Body copy with{" "}
@@ -122,37 +119,24 @@ export function ThemePreviewPanel({ theme, className }: ThemePreviewPanelProps) 
 
         <div className="space-y-3 p-4">
           <div
-            className="rounded-lg p-3 text-xs"
-            style={{
-              background: theme.muted,
-              color: theme.mutedForeground,
-            }}
+            className="surface-muted rounded-lg bg-[var(--muted)] p-3"
+            style={themeVarStyle(theme)}
           >
-            Muted card / soft surface
+            <p className="text-xs text-[var(--muted-foreground)]">
+              Muted surface
+            </p>
+            <Button type="button" size="sm" className="mt-3">
+              Primary on muted
+            </Button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="px-4 py-2 text-xs"
-              style={buttonStyles(theme, "solid")}
-            >
-              Primary
-            </button>
-            <button
-              type="button"
-              className="px-4 py-2 text-xs"
-              style={buttonStyles(theme, "outline")}
-            >
-              Outline
-            </button>
-            <button
-              type="button"
-              className="px-4 py-2 text-xs"
-              style={buttonStyles(theme, "soft")}
-            >
-              Soft
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm">
+              {fillLabel}
+            </Button>
+            <Button type="button" size="sm" variant="outline">
+              Outline variant
+            </Button>
           </div>
 
           <div

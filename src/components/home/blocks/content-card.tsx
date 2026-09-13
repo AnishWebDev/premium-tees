@@ -134,9 +134,12 @@ export function ContentCard({
     background === "custom"
       ? undefined
       : background === "muted"
-        ? "bg-[var(--muted)]"
+        ? cn("surface-muted", "bg-[var(--muted)]")
         : background === "accent"
-          ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+          ? cn(
+              "surface-accent",
+              "bg-[var(--accent)] text-[var(--accent-foreground)]"
+            )
           : "bg-[var(--background)]";
 
   const style: React.CSSProperties = {};

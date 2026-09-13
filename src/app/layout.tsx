@@ -80,17 +80,23 @@ export default async function RootLayout({
     getStoreSettings(),
     getContentBlock("theme"),
   ]);
-  const hideScrollbar = normalizeTheme(theme).hideScrollbar;
+  const normalizedTheme = normalizeTheme(theme);
 
   return (
     <html
       lang="en"
-      className={cn(fontVariableClassName, hideScrollbar && "hide-scrollbar")}
+      className={cn(
+        fontVariableClassName,
+        normalizedTheme.hideScrollbar && "hide-scrollbar"
+      )}
+      data-button-style={normalizedTheme.buttonStyle}
       suppressHydrationWarning
     >
+      <head>
+        <ThemeStyle />
+      </head>
       <body className="min-h-screen bg-[var(--background)] font-sans text-[var(--foreground)] antialiased">
         <GoogleAnalytics analyticsId={storeSettings.seo.analyticsId} />
-        <ThemeStyle />
         <AppProviders site={site}>{children}</AppProviders>
       </body>
     </html>

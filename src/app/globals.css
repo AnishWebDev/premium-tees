@@ -344,6 +344,64 @@ input[type="button"]:not(:disabled) {
 }
 
 /*
+ * Alternate surfaces (muted / accent bands) — keep CTAs readable when the
+ * global button style uses a soft/muted fill or secondary variant.
+ */
+.surface-muted .theme-button {
+  background-color: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+  border-color: var(--accent) !important;
+}
+.surface-muted .theme-button:hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: color-mix(in srgb, var(--accent) 48%, white) !important;
+  color: var(--accent-foreground) !important;
+  border-color: color-mix(in srgb, var(--accent) 48%, white) !important;
+}
+.surface-muted .theme-button-secondary {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+.surface-muted .theme-button-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: var(--foreground) !important;
+  color: var(--background) !important;
+  border-color: var(--foreground) !important;
+}
+.surface-muted .theme-button-outline {
+  background-color: transparent !important;
+  border-color: var(--foreground) !important;
+  color: var(--foreground) !important;
+}
+.surface-muted .theme-button-outline:hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: var(--foreground) !important;
+  color: var(--background) !important;
+  border-color: var(--foreground) !important;
+}
+
+.surface-accent .theme-button {
+  background-color: var(--accent-foreground);
+  color: var(--accent);
+  border-color: var(--accent-foreground);
+}
+.surface-accent .theme-button:hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: color-mix(in srgb, var(--accent-foreground) 88%, var(--accent)) !important;
+  color: var(--accent) !important;
+  border-color: color-mix(in srgb, var(--accent-foreground) 88%, var(--accent)) !important;
+}
+.surface-accent .theme-button-secondary,
+.surface-accent .theme-button-outline {
+  background-color: transparent;
+  color: var(--accent-foreground);
+  border-color: color-mix(in srgb, var(--accent-foreground) 65%, transparent);
+}
+.surface-accent .theme-button-secondary:hover:not(:disabled):not([aria-disabled="true"]),
+.surface-accent .theme-button-outline:hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: color-mix(in srgb, var(--accent-foreground) 16%, transparent) !important;
+  color: var(--accent-foreground) !important;
+  border-color: var(--accent-foreground) !important;
+}
+
+/*
  * Button system — hover owned here (not Tailwind hover:bg-[var(--…)]).
  * !important on hover beats utility className overrides that previously
  * hid footer Join borders / cancelled light-mode CTA hover.
@@ -375,11 +433,11 @@ input[type="button"]:not(:disabled) {
   transform: scale(0.98);
 }
 
-/* Primary (theme tokens) */
+/* Primary (theme tokens — Fill style from Admin → Settings) */
 .theme-button {
-  background-color: var(--button-bg);
-  color: var(--button-fg);
-  border-color: var(--button-border);
+  background-color: var(--button-bg) !important;
+  color: var(--button-fg) !important;
+  border-color: var(--button-border) !important;
 }
 .theme-button:hover:not(:disabled):not([aria-disabled="true"]) {
   background-color: var(--button-hover-bg) !important;

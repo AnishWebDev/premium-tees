@@ -352,7 +352,7 @@ export function themeMatchesPreset(
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-type ButtonSurface = {
+export type ButtonSurface = {
   bg: string;
   fg: string;
   border: string;
@@ -361,38 +361,57 @@ type ButtonSurface = {
   hoverBorder: string;
 };
 
-function buttonSurface(theme: ThemeData): ButtonSurface {
-  if (theme.buttonStyle === "outline") {
-    const hoverBg = `color-mix(in srgb, ${theme.accent} 18%, ${theme.background})`;
+/** Primary button tokens for a theme palette (respects Fill style). */
+export function themeButtonTokens(theme: ThemeData): ButtonSurface {
+  const t = normalizeTheme(theme);
+  if (t.buttonStyle === "outline") {
+    const hoverBg = `color-mix(in srgb, ${t.accent} 18%, ${t.background})`;
     return {
       bg: "transparent",
-      fg: theme.accent,
-      border: theme.accent,
+      fg: t.accent,
+      border: t.accent,
       hoverBg,
-      hoverFg: theme.accent,
-      hoverBorder: theme.accent,
+      hoverFg: t.accent,
+      hoverBorder: t.accent,
     };
   }
-  if (theme.buttonStyle === "soft") {
-    const hoverBg = `color-mix(in srgb, ${theme.accent} 32%, ${theme.muted})`;
+  if (t.buttonStyle === "soft") {
+    // Tinted fill — distinct from muted section surfaces (--muted).
+    const bg = `color-mix(in srgb, ${t.accent} 12%, ${t.background})`;
+    const border = `color-mix(in srgb, ${t.accent} 20%, ${t.background})`;
+    const hoverBg = `color-mix(in srgb, ${t.accent} 24%, ${t.background})`;
     return {
-      bg: theme.muted,
-      fg: theme.accent,
-      border: theme.muted,
+      bg,
+      fg: t.accent,
+      border,
       hoverBg,
-      hoverFg: theme.accent,
+      hoverFg: t.accent,
       hoverBorder: hoverBg,
     };
   }
-  // Solid: lighten toward white so near-black accents clearly shift on hover
-  const hoverBg = `color-mix(in srgb, ${theme.accent} 48%, white)`;
+  const hoverBg = `color-mix(in srgb, ${t.accent} 48%, white)`;
   return {
-    bg: theme.accent,
-    fg: theme.accentForeground,
-    border: theme.accent,
+    bg: t.accent,
+    fg: t.accentForeground,
+    border: t.accent,
     hoverBg,
-    hoverFg: theme.accentForeground,
+    hoverFg: t.accentForeground,
     hoverBorder: hoverBg,
+  };
+}
+
+function themeForDarkMode(theme: ThemeData): ThemeData {
+  const n = normalizeTheme(theme);
+  return {
+    ...n,
+    background: n.foreground,
+    foreground: n.background,
+    muted: `color-mix(in srgb, ${n.foreground} 88%, ${n.background})`,
+    mutedForeground: `color-mix(in srgb, ${n.background} 72%, ${n.mutedForeground})`,
+    border: `color-mix(in srgb, ${n.foreground} 78%, ${n.background})`,
+    accent: n.background,
+    accentForeground: n.foreground,
+    ring: n.background,
   };
 }
 
@@ -445,7 +464,8 @@ export function themeToCssVariables(theme: ThemeData) {
   const weight = fontWeightToCss(normalized.buttonWeight);
   const sansWeight = fontWeightToCss(normalized.fontSansWeight);
   const displayWeight = fontWeightToCss(normalized.fontDisplayWeight);
-  const button = buttonSurface(normalized);
+  const button = themeButtonTokens(normalized);
+  const darkButton = themeButtonTokens(themeForDarkMode(normalized));
   const link = linkTokens(normalized);
 
   const sans = fontFamilyStack(normalized.fontSans, "system-ui, sans-serif");
@@ -489,45 +509,12 @@ export function themeToCssVariables(theme: ThemeData) {
   --accent: ${normalized.background};
   --accent-foreground: ${normalized.foreground};
   --ring: ${normalized.background};
-  --button-bg: ${
-    normalized.buttonStyle === "outline"
-      ? "transparent"
-      : normalized.buttonStyle === "soft"
-        ? `color-mix(in srgb, ${normalized.foreground} 88%, ${normalized.background})`
-        : normalized.background
-  };
-  --button-fg: ${
-    normalized.buttonStyle === "outline" || normalized.buttonStyle === "soft"
-      ? normalized.background
-      : normalized.foreground
-  };
-  --button-border: ${
-    normalized.buttonStyle === "outline"
-      ? normalized.background
-      : normalized.buttonStyle === "soft"
-        ? `color-mix(in srgb, ${normalized.foreground} 88%, ${normalized.background})`
-        : normalized.background
-  };
-  --button-hover-bg: ${
-    normalized.buttonStyle === "outline"
-      ? `color-mix(in srgb, ${normalized.background} 22%, ${normalized.foreground})`
-      : normalized.buttonStyle === "soft"
-        ? `color-mix(in srgb, ${normalized.background} 38%, ${normalized.foreground})`
-        : // Light fill on dark page → clearly darker on hover
-          `color-mix(in srgb, ${normalized.background} 52%, black)`
-  };
-  --button-hover-fg: ${
-    normalized.buttonStyle === "outline" || normalized.buttonStyle === "soft"
-      ? normalized.background
-      : normalized.foreground
-  };
-  --button-hover-border: ${
-    normalized.buttonStyle === "outline"
-      ? normalized.background
-      : normalized.buttonStyle === "soft"
-        ? `color-mix(in srgb, ${normalized.background} 38%, ${normalized.foreground})`
-        : `color-mix(in srgb, ${normalized.background} 52%, black)`
-  };
+  --button-bg: ${darkButton.bg};
+  --button-fg: ${darkButton.fg};
+  --button-border: ${darkButton.border};
+  --button-hover-bg: ${darkButton.hoverBg};
+  --button-hover-fg: ${darkButton.hoverFg};
+  --button-hover-border: ${darkButton.hoverBorder};
   --link-color: ${normalized.background};
   --link-hover-color: ${normalized.muted};
   --link-decoration: ${link.decoration};
