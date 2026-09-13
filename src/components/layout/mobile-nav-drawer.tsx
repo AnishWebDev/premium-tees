@@ -10,6 +10,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import { RemoteImage } from "@/components/shared/remote-image";
 import type { NavLinkItem } from "@/lib/site-content";
 import { resetCartForUser } from "@/lib/stores/cart-store";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,9 @@ type MobileNavDrawerProps = {
   cartCount: number;
   wishlistCount: number;
   onOpenCart: () => void;
+  logoImageUrl?: string;
+  logoImageAlt?: string;
+  siteName?: string;
 };
 
 export function MobileNavDrawer({
@@ -31,9 +35,13 @@ export function MobileNavDrawer({
   cartCount,
   wishlistCount,
   onOpenCart,
+  logoImageUrl = "",
+  logoImageAlt = "",
+  siteName = "",
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const hasLogoImage = logoImageUrl.trim().length > 0;
 
   const close = () => onOpenChange(false);
 
@@ -59,10 +67,30 @@ export function MobileNavDrawer({
           open ? "translate-x-0" : "-translate-x-full pointer-events-none"
         )}
       >
-        <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-4">
-          <p className="font-display text-lg font-semibold text-[var(--foreground)]">
-            Menu
-          </p>
+        <div className="flex h-14 items-center justify-between border-b border-[var(--border)] px-4">
+          <Link
+            href="/"
+            title={siteName}
+            aria-label={`${siteName} home`}
+            className="flex min-w-0 items-center gap-2"
+            onClick={close}
+          >
+            {hasLogoImage ? (
+              <span className="relative block h-8 w-8 shrink-0">
+                <RemoteImage
+                  src={logoImageUrl}
+                  alt={logoImageAlt.trim() || `${siteName} logo`}
+                  fill
+                  sizes="32px"
+                  className="object-contain"
+                />
+              </span>
+            ) : (
+              <span className="font-display truncate text-sm font-semibold tracking-tight text-[var(--foreground)]">
+                {siteName}
+              </span>
+            )}
+          </Link>
           <Button
             type="button"
             variant="ghost"

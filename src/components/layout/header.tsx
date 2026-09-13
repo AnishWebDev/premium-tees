@@ -71,6 +71,7 @@ export function Header({
   const wishlist = mounted ? wishlistCount : 0;
 
   return (
+    <>
     <header
       className={cn(
         "sticky top-0 z-40 w-full transition-all duration-300",
@@ -215,16 +216,21 @@ export function Header({
         </div>
       </div>
 
-      <MobileNavDrawer
-        open={open}
-        onOpenChange={setOpen}
-        links={links}
-        cartCount={count}
-        wishlistCount={wishlist}
-        onOpenCart={() => setCartOpen(true)}
-      />
-
-      <MiniCartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </header>
+
+    <MobileNavDrawer
+      open={open}
+      onOpenChange={setOpen}
+      links={links}
+      cartCount={count}
+      wishlistCount={wishlist}
+      onOpenCart={() => setCartOpen(true)}
+      logoImageUrl={logoImageUrl}
+      logoImageAlt={logoImageAlt}
+      siteName={siteName}
+    />
+
+    <MiniCartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+  </>
   );
 }

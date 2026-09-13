@@ -99,7 +99,7 @@ export async function Footer() {
               {link.label}
             </Link>
           ))}
-          <ColorModeToggle variant="labeled" />
+          <ColorModeToggle variant="labeled" className="hidden lg:inline-flex" />
         </nav>
       </div>
     </footer>
