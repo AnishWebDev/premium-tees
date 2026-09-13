@@ -323,6 +323,29 @@ export function createSavedThemePreset(
   };
 }
 
+export function isBuiltInThemeId(presetId: string): boolean {
+  return THEME_PRESETS.some((preset) => preset.id === presetId);
+}
+
+export function isSavedThemeId(
+  presetId: string,
+  savedPresets: SavedThemePreset[] = []
+): boolean {
+  return savedPresets.some((preset) => preset.id === presetId);
+}
+
+/** Pick a sensible active theme card when stored presetId is missing or legacy “custom”. */
+export function resolveInitialPresetId(
+  theme: ThemeData,
+  savedPresets: SavedThemePreset[] = []
+): string {
+  const id = normalizeTheme(theme).presetId;
+  if (isBuiltInThemeId(id)) return id;
+  if (isSavedThemeId(id, savedPresets)) return id;
+  if (savedPresets.length > 0) return savedPresets[0]!.id;
+  return THEME_PRESETS[0]?.id ?? "studio";
+}
+
 export function themeFromPreset(
   presetId: string,
   savedPresets: SavedThemePreset[] = []

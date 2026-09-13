@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Loader2, Trash2 } from "lucide-react";
+import { Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { adminFixedSaveBar } from "@/lib/admin-ui-classes";
 import type { SavedThemePreset, ThemeData } from "@/lib/theme";
@@ -10,9 +10,10 @@ import {
   FONT_CATALOG,
   THEME_PRESETS,
   createSavedThemePreset,
+  isSavedThemeId,
   normalizeTheme,
+  resolveInitialPresetId,
   themeFromPreset,
-  themeMatchesPreset,
   type FontWeightOption,
 } from "@/lib/theme";
 import { ThemePreviewPanel } from "@/components/admin/theme-preview-panel";
@@ -70,35 +71,25 @@ export function ThemeEditor({
 }: ThemeEditorProps) {
   const [theme, setTheme] = useState<ThemeData>(() => normalizeTheme(initialTheme));
   const [savedThemes, setSavedThemes] = useState<SavedThemePreset[]>(initialSavedThemes);
-  const [themeName, setThemeName] = useState("");
+  const [selectedPresetId, setSelectedPresetId] = useState(() =>
+    resolveInitialPresetId(initialTheme, initialSavedThemes)
+  );
+  const [creatingTheme, setCreatingTheme] = useState(false);
+  const [newThemeName, setNewThemeName] = useState("");
   const [saving, setSaving] = useState(false);
   const [savingThemeList, setSavingThemeList] = useState(false);
   const [defaultsBusy, setDefaultsBusy] = useState<"save" | "reset" | null>(null);
   const [hasStyleDefaults, setHasStyleDefaults] = useState(initialHasDefaults);
 
-  const activePresetId = useMemo(() => {
-    for (const preset of THEME_PRESETS) {
-      if (themeMatchesPreset(theme, preset.id, savedThemes)) return preset.id;
-    }
-    for (const preset of savedThemes) {
-      if (themeMatchesPreset(theme, preset.id, savedThemes)) return preset.id;
-    }
-    return "custom";
-  }, [theme, savedThemes]);
-
   const set = <K extends keyof ThemeData>(key: K, value: ThemeData[K]) => {
     setTheme((t) => ({
       ...t,
       [key]: value,
-      ...(key === "presetId" ? {} : { presetId: "custom" }),
     }));
   };
 
   const applyPreset = (presetId: string) => {
-    if (presetId === "custom") {
-      setTheme((t) => ({ ...t, presetId: "custom" }));
-      return;
-    }
+    setSelectedPresetId(presetId);
     const next = themeFromPreset(presetId, savedThemes);
     if (next) setTheme(next);
   };
@@ -121,25 +112,28 @@ export function ThemeEditor({
     }
   };
 
-  const saveNamedTheme = async () => {
-    const name = themeName.trim();
+  const createNewTheme = async () => {
+    const name = newThemeName.trim();
     if (!name) {
       toast.error("Enter a name for your theme");
       return;
     }
     try {
       const preset = createSavedThemePreset(
-        currentPayload(),
+        normalizeTheme(DEFAULT_THEME),
         name,
         savedThemes.map((p) => p.id)
       );
       const next = [...savedThemes, preset];
       await persistSavedThemes(next);
-      setTheme(normalizeTheme({ presetId: preset.id, ...preset.theme }));
-      setThemeName("");
-      toast.success(`Saved theme “${name}”`);
+      const themed = normalizeTheme({ presetId: preset.id, ...preset.theme });
+      setTheme(themed);
+      setSelectedPresetId(preset.id);
+      setNewThemeName("");
+      setCreatingTheme(false);
+      toast.success(`Created theme “${name}” — customize it below, then Save style`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save theme");
+      toast.error(err instanceof Error ? err.message : "Could not create theme");
     }
   };
 
@@ -150,8 +144,8 @@ export function ThemeEditor({
     try {
       const next = savedThemes.filter((p) => p.id !== id);
       await persistSavedThemes(next);
-      if (activePresetId === id) {
-        setTheme((t) => ({ ...t, presetId: "custom" }));
+      if (selectedPresetId === id) {
+        applyPreset(THEME_PRESETS[0]?.id ?? "studio");
       }
       toast.success(`Deleted “${preset.name}”`);
     } catch (err) {
@@ -161,13 +155,25 @@ export function ThemeEditor({
 
   const currentPayload = (): ThemeData => ({
     ...theme,
-    presetId: activePresetId,
+    presetId: selectedPresetId,
   });
 
   const save = async () => {
     setSaving(true);
     try {
       const payload = currentPayload();
+
+      if (isSavedThemeId(selectedPresetId, savedThemes)) {
+        const { presetId: _id, ...themeFields } = normalizeTheme(payload);
+        void _id;
+        const nextSaved = savedThemes.map((preset) =>
+          preset.id === selectedPresetId
+            ? { ...preset, theme: themeFields }
+            : preset
+        );
+        await persistSavedThemes(nextSaved);
+      }
+
       const res = await fetch("/api/admin/content", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -178,7 +184,12 @@ export function ThemeEditor({
         throw new Error(body.error || "Save failed");
       }
       setTheme(payload);
-      toast.success("Style saved — refresh the storefront to see changes");
+      const savedName = savedThemes.find((p) => p.id === selectedPresetId)?.name;
+      toast.success(
+        savedName
+          ? `Saved “${savedName}” — refresh the storefront to see changes`
+          : "Style saved — refresh the storefront to see changes"
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save");
     } finally {
@@ -239,47 +250,77 @@ export function ThemeEditor({
         <CardHeader>
           <CardTitle>Themes</CardTitle>
           <CardDescription>
-            Pick a built-in or saved theme, or choose Custom and fine-tune below.
+            Pick a built-in theme or one you created. Edits stay on the selected
+            theme when you save.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <Label htmlFor="theme-save-name">Save current style as theme</Label>
-              <Input
-                id="theme-save-name"
-                className="mt-2"
-                value={themeName}
-                placeholder="e.g. Summer drop"
-                onChange={(e) => setThemeName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void saveNamedTheme();
-                  }
-                }}
-              />
+          {creatingTheme ? (
+            <div className="flex flex-col gap-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 p-4 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <Label htmlFor="new-theme-name">New theme name</Label>
+                <Input
+                  id="new-theme-name"
+                  className="mt-2 bg-white"
+                  value={newThemeName}
+                  placeholder="e.g. Karan's theme"
+                  autoFocus
+                  onChange={(e) => setNewThemeName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void createNewTheme();
+                    }
+                    if (e.key === "Escape") {
+                      setCreatingTheme(false);
+                      setNewThemeName("");
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  onClick={() => void createNewTheme()}
+                  disabled={savingThemeList || !newThemeName.trim()}
+                >
+                  {savingThemeList ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating…
+                    </>
+                  ) : (
+                    "Create theme"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setCreatingTheme(false);
+                    setNewThemeName("");
+                  }}
+                  disabled={savingThemeList}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
+          ) : (
             <Button
               type="button"
               variant="secondary"
-              onClick={() => void saveNamedTheme()}
-              disabled={savingThemeList || !themeName.trim()}
+              onClick={() => setCreatingTheme(true)}
+              disabled={savingThemeList}
             >
-              {savingThemeList ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving…
-                </>
-              ) : (
-                "Save theme"
-              )}
+              <Plus className="mr-2 h-4 w-4" />
+              Create new theme
             </Button>
-          </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {THEME_PRESETS.map((preset) => {
-              const selected = activePresetId === preset.id;
+              const selected = selectedPresetId === preset.id;
               return (
                 <button
                   key={preset.id}
@@ -322,7 +363,7 @@ export function ThemeEditor({
             })}
 
             {savedThemes.map((preset) => {
-              const selected = activePresetId === preset.id;
+              const selected = selectedPresetId === preset.id;
               return (
                 <button
                   key={preset.id}
@@ -377,40 +418,6 @@ export function ThemeEditor({
                 </button>
               );
             })}
-
-            <button
-              type="button"
-              onClick={() => applyPreset("custom")}
-              className={cn(
-                "rounded-xl border p-4 text-left transition-colors",
-                activePresetId === "custom"
-                  ? "border-neutral-950 bg-neutral-50"
-                  : "border-neutral-200 hover:border-neutral-400"
-              )}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold text-neutral-950">Custom</p>
-                  <p className="mt-1 text-xs text-neutral-500">
-                    Your own mix of colors, fonts, buttons, and links
-                  </p>
-                </div>
-                {activePresetId === "custom" && (
-                  <Check className="h-4 w-4 shrink-0 text-neutral-950" />
-                )}
-              </div>
-              <div className="mt-4 flex gap-1.5">
-                {[theme.background, theme.foreground, theme.accent, theme.muted].map(
-                  (color, i) => (
-                    <span
-                      key={`custom-${i}`}
-                      className="h-6 w-6 rounded-full border border-black/10"
-                      style={{ background: color }}
-                    />
-                  )
-                )}
-              </div>
-            </button>
           </div>
         </CardContent>
       </Card>
@@ -419,7 +426,7 @@ export function ThemeEditor({
         <CardHeader>
           <CardTitle>Colors</CardTitle>
           <CardDescription>
-            Editing any value switches the theme to Custom.
+            Changes apply to the selected theme above. Use Save style to publish.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -703,7 +710,7 @@ export function ThemeEditor({
           <Button
             type="button"
             variant="outline"
-            onClick={() => setTheme(DEFAULT_THEME)}
+            onClick={() => applyPreset("studio")}
             disabled={saving || Boolean(defaultsBusy)}
           >
             Preview Studio preset
