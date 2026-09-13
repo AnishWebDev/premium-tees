@@ -32,7 +32,10 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn("border-t bg-neutral-50/50 font-medium [&>tr]:last:border-b-0", className)}
+    className={cn(
+      "border-t border-[var(--border)] bg-[var(--muted)]/50 font-medium [&>tr]:last:border-b-0",
+      className
+    )}
     {...props}
   />
 ));
@@ -43,7 +46,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
     <tr
       ref={ref}
       className={cn(
-        "border-b border-neutral-200 transition-colors hover:bg-neutral-50/50 data-[state=selected]:bg-neutral-50",
+        "border-b border-[var(--border)] transition-colors hover:bg-[var(--muted)] data-[state=selected]:bg-[var(--muted)]",
         className
       )}
       {...props}
@@ -59,7 +62,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-10 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-neutral-500 [&:has([role=checkbox])]:pr-0",
+      "h-10 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)] [&:has([role=checkbox])]:pr-0",
       className
     )}
     {...props}
@@ -73,7 +76,10 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("px-3 py-2.5 align-middle text-neutral-700 [&:has([role=checkbox])]:pr-0", className)}
+    className={cn(
+      "px-3 py-2.5 align-middle text-[var(--foreground)] [&:has([role=checkbox])]:pr-0",
+      className
+    )}
     {...props}
   />
 ));
@@ -83,7 +89,11 @@ const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
   React.HTMLAttributes<HTMLTableCaptionElement>
 >(({ className, ...props }, ref) => (
-  <caption ref={ref} className={cn("mt-4 text-sm text-neutral-500", className)} {...props} />
+  <caption
+    ref={ref}
+    className={cn("mt-4 text-sm text-[var(--muted-foreground)]", className)}
+    {...props}
+  />
 ));
 TableCaption.displayName = "TableCaption";
 
