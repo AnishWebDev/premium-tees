@@ -14,7 +14,11 @@ import type { CmsPageRecord } from "@/lib/cms-pages";
 import type { SectionContentSource } from "@/lib/home-sections";
 import type { HomeTemplateId } from "@/lib/home-templates";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
-import { adminFixedSaveBar } from "@/lib/admin-ui-classes";
+import {
+  adminCreatePagePanel,
+  adminFixedSaveBar,
+  adminTabsList,
+} from "@/lib/admin-ui-classes";
 import { pageKindForSlug, pagePathForSlug } from "@/lib/page-catalog";
 import type { AllSiteContent, ContentKey } from "@/lib/site-content";
 import { CmsExtraEditor } from "@/components/admin/cms-extra-editor";
@@ -296,7 +300,7 @@ export function CmsStudio({
 
       <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as MainTab)}>
         <div className="sticky top-0 z-20 border-b border-neutral-200 bg-[var(--background)] px-4 py-2 md:px-6">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-[var(--muted)] p-1">
+          <TabsList className={adminTabsList}>
             {MAIN_TABS.map((tab) => (
               <TabsTrigger key={tab.key} value={tab.key}>
                 {tab.label}
@@ -341,7 +345,7 @@ export function CmsStudio({
           </TabsContent>
 
           <TabsContent value="pages" className="mt-0 space-y-6">
-            <Card className="border-dashed border-neutral-300 bg-neutral-50/50">
+            <Card className={adminCreatePagePanel}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Create a new page</CardTitle>
                 <CardDescription>
@@ -395,7 +399,7 @@ export function CmsStudio({
                     Create page
                   </Button>
                 </div>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   Live at /{newSlug || "your-slug"} when published
                 </p>
               </CardContent>
@@ -615,7 +619,7 @@ export function CmsStudio({
           </TabsContent>
 
           <TabsContent value="global-copy" className="mt-0 space-y-4">
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-[var(--muted-foreground)]">
               Site-wide strings that are not tied to a single page — 404 screen,
               cart empty state, checkout messages, size guide, and login/register
               copy. Page-specific content (Collections, Legal, Shop empty catalog)
@@ -625,7 +629,7 @@ export function CmsStudio({
               value={globalCopyTab}
               onValueChange={(v) => setGlobalCopyTab(v as CmsKey)}
             >
-              <TabsList className="mb-4 flex h-auto flex-wrap gap-1">
+              <TabsList className={`mb-4 ${adminTabsList}`}>
                 {GLOBAL_COPY_SUBTABS.map((tab) => (
                   <TabsTrigger key={tab.key} value={tab.key}>
                     {tab.label}

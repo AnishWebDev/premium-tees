@@ -8,6 +8,7 @@ import { ThemeEditor } from "@/components/admin/theme-editor";
 import { StoreCommerceSettingsCard } from "@/components/admin/store-commerce-settings-card";
 import { StoreSettingsCard } from "@/components/admin/store-settings-card";
 import { SystemStatusCard } from "@/components/admin/system-status-card";
+import { adminTabsList } from "@/lib/admin-ui-classes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const dynamic = "force-dynamic";
@@ -24,16 +25,16 @@ export default async function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-neutral-950">
+        <h1 className="font-display text-2xl font-semibold text-[var(--foreground)]">
           Settings
         </h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
           Change your password, pick a theme, or customize buttons and links.
         </p>
       </div>
 
       <Tabs defaultValue="style">
-        <TabsList>
+        <TabsList className={adminTabsList}>
           <TabsTrigger value="style">Site style</TabsTrigger>
           <TabsTrigger value="checkout">Checkout</TabsTrigger>
           <TabsTrigger value="commerce">Commerce & SEO</TabsTrigger>

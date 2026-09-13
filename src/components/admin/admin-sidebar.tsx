@@ -111,7 +111,7 @@ export function AdminSidebar({ open, onClose, role }: AdminSidebarProps) {
                 "flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive(href, exact)
                   ? "bg-neutral-800 text-white"
-                  : "text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-100"
+                  : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -123,7 +123,7 @@ export function AdminSidebar({ open, onClose, role }: AdminSidebarProps) {
         <div className="border-t border-neutral-800 p-3">
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-neutral-400 transition-colors hover:bg-neutral-800/60 hover:text-neutral-100"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
             onClick={onClose}
           >
             ← Back to store

@@ -25,8 +25,8 @@ export default async function AdminReturnsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-neutral-900">Returns</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">Returns</h1>
+        <p className="text-sm text-[var(--muted-foreground)]">
           Review customer return and refund requests
         </p>
       </div>

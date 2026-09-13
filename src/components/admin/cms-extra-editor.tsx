@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { adminTabsList } from "@/lib/admin-ui-classes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type CmsExtraEditorProps = {
@@ -82,7 +83,7 @@ export function CmsExtraEditor({
   const inner = (
         <Tabs value={activeTab} defaultValue={defaultTab}>
           {!singleTab ? (
-          <TabsList className="mb-6 flex h-auto flex-wrap gap-1">
+          <TabsList className={`mb-6 ${adminTabsList}`}>
             {TABS.map((tab) => (
               <TabsTrigger key={tab.key} value={tab.key}>
                 {tab.label}

@@ -20,8 +20,8 @@ export default async function AdminReviewsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-neutral-900">Reviews</h1>
-        <p className="text-sm text-neutral-500">Moderate customer product reviews</p>
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">Reviews</h1>
+        <p className="text-sm text-[var(--muted-foreground)]">Moderate customer product reviews</p>
       </div>
       <ReviewsTable initialReviews={reviews} />
     </div>

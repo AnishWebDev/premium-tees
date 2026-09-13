@@ -19,7 +19,7 @@ import type {
   TestimonialsData,
 } from "@/lib/site-content";
 import { ImageUrlField } from "@/components/admin/image-url-field";
-import { adminFixedSaveBar } from "@/lib/admin-ui-classes";
+import { adminFixedSaveBar, adminTabsList } from "@/lib/admin-ui-classes";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
 import { defaultSectionsForTemplate } from "@/lib/home-sections";
 import { fontFamilyStack } from "@/lib/fonts";
@@ -447,7 +447,7 @@ export function SiteContentEditor({
 
       <Tabs defaultValue={tabs[0]?.key ?? "site"}>
         <div className="sticky top-0 z-20 border-b border-neutral-200 bg-[var(--background)] px-4 py-2 md:px-6">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-[var(--muted)] p-1">
+          <TabsList className={adminTabsList}>
             {tabs.map((tab) => (
               <TabsTrigger key={tab.key} value={tab.key}>
                 {tab.label}

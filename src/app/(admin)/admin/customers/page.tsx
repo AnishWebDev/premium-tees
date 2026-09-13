@@ -21,8 +21,8 @@ export default async function AdminCustomersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-neutral-900">Customers</h1>
-        <p className="text-sm text-neutral-500">{total} customers total</p>
+        <h1 className="text-xl font-semibold text-[var(--foreground)]">Customers</h1>
+        <p className="text-sm text-[var(--muted-foreground)]">{total} customers total</p>
       </div>
       <CustomersTable customers={customers} />
     </div>

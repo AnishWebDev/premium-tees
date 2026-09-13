@@ -13,3 +13,11 @@ export const adminPanelMuted =
 /** Inline list/card surface inside admin panels. */
 export const adminInlinePanel =
   "rounded-xl border border-[var(--border)] bg-[var(--background)]";
+
+/** Dashed panel for “Create a new page” and similar forms. */
+export const adminCreatePagePanel =
+  "border-dashed border-[var(--border)] bg-[var(--muted)]/40";
+
+/** Tab list strip for CMS / settings sub-navigation. */
+export const adminTabsList =
+  "flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-[var(--muted)] p-1";
