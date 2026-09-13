@@ -337,8 +337,8 @@ export function CmsStudio({
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Create a new page</CardTitle>
                 <CardDescription>
-                  e.g. a Gallery page — then add image grids, hero blocks, and more
-                  below, just like the homepage.
+                  e.g. About us or a lookbook — then add hero blocks, image grids,
+                  and more below, just like the homepage.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -349,7 +349,7 @@ export function CmsStudio({
                       id="new-page-title"
                       className="h-11"
                       value={newTitle}
-                      placeholder="Gallery"
+                      placeholder="About us"
                       onChange={(e) => {
                         setNewTitle(e.target.value);
                         setNewSlug(
@@ -367,7 +367,7 @@ export function CmsStudio({
                       id="new-page-slug"
                       className="h-11"
                       value={newSlug}
-                      placeholder="gallery"
+                      placeholder="about-us"
                       onChange={(e) => setNewSlug(e.target.value)}
                     />
                   </div>
@@ -572,6 +572,7 @@ export function CmsStudio({
                     }
                     content={contentSource}
                     canManageLayout
+                    canEditComponentSettings={canSelectHomeTemplate}
                     pageLabel={pageDraft.title}
                     onChange={(sections) =>
                       setPageDraft({ ...pageDraft, sections })

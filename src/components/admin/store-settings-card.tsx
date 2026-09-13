@@ -203,8 +203,8 @@ export function StoreSettingsCard({ isSuperAdmin }: StoreSettingsCardProps) {
         <CardHeader>
           <CardTitle className="text-base">Shop audience filters</CardTitle>
           <p className="text-sm text-neutral-500">
-            The shop filter bar always includes <strong>Men</strong>. SuperAdmin can enable
-            additional audience options for customers.
+            The shop filter bar always includes <strong>Men</strong>. Additional
+            audience options can be enabled when needed.
           </p>
         </CardHeader>
         <CardContent>

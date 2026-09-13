@@ -160,15 +160,27 @@ function contentFields(fields: HomeSectionFieldKey[]): HomeSectionFieldKey[] {
   return fields;
 }
 
-/** Padding + layout spacing — SuperAdmin component settings panel. */
+/** Visual / layout fields — shown under Component settings (SuperAdmin). */
+const CONTENT_CARD_SETTINGS_FIELDS: HomeSectionFieldKey[] = [
+  "columns",
+  "mediaLayout",
+  "mediaAspect",
+  "animation",
+  "borderRadius",
+  "bgStyle",
+  "backgroundColor",
+  "textColor",
+  "padding",
+];
+
+/** Padding, spacing, and block-level styling — SuperAdmin component settings panel. */
 export function componentSettingsFieldsForType(
   type: HomeSectionType
 ): HomeSectionFieldKey[] {
-  const fields: HomeSectionFieldKey[] = [...SECTION_SPACING_FIELDS];
   if (type === "contentCard") {
-    return ["padding", ...fields];
+    return [...CONTENT_CARD_SETTINGS_FIELDS, ...SECTION_SPACING_FIELDS];
   }
-  return fields;
+  return [...SECTION_SPACING_FIELDS];
 }
 
 /** Unique editable fields per block type (plus section spacing on all). */
@@ -280,17 +292,8 @@ export function editableFieldsForType(
     case "embedFrame":
       return contentFields(["eyebrow", "title", "embedUrl", "subtitle"]);
     case "contentCard":
-      // Card copy lives in cardsJson editor; these are shared style + grid
-      return contentFields([
-        "columns",
-        "mediaLayout",
-        "mediaAspect",
-        "animation",
-        "borderRadius",
-        "bgStyle",
-        "backgroundColor",
-        "textColor",
-      ]);
+      // Card copy lives in cardsJson editor; layout/style in component settings
+      return contentFields([]);
     case "trailHero":
       return contentFields([
         "eyebrow",

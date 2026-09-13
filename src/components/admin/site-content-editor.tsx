@@ -287,7 +287,7 @@ export function SiteContentEditor({
                   throw new Error(body.error || "Could not save default");
                 }
                 setHasStyleDefaults(true);
-                toast.success("Homepage template saved as SuperAdmin default");
+                toast.success("Homepage template saved as default");
               } catch (err) {
                 toast.error(
                   err instanceof Error ? err.message : "Could not save default"
@@ -315,9 +315,7 @@ export function SiteContentEditor({
                     ...(body.theme ? { theme: body.theme } : {}),
                   }));
                 }
-                toast.success(
-                  "Reset theme + homepage template to SuperAdmin default"
-                );
+                toast.success("Reset theme and homepage template to default");
               } catch (err) {
                 toast.error(
                   err instanceof Error ? err.message : "Could not reset"
@@ -480,8 +478,8 @@ function FooterCreditEditor({
       <CardHeader>
         <CardTitle>Footer credit</CardTitle>
         <CardDescription>
-          SuperAdmin only — cursive “Made with ♥ by …” line in the storefront
-          footer. Style color, size, font, and optional link on the name.
+          Cursive “Made with ♥ by …” line in the storefront footer. Style color,
+          size, font, and optional link on the name.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -1157,8 +1155,8 @@ function HomeEditor({
           <CardHeader>
             <CardTitle>Homepage template</CardTitle>
             <CardDescription>
-              SuperAdmin only — picking a preset reseeds the page layout list
-              below. You can then drag, add, or remove blocks.
+              Picking a preset reseeds the page layout list below. You can then
+              drag, add, or remove blocks.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1202,7 +1200,7 @@ function HomeEditor({
             </div>
             <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
               <p className="text-sm font-medium text-neutral-950">
-                SuperAdmin style defaults
+                Style defaults
               </p>
               <p className="mt-1 text-xs text-neutral-500">
                 Save this template into the approved default pack (keeps the
@@ -1242,7 +1240,7 @@ function HomeEditor({
               </div>
               {!hasStyleDefaults && (
                 <p className="mt-2 text-xs text-amber-700">
-                  No SuperAdmin default yet — save from here or Site style.
+                  No default saved yet — save from here or Site style.
                 </p>
               )}
             </div>
@@ -1257,19 +1255,18 @@ function HomeEditor({
               <span className="font-medium text-neutral-950">
                 {data.template}
               </span>
-              . Edit section copy below — SuperAdmin controls order and which
-              blocks appear.
+              . Edit component content below.
             </CardDescription>
           </CardHeader>
         </Card>
       )}
 
-      {/* Both roles edit section fields; only SuperAdmin can reorder/add/remove */}
       <HomeSectionsBuilder
         sections={data.sections}
         template={data.template}
         content={contentSource}
         canManageLayout={canSelectTemplate}
+        canEditComponentSettings={canSelectTemplate}
         onChange={(sections) => onChange({ ...data, sections })}
       />
 

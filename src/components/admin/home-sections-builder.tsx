@@ -58,8 +58,10 @@ type HomeSectionsBuilderProps = {
   template: HomeTemplateId;
   content: SectionContentSource;
   onChange: (sections: HomeSectionItem[]) => void;
-  /** SuperAdmin: reorder / add / remove. Admin: edit fields only. */
+  /** Reorder, add, remove, and show/hide blocks on the page. */
   canManageLayout?: boolean;
+  /** Layout, spacing, and visual styling for each block. */
+  canEditComponentSettings?: boolean;
   /** Reusable components from the library */
   libraryComponents?: LibraryComponentRef[];
   onEditLibraryComponent?: (id: string) => void;
@@ -72,6 +74,7 @@ export function HomeSectionsBuilder({
   content,
   onChange,
   canManageLayout = false,
+  canEditComponentSettings = false,
   libraryComponents = [],
   onEditLibraryComponent,
   pageLabel = "page",
@@ -252,7 +255,7 @@ export function HomeSectionsBuilder({
                 ? libraryById.get(section.componentRefId)
                 : undefined;
               const contentFields = editableFieldsForType(section.type);
-              const settingsFields = canManageLayout
+              const settingsFields = canEditComponentSettings
                 ? componentSettingsFieldsForType(section.type)
                 : [];
               const defaults = defaultPropsForSection(section.type, content);
@@ -390,41 +393,20 @@ export function HomeSectionsBuilder({
                           </div>
                         </div>
                       ) : null}
-                      {contentFields.length === 0 ? (
-                        <p className="text-xs text-neutral-500">
-                          No direct fields for this block.
-                        </p>
-                      ) : (
+                      {contentFields.length > 0 ? (
                         <SectionFieldGrid
                           section={section}
                           fields={contentFields}
                           defaults={defaults}
                           onSetProp={handleSetProp}
                         />
-                      )}
+                      ) : section.type !== "contentCard" ? (
+                        <p className="text-xs text-neutral-500">
+                          No direct fields for this block.
+                        </p>
+                      ) : null}
 
-                      {canManageLayout && settingsFields.length > 0 && (
-                        <Accordion type="single" collapsible className="border-t border-neutral-100 pt-2">
-                          <AccordionItem value="settings" className="border-none">
-                            <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">
-                              Component settings
-                            </AccordionTrigger>
-                            <AccordionContent className="pb-1 pt-2 text-neutral-950">
-                              <p className="mb-3 text-xs text-neutral-500">
-                                Section padding and spacing — SuperAdmin only.
-                              </p>
-                              <SectionFieldGrid
-                                section={section}
-                                fields={settingsFields}
-                                defaults={defaults}
-                                onSetProp={handleSetProp}
-                              />
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
-                      )}
-
-                      {section.type === "contentCard" && (
+                      {section.type === "contentCard" ? (
                         <ContentCardsEditor
                           cards={resolveContentCards(section.props)}
                           onChange={(cards) =>
@@ -435,7 +417,33 @@ export function HomeSectionsBuilder({
                             )
                           }
                         />
-                      )}
+                      ) : null}
+
+                      {canEditComponentSettings && settingsFields.length > 0 ? (
+                        <Accordion
+                          type="single"
+                          collapsible
+                          className="border-t border-neutral-100 pt-2"
+                        >
+                          <AccordionItem value="settings" className="border-none">
+                            <AccordionTrigger className="py-2 text-xs font-medium text-neutral-700 hover:no-underline">
+                              Component settings
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-1 pt-2 text-neutral-950">
+                              <p className="mb-3 text-xs text-neutral-500">
+                                Layout, spacing, colors, and other visual options
+                                for this block.
+                              </p>
+                              <SectionFieldGrid
+                                section={section}
+                                fields={settingsFields}
+                                defaults={defaults}
+                                onSetProp={handleSetProp}
+                              />
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      ) : null}
                     </div>
                   )}
                 </li>
@@ -519,7 +527,7 @@ function ContentCardsEditor({
         </Button>
       </div>
       <p className="text-xs text-neutral-500">
-        Use “Cards per row” above to control the grid. Add multiple cards for columns.
+        Add one or more cards — each can include an image, text, and an optional link.
       </p>
       <ul className="space-y-3">
         {list.map((card, index) => (
