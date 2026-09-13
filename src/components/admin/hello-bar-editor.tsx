@@ -20,13 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { adminComponentSettingsDivider } from "@/lib/admin-ui-classes";
-
-const BG_STYLE_OPTIONS = [
-  { value: "theme", label: "Page background" },
-  { value: "muted", label: "Muted surface" },
-  { value: "accent", label: "Accent" },
-  { value: "custom", label: "Custom color" },
-];
+import { BG_STYLE_UI_OPTIONS as BG_STYLE_OPTIONS } from "@/lib/admin-ui-labels";
 
 const YES_NO = [
   { value: "no", label: "No" },

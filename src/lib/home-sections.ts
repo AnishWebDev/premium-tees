@@ -1,3 +1,4 @@
+import { BG_STYLE_UI_OPTIONS } from "@/lib/admin-ui-labels";
 import type { HomeTemplateId } from "@/lib/home-templates";
 
 /** Minimal content bag for prefilling section editors (avoids circular imports). */
@@ -517,12 +518,7 @@ export const SECTION_FIELD_OPTIONS: Partial<
     { value: "xl", label: "Very rounded" },
     { value: "full", label: "Soft pill corners" },
   ],
-  bgStyle: [
-    { value: "theme", label: "Page background" },
-    { value: "muted", label: "Muted surface" },
-    { value: "accent", label: "Accent" },
-    { value: "custom", label: "Custom color" },
-  ],
+  bgStyle: [...BG_STYLE_UI_OPTIONS],
   padding: [
     { value: "sm", label: "Compact" },
     { value: "md", label: "Comfortable" },
@@ -931,7 +927,7 @@ export const HOME_SECTION_CATALOG: HomeSectionMeta[] = [
   { type: "lookScroll", label: "Look scroll", description: "Horizontal look tiles" },
   { type: "lookGrid", label: "Look grid", description: "Oversized look tiles grid" },
   { type: "essentialsGrid", label: "Essentials grid", description: "4-product essentials grid" },
-  { type: "essentialsFeatured", label: "Featured band", description: "Featured products on muted band" },
+  { type: "essentialsFeatured", label: "Featured band", description: "Featured products on secondary band" },
   { type: "featureDrop", label: "Feature drop", description: "Single featured product drop" },
   { type: "pullQuote", label: "Pull quote", description: "Large quote from story copy" },
   { type: "productRows", label: "Product rows", description: "Editorial product index rows" },

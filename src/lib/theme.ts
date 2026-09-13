@@ -133,7 +133,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "slate",
     name: "Slate",
-    description: "Cool blue-gray accent, modern sans",
+    description: "Cool blue-gray link/button color, modern sans",
     theme: {
       background: "#f8fafc",
       foreground: "#0f172a",
@@ -154,7 +154,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "olive",
     name: "Olive",
-    description: "Earthy green accent on warm stone",
+    description: "Earthy green link/button on warm stone",
     theme: {
       background: "#f6f4ef",
       foreground: "#1c1917",
@@ -196,7 +196,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "ink-gold",
     name: "Ink & Gold",
-    description: "Black ink with muted gold accents",
+    description: "Black ink with secondary gold link/button",
     theme: {
       background: "#faf9f6",
       foreground: "#141414",

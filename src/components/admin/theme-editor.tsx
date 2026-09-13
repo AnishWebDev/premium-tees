@@ -47,11 +47,11 @@ type ThemeEditorProps = {
 const COLOR_FIELDS: { key: keyof ThemeData; label: string; hint?: string }[] = [
   { key: "background", label: "Page background" },
   { key: "foreground", label: "Main text" },
-  { key: "muted", label: "Muted surface", hint: "Cards, soft buttons" },
-  { key: "mutedForeground", label: "Muted text" },
+  { key: "muted", label: "Secondary", hint: "Section backgrounds, cards, soft buttons" },
+  { key: "mutedForeground", label: "Secondary text" },
   { key: "border", label: "Borders" },
-  { key: "accent", label: "Accent" },
-  { key: "accentForeground", label: "Text on accent" },
+  { key: "accent", label: "Link/Button" },
+  { key: "accentForeground", label: "Text on link/button" },
   { key: "ring", label: "Focus ring" },
 ];
 
@@ -615,7 +615,7 @@ export function ThemeEditor({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="underline">Underline</SelectItem>
-                <SelectItem value="accent">Accent color</SelectItem>
+                <SelectItem value="accent">Link/Button color</SelectItem>
                 <SelectItem value="subtle">Subtle</SelectItem>
                 <SelectItem value="bold">Bold</SelectItem>
               </SelectContent>

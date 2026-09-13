@@ -123,10 +123,10 @@ export function ThemePreviewPanel({ theme, className }: ThemePreviewPanelProps) 
             style={themeVarStyle(theme)}
           >
             <p className="text-xs text-[var(--muted-foreground)]">
-              Muted surface
+              Secondary
             </p>
             <Button type="button" size="sm" className="mt-3">
-              Primary on muted
+              Primary on secondary
             </Button>
           </div>
 
@@ -146,7 +146,7 @@ export function ThemePreviewPanel({ theme, className }: ThemePreviewPanelProps) 
               color: theme.accentForeground,
             }}
           >
-            Accent badge
+            Link/Button badge
           </div>
 
           <div
