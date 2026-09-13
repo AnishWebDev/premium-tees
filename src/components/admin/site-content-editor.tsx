@@ -24,6 +24,7 @@ import { defaultSectionsForTemplate } from "@/lib/home-sections";
 import { fontFamilyStack } from "@/lib/fonts";
 import { FONT_CATALOG } from "@/lib/theme";
 import { EditorSectionsAccordion } from "@/components/admin/editor-sections-accordion";
+import { HelloBarEditor } from "@/components/admin/hello-bar-editor";
 import { HomeSectionsBuilder } from "@/components/admin/home-sections-builder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -243,6 +244,7 @@ export function SiteContentEditor({
             data={content.header}
             onChange={(header) => setContent((c) => ({ ...c, header }))}
             saveButton={<SaveButton keyName="header" />}
+            canEditHelloBarSettings={canSelectHomeTemplate}
           />
         </TabsContent>
 
@@ -789,10 +791,12 @@ function HeaderEditor({
   data,
   onChange,
   saveButton,
+  canEditHelloBarSettings = false,
 }: {
   data: HeaderData;
   onChange: (d: HeaderData) => void;
   saveButton: ReactNode;
+  canEditHelloBarSettings?: boolean;
 }) {
   const set = (patch: Partial<HeaderData>) => onChange({ ...data, ...patch });
 
@@ -801,12 +805,24 @@ function HeaderEditor({
       <CardHeader>
         <CardTitle>Header</CardTitle>
         <CardDescription>
-          Main navigation links for desktop and mobile menus. Logo is configured on the Site tab.
+          Promo hello bar and main navigation. Logo is configured on the Site tab.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <EditorSectionsAccordion
+          defaultOpen={["hello-bar", "nav"]}
           sections={[
+            {
+              id: "hello-bar",
+              title: "Promo hello bar",
+              content: (
+                <HelloBarEditor
+                  data={data.helloBar}
+                  onChange={(helloBar) => set({ helloBar })}
+                  canEditSettings={canEditHelloBarSettings}
+                />
+              ),
+            },
             {
               id: "nav",
               title: "Main navigation",

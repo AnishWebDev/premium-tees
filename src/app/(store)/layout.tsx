@@ -1,26 +1,31 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SkipLink } from "@/components/layout/skip-link";
-import { AnnouncementBar } from "@/components/layout/announcement-bar";
+import { PromoHelloBar } from "@/components/home/blocks/promo-hello-bar";
 import { getContentBlock } from "@/lib/site-content";
-import { getStoreSettings } from "@/lib/store-settings";
+import { helloBarIsVisible } from "@/lib/hello-bar";
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const [header, storeSettings] = await Promise.all([
-    getContentBlock("header"),
-    getStoreSettings(),
-  ]);
-
-  const { announcement } = storeSettings;
+  const header = await getContentBlock("header");
+  const bar = header.helloBar;
 
   return (
     <div className="flex min-h-screen flex-col">
       <SkipLink />
-      <AnnouncementBar
-        enabled={announcement.enabled}
-        message={announcement.message}
-        linkHref={announcement.linkHref}
-        linkLabel={announcement.linkLabel}
+      <PromoHelloBar
+        sectionId="site-header"
+        enabled={bar.enabled}
+        message={bar.message}
+        linkHref={bar.linkHref}
+        linkLabel={bar.linkLabel}
+        scheduleStartAt={bar.scheduleStartAt}
+        scheduleEndAt={bar.scheduleEndAt}
+        bgStyle={bar.bgStyle}
+        backgroundColor={bar.backgroundColor}
+        textColor={bar.textColor}
+        settingSticky={bar.settingSticky}
+        settingDismissible={bar.settingDismissible}
+        initiallyVisible={helloBarIsVisible(bar)}
       />
       <Header
         navLinks={header.navLinks}

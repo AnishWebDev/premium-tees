@@ -429,6 +429,7 @@ export function editableFieldsForType(
       return contentFields([
         "title",
         "subtitle",
+        "scheduleStartAt",
         "countdownTargetAt",
         "countdownExpiredMessage",
         "ctaLabel",
@@ -476,9 +477,9 @@ export const SECTION_FIELD_LABELS: Record<HomeSectionFieldKey, string> = {
   cardsJson: "Cards data",
   cellsJson: "Mosaic tiles data",
   imagesJson: "Gallery images data",
-  scheduleStartAt: "Show from (date & time)",
+  scheduleStartAt: "Starts at (date & time)",
   scheduleEndAt: "Show until (date & time)",
-  countdownTargetAt: "Offer ends at (date & time)",
+  countdownTargetAt: "Ends at (date & time)",
   countdownExpiredMessage: "Message when offer ends",
   posterImageUrl: "Poster image (optional)",
   settingSticky: "Stick to top while scrolling",
@@ -896,6 +897,7 @@ export function defaultPropsForSection(
       return {
         title: "Launch weekend sale",
         subtitle: "Extra 15% off essentials before the timer runs out.",
+        scheduleStartAt: "",
         countdownTargetAt: "",
         countdownExpiredMessage: "This offer has ended — explore the full collection.",
         ctaLabel: hero.primaryCtaLabel,
@@ -957,11 +959,6 @@ export const HOME_SECTION_CATALOG: HomeSectionMeta[] = [
     type: "videoPlayer",
     label: "Video player",
     description: "Self-hosted .mp4 or YouTube/Vimeo with poster and caption",
-  },
-  {
-    type: "promoHelloBar",
-    label: "Promo hello bar",
-    description: "Timed promo strip with optional link and dismiss button",
   },
   {
     type: "countdownOffer",

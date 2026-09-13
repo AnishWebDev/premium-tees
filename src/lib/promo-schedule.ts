@@ -33,30 +33,49 @@ export function remainingMs(
   return Math.max(0, end.getTime() - now.getTime());
 }
 
+export type CountdownPhase = "before" | "active" | "expired";
+
 export type CountdownParts = {
   days: number;
   hours: number;
   minutes: number;
   seconds: number;
   expired: boolean;
+  phase: CountdownPhase;
 };
 
+function msToParts(ms: number, phase: CountdownPhase): CountdownParts {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  return {
+    days: Math.floor(totalSeconds / 86400),
+    hours: Math.floor((totalSeconds % 86400) / 3600),
+    minutes: Math.floor((totalSeconds % 3600) / 60),
+    seconds: totalSeconds % 60,
+    expired: phase === "expired",
+    phase,
+  };
+}
+
+/** Count down to start (before), then to end (active), then expired. */
 export function countdownParts(
-  target?: string,
+  endAt?: string,
+  startAt?: string,
   now: Date = new Date()
 ): CountdownParts | null {
-  const end = parseDateTime(target);
+  const end = parseDateTime(endAt);
   if (!end) return null;
+  const start = parseDateTime(startAt);
+
+  if (start && now < start) {
+    return msToParts(start.getTime() - now.getTime(), "before");
+  }
+
   const ms = end.getTime() - now.getTime();
   if (ms <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+    return msToParts(0, "expired");
   }
-  const totalSeconds = Math.floor(ms / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return { days, hours, minutes, seconds, expired: false };
+
+  return msToParts(ms, "active");
 }
 
 /** Format ISO for `<input type="datetime-local" />`. */

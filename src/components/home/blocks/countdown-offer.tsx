@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 type CountdownOfferProps = {
   title: string;
   subtitle?: string;
+  scheduleStartAt?: string;
   countdownTargetAt?: string;
   expiredMessage?: string;
   ctaLabel?: string;
@@ -23,7 +24,6 @@ type CountdownOfferProps = {
   backgroundColor?: string;
   textColor?: string;
   borderRadius?: string;
-  /** Server snapshot for first paint */
   initialParts?: CountdownParts | null;
 };
 
@@ -43,6 +43,7 @@ function Unit({ label, value }: { label: string; value: number }) {
 export function CountdownOffer({
   title,
   subtitle,
+  scheduleStartAt,
   countdownTargetAt,
   expiredMessage = "This offer has ended.",
   ctaLabel,
@@ -56,11 +57,12 @@ export function CountdownOffer({
   const [parts, setParts] = useState<CountdownParts | null>(initialParts);
 
   useEffect(() => {
-    const tick = () => setParts(countdownParts(countdownTargetAt));
+    const tick = () =>
+      setParts(countdownParts(countdownTargetAt, scheduleStartAt));
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
-  }, [countdownTargetAt]);
+  }, [countdownTargetAt, scheduleStartAt]);
 
   if (!countdownTargetAt?.trim()) return null;
 
@@ -69,6 +71,12 @@ export function CountdownOffer({
   const customBg = backgroundColor?.trim();
   const customColor = textColor?.trim();
   const expired = parts?.expired ?? false;
+  const phaseLabel =
+    parts?.phase === "before"
+      ? "Offer starts in"
+      : parts?.phase === "active"
+        ? "Offer ends in"
+        : null;
 
   return (
     <section
@@ -93,20 +101,27 @@ export function CountdownOffer({
         {expired ? (
           <p className="mt-8 text-base font-medium">{expiredMessage}</p>
         ) : parts ? (
-          <div
-            className={cn(
-              "mx-auto mt-8 inline-flex divide-x divide-[var(--border)] border border-[var(--border)] bg-[var(--background)]",
-              roundedClass
-            )}
-            role="timer"
-            aria-live="polite"
-            aria-label="Offer countdown"
-          >
-            <Unit label="Days" value={parts.days} />
-            <Unit label="Hours" value={parts.hours} />
-            <Unit label="Minutes" value={parts.minutes} />
-            <Unit label="Seconds" value={parts.seconds} />
-          </div>
+          <>
+            {phaseLabel ? (
+              <p className="mt-6 text-xs font-medium uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                {phaseLabel}
+              </p>
+            ) : null}
+            <div
+              className={cn(
+                "mx-auto mt-4 inline-flex divide-x divide-[var(--border)] border border-[var(--border)] bg-[var(--background)]",
+                roundedClass
+              )}
+              role="timer"
+              aria-live="polite"
+              aria-label={phaseLabel ?? "Offer countdown"}
+            >
+              <Unit label="Days" value={parts.days} />
+              <Unit label="Hours" value={parts.hours} />
+              <Unit label="Minutes" value={parts.minutes} />
+              <Unit label="Seconds" value={parts.seconds} />
+            </div>
+          </>
         ) : null}
 
         {ctaLabel?.trim() && ctaHref?.trim() && !expired ? (

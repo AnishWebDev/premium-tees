@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { galleryBandClass } from "@/components/home/blocks/image-gallery";
+import { HELLO_BAR_DISMISS_KEY } from "@/lib/hello-bar";
 import { isSettingEnabled, isWithinSchedule } from "@/lib/promo-schedule";
 import { cn } from "@/lib/utils";
 
 type PromoHelloBarProps = {
   sectionId: string;
+  enabled?: boolean;
   message: string;
   linkHref?: string;
   linkLabel?: string;
@@ -19,14 +21,12 @@ type PromoHelloBarProps = {
   textColor?: string;
   settingSticky?: string;
   settingDismissible?: string;
-  /** Server-evaluated schedule for first paint */
   initiallyVisible?: boolean;
 };
 
-const DISMISS_PREFIX = "promo-hello-bar-dismissed:";
-
 export function PromoHelloBar({
   sectionId,
+  enabled = true,
   message,
   linkHref = "",
   linkLabel = "",
@@ -47,7 +47,7 @@ export function PromoHelloBar({
   useEffect(() => {
     if (!dismissible) return;
     try {
-      if (localStorage.getItem(`${DISMISS_PREFIX}${sectionId}`) === "1") {
+      if (localStorage.getItem(`${HELLO_BAR_DISMISS_KEY}:${sectionId}`) === "1") {
         setDismissed(true);
       }
     } catch {
@@ -64,7 +64,7 @@ export function PromoHelloBar({
     return () => window.clearInterval(id);
   }, [scheduleStartAt, scheduleEndAt]);
 
-  if (dismissed || !visible || !message.trim()) return null;
+  if (!enabled || dismissed || !visible || !message.trim()) return null;
 
   const hasLink = linkHref.trim().length > 0;
   const bandClass = galleryBandClass(bgStyle, backgroundColor);
@@ -74,7 +74,7 @@ export function PromoHelloBar({
   const dismiss = () => {
     setDismissed(true);
     try {
-      localStorage.setItem(`${DISMISS_PREFIX}${sectionId}`, "1");
+      localStorage.setItem(`${HELLO_BAR_DISMISS_KEY}:${sectionId}`, "1");
     } catch {
       /* ignore */
     }

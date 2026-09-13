@@ -4,18 +4,17 @@ import { useMemo, useState } from "react";
 import { Check, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { SavedThemePreset, ThemeData } from "@/lib/theme";
-import { FONT_CSS_VAR } from "@/lib/fonts";
 import {
   DEFAULT_THEME,
   FONT_CATALOG,
   THEME_PRESETS,
   createSavedThemePreset,
-  fontWeightToCss,
   normalizeTheme,
   themeFromPreset,
   themeMatchesPreset,
   type FontWeightOption,
 } from "@/lib/theme";
+import { ThemePreviewPanel } from "@/components/admin/theme-preview-panel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,79 +53,12 @@ const COLOR_FIELDS: { key: keyof ThemeData; label: string; hint?: string }[] = [
   { key: "ring", label: "Focus ring" },
 ];
 
-function buttonPreviewRadius(theme: ThemeData) {
-  if (theme.buttonRadius === "pill") return 9999;
-  if (theme.buttonRadius === "square") return 4;
-  return 12;
-}
-
 const FONT_WEIGHT_OPTIONS: { value: FontWeightOption; label: string }[] = [
   { value: "normal", label: "Normal" },
   { value: "medium", label: "Medium" },
   { value: "semibold", label: "Semibold" },
   { value: "bold", label: "Bold" },
 ];
-
-function buttonPreviewStyles(theme: ThemeData): React.CSSProperties {
-  const radius = buttonPreviewRadius(theme);
-  const weight = Number(fontWeightToCss(theme.buttonWeight));
-
-  if (theme.buttonStyle === "outline") {
-    return {
-      background: "transparent",
-      color: theme.accent,
-      border: `1px solid ${theme.accent}`,
-      borderRadius: radius,
-      fontWeight: weight,
-    };
-  }
-  if (theme.buttonStyle === "soft") {
-    return {
-      background: theme.muted,
-      color: theme.accent,
-      border: `1px solid ${theme.muted}`,
-      borderRadius: radius,
-      fontWeight: weight,
-    };
-  }
-  return {
-    background: theme.accent,
-    color: theme.accentForeground,
-    border: `1px solid ${theme.accent}`,
-    borderRadius: radius,
-    fontWeight: weight,
-  };
-}
-
-function linkPreviewStyles(theme: ThemeData): React.CSSProperties {
-  switch (theme.linkStyle) {
-    case "accent":
-      return {
-        color: theme.accent,
-        textDecoration: "none",
-        fontWeight: 500,
-      };
-    case "subtle":
-      return {
-        color: theme.mutedForeground,
-        textDecoration: "none",
-        fontWeight: 400,
-      };
-    case "bold":
-      return {
-        color: theme.foreground,
-        textDecoration: "none",
-        fontWeight: 600,
-      };
-    default:
-      return {
-        color: theme.foreground,
-        textDecoration: "underline",
-        textUnderlineOffset: 4,
-        fontWeight: 500,
-      };
-  }
-}
 
 export function ThemeEditor({
   initialTheme,
@@ -298,7 +230,9 @@ export function ThemeEditor({
   };
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="pb-24">
+      <div className="lg:flex lg:items-start lg:gap-8">
+        <div className="min-w-0 flex-1 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Themes</CardTitle>
@@ -685,51 +619,6 @@ export function ThemeEditor({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Preview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div
-            className="rounded-xl border border-neutral-200 p-6"
-            style={{
-              background: theme.background,
-              color: theme.foreground,
-              fontFamily:
-                FONT_CSS_VAR[theme.fontSans] ??
-                `"${theme.fontSans}", system-ui, sans-serif`,
-              fontWeight: Number(fontWeightToCss(theme.fontSansWeight)),
-            }}
-          >
-            <p
-              className="text-2xl"
-              style={{
-                fontFamily:
-                  FONT_CSS_VAR[theme.fontDisplay] ??
-                  `"${theme.fontDisplay}", Georgia, serif`,
-                fontWeight: Number(fontWeightToCss(theme.fontDisplayWeight)),
-              }}
-            >
-              Preview heading
-            </p>
-            <p className="mt-2 text-sm" style={{ color: theme.mutedForeground }}>
-              Body text with{" "}
-              <a href="#preview" style={linkPreviewStyles(theme)}>
-                a sample link
-              </a>{" "}
-              using your link style.
-            </p>
-            <button
-              type="button"
-              className="mt-4 px-6 py-2.5 text-sm"
-              style={buttonPreviewStyles(theme)}
-            >
-              Primary button
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-
       {isSuperAdmin && (
         <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
           <p className="text-sm font-medium text-neutral-950">
@@ -747,6 +636,18 @@ export function ThemeEditor({
           )}
         </div>
       )}
+        </div>
+
+        <aside className="hidden w-[min(100%,22.5rem)] shrink-0 lg:block">
+          <div className="sticky top-20">
+            <ThemePreviewPanel theme={theme} />
+          </div>
+        </aside>
+      </div>
+
+      <div className="mt-6 lg:hidden">
+        <ThemePreviewPanel theme={theme} />
+      </div>
 
       {/* Fixed action bar — always visible on long style forms */}
       <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 md:px-6 lg:left-64">

@@ -324,6 +324,7 @@ export function CmsStudio({
               embedMode
               activeTab="header"
               hideSave
+              canSelectHomeTemplate={canSelectHomeTemplate}
             />
           </TabsContent>
 

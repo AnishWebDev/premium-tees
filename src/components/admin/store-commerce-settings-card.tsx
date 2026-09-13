@@ -7,10 +7,8 @@ import type { StoreSettings } from "@/lib/store-settings";
 import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
   isSuperAdmin: boolean;
@@ -271,80 +269,16 @@ export function StoreCommerceSettingsCard({ isSuperAdmin }: Props) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-lg shadow-sm">
+      <Card className="rounded-lg border-dashed border-neutral-300 bg-neutral-50/60 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base">Site-wide announcement</CardTitle>
+          <CardTitle className="text-base">Promo hello bar</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="announcement-enabled"
-              role="switch"
-              aria-checked={settings.announcement.enabled}
-              checked={settings.announcement.enabled}
-              disabled={!isSuperAdmin || saving}
-              onCheckedChange={(checked) =>
-                setSettings((s) =>
-                  s
-                    ? {
-                        ...s,
-                        announcement: { ...s.announcement, enabled: checked === true },
-                      }
-                    : s
-                )
-              }
-            />
-            <Label htmlFor="announcement-enabled" className="cursor-pointer text-sm">
-              Show announcement bar on all storefront pages
-            </Label>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="announcement-message">Message</Label>
-            <Textarea
-              id="announcement-message"
-              disabled={!isSuperAdmin}
-              value={settings.announcement.message}
-              onChange={(e) =>
-                setSettings((s) =>
-                  s
-                    ? { ...s, announcement: { ...s.announcement, message: e.target.value } }
-                    : s
-                )
-              }
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="announcement-link">Link URL (optional)</Label>
-              <Input
-                id="announcement-link"
-                disabled={!isSuperAdmin}
-                value={settings.announcement.linkHref}
-                onChange={(e) =>
-                  setSettings((s) =>
-                    s
-                      ? { ...s, announcement: { ...s.announcement, linkHref: e.target.value } }
-                      : s
-                  )
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="announcement-link-label">Link label</Label>
-              <Input
-                id="announcement-link-label"
-                disabled={!isSuperAdmin}
-                value={settings.announcement.linkLabel}
-                onChange={(e) =>
-                  setSettings((s) =>
-                    s
-                      ? { ...s, announcement: { ...s.announcement, linkLabel: e.target.value } }
-                      : s
-                  )
-                }
-              />
-            </div>
-          </div>
+        <CardContent>
+          <p className="text-sm text-neutral-600">
+            The storefront promo strip is edited under{" "}
+            <strong>Page content → Header → Promo hello bar</strong> (message,
+            schedule, link, and SuperAdmin styling).
+          </p>
         </CardContent>
       </Card>
 

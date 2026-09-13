@@ -4,17 +4,14 @@ import {
   galleryBandClass,
   galleryRoundedClass,
 } from "@/components/home/blocks/image-gallery";
-import { toEmbedSrc } from "@/components/home/blocks/embed-frame";
-import { RemoteImage } from "@/components/shared/remote-image";
+import { VideoPlayerMedia } from "@/components/home/blocks/video-player-media";
 import { isSettingEnabled } from "@/lib/promo-schedule";
 import { cn } from "@/lib/utils";
 
 type VideoPlayerBlockProps = {
   title: string;
   subtitle?: string;
-  /** Direct .mp4 / .webm file */
   videoUrl?: string;
-  /** YouTube / Vimeo URL */
   embedUrl?: string;
   posterImageUrl?: string;
   ctaLabel?: string;
@@ -29,10 +26,6 @@ type VideoPlayerBlockProps = {
   loop?: boolean;
   showControls?: boolean;
 };
-
-function isDirectVideo(url: string) {
-  return /\.(mp4|webm|ogg)(\?|#|$)/i.test(url.trim());
-}
 
 export function VideoPlayerBlock({
   title,
@@ -52,12 +45,6 @@ export function VideoPlayerBlock({
   loop = false,
   showControls = true,
 }: VideoPlayerBlockProps) {
-  const directSrc = videoUrl.trim();
-  const embedSrc = embedUrl.trim();
-  const direct = directSrc ? isDirectVideo(directSrc) : false;
-  const iframeSrc =
-    !direct && embedSrc ? toEmbedSrc(embedSrc) : !direct && directSrc ? toEmbedSrc(directSrc) : null;
-  const nativeSrc = direct ? directSrc : null;
   const aspectClass = galleryAspectClass(mediaAspect);
   const roundedClass = galleryRoundedClass(borderRadius);
   const bandClass = galleryBandClass(bgStyle, backgroundColor);
@@ -87,48 +74,19 @@ export function VideoPlayerBlock({
           </p>
         ) : null}
 
-        <div
-          className={cn(
-            "relative mt-8 overflow-hidden bg-[var(--muted)]",
-            aspectClass,
-            roundedClass
-          )}
-        >
-          {nativeSrc ? (
-            <video
-              className="absolute inset-0 h-full w-full object-cover"
-              src={nativeSrc}
-              poster={posterImageUrl.trim() || undefined}
-              controls={showControls}
-              autoPlay={autoplay}
-              muted={muted || autoplay}
-              loop={loop}
-              playsInline
-              title={title}
-            />
-          ) : iframeSrc ? (
-            <iframe
-              src={iframeSrc}
-              title={title}
-              className="absolute inset-0 h-full w-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          ) : posterImageUrl.trim() ? (
-            <RemoteImage
-              src={posterImageUrl}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 1200px"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-[var(--muted-foreground)]">
-              Add a video file URL (.mp4) or a YouTube / Vimeo link in Page content.
-            </div>
-          )}
+        <div className="mt-8">
+          <VideoPlayerMedia
+            title={title}
+            videoUrl={videoUrl}
+            embedUrl={embedUrl}
+            posterImageUrl={posterImageUrl}
+            aspectClass={aspectClass}
+            roundedClass={roundedClass}
+            autoplay={autoplay}
+            muted={muted}
+            loop={loop}
+            showControls={showControls}
+          />
         </div>
 
         {ctaLabel?.trim() && ctaHref?.trim() ? (

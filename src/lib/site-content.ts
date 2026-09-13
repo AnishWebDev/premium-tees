@@ -28,6 +28,10 @@ import {
   type SavedThemePreset,
   type ThemeData,
 } from "@/lib/theme";
+import type { HelloBarData } from "@/lib/hello-bar";
+import { DEFAULT_HELLO_BAR, mergeHelloBar } from "@/lib/hello-bar";
+
+export type { HelloBarData };
 
 export const CONTENT_KEYS = [
   "site",
@@ -62,6 +66,7 @@ export type HeaderData = {
   navLinks: NavLinkItem[];
   logoImageUrl: string;
   logoImageAlt: string;
+  helloBar: HelloBarData;
 };
 
 export type FooterTrustItem = {
@@ -217,6 +222,7 @@ export const DEFAULT_SITE_CONTENT: AllSiteContent = {
     navLinks: [...NAV_LINKS],
     logoImageUrl: "",
     logoImageAlt: "",
+    helloBar: { ...DEFAULT_HELLO_BAR },
   },
   footer: {
     bannerImageUrl: FOOTER_IMAGE,
@@ -384,6 +390,7 @@ function mergeHeader(stored: unknown): HeaderData {
       typeof partial.logoImageAlt === "string"
         ? partial.logoImageAlt.trim()
         : defaults.logoImageAlt,
+    helloBar: mergeHelloBar(partial.helloBar),
   };
 }
 
