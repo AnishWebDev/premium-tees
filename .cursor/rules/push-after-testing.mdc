@@ -1,0 +1,48 @@
+---
+description: Mandatory pre-push checklist when the user says "Push it after testing"
+alwaysApply: true
+---
+
+# Push After Testing
+
+When the user asks to **push after testing** (or similar), complete **all** steps below and report results **before** `git push`. Do not push until every gate passes or the user explicitly accepts a documented exception.
+
+## 1. Vercel / deploy readiness
+
+- Run local `npm run build` (must exit 0).
+- After push (if user already asked to push), verify GitHub commit status for Vercel: **success**, not pending/failure.
+- If Vercel failed, inspect logs, fix root cause, re-test, and push a fix — do not leave main in a failed deploy state without telling the user.
+
+## 2. Accessibility
+
+- Smoke-test key routes locally (home, shop, one CMS page, admin login if applicable).
+- Run Lighthouse **accessibility** (target score ≥ 90) or equivalent axe check on the homepage.
+- Fix critical a11y regressions (missing alt, broken landmarks, contrast, focus) before push.
+
+## 3. Local without errors
+
+- `npx tsc --noEmit` — no type errors.
+- `npm run lint` — no new errors (pre-existing warnings OK if unchanged).
+- Dev server starts cleanly: `npm run dev` on port 3010, no crash on load.
+- Hit `/` and one admin route; confirm no runtime errors in terminal.
+
+## 4. Performance / Lighthouse
+
+- Run Lighthouse **performance** on local production build (`npm run start` after build) or dev, target score ≥ 80 on homepage.
+- Note LCP, CLS, and any failing audits; fix obvious regressions introduced by the change.
+
+## Report format (required)
+
+Before pushing, summarize:
+
+```
+Pre-push checklist
+- Build: pass/fail
+- tsc/lint: pass/fail
+- Dev server: pass/fail
+- Lighthouse perf: XX (homepage)
+- Lighthouse a11y: XX (homepage)
+- Vercel: N/A until after push, then re-check
+```
+
+After push, re-check Vercel status and report final deploy state.
