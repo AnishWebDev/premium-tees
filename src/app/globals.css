@@ -356,9 +356,10 @@ input[type="button"]:not(:disabled) {
   border-color: transparent;
 }
 .theme-button-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
-  background-color: var(--border) !important;
-  border-color: var(--border) !important;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  background-color: var(--button-hover-bg) !important;
+  color: var(--button-hover-fg, var(--button-fg)) !important;
+  border-color: var(--button-hover-border, var(--button-hover-bg)) !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
 }
 
 /* Outline */

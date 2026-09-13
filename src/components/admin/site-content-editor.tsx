@@ -626,7 +626,7 @@ function HeaderEditor({
       <CardHeader>
         <CardTitle>Header</CardTitle>
         <CardDescription>
-          Navigation links and optional logo image. Leave logo URL empty to show the site name as text.
+          Navigation links and optional logo image shown alongside the site name in the header.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -640,7 +640,7 @@ function HeaderEditor({
           label="Logo image URL (optional)"
           value={data.logoImageUrl}
           onChange={(logoImageUrl) => set({ logoImageUrl })}
-          hint="Replaces the text site name when set. Use a wide logo on transparent background."
+          hint="Square or mark-style logo works best next to the site name. Use a transparent PNG or SVG."
         />
         <Field
           label="Logo alt text"

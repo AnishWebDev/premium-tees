@@ -300,7 +300,7 @@ export function ShopToolbar({ categories, total, enabledAudiences }: ShopToolbar
                 className="w-28"
               />
             </div>
-            <Button type="submit" variant="secondary" size="sm">
+            <Button type="submit" size="sm">
               Apply
             </Button>
           </div>

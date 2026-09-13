@@ -45,7 +45,7 @@ export function PincodeChecker({ pincodeDeliveryDays }: PincodeCheckerProps) {
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleCheck())}
           />
         </div>
-        <Button type="button" variant="secondary" onClick={handleCheck}>
+        <Button type="button" onClick={handleCheck}>
           Check
         </Button>
       </div>

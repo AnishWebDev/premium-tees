@@ -85,24 +85,24 @@ export function Header({
           href="/"
           title={siteName}
           aria-label={`${siteName} home`}
-          className={
-            hasLogoImage
-              ? "relative block h-9 w-28 shrink-0 sm:h-10 sm:w-32"
-              : "font-display min-w-0 max-w-[42vw] truncate text-xl font-semibold tracking-tight text-[var(--foreground)] sm:max-w-none sm:text-2xl"
-          }
+          className="flex min-w-0 max-w-[calc(100vw-9.5rem)] flex-1 items-center gap-2 lg:max-w-none lg:flex-none"
         >
-          {hasLogoImage ? (
-            <RemoteImage
-              src={logoImageUrl}
-              alt={logoImageAlt || siteName}
-              fill
-              sizes="128px"
-              className="object-contain object-left"
-              priority
-            />
-          ) : (
-            siteName
+          {hasLogoImage && (
+            <span className="relative block h-8 w-8 shrink-0 sm:h-9 sm:w-9">
+              <RemoteImage
+                src={logoImageUrl}
+                alt=""
+                fill
+                sizes="36px"
+                className="object-contain"
+                priority
+                aria-hidden
+              />
+            </span>
           )}
+          <span className="font-display truncate text-base font-semibold tracking-tight text-[var(--foreground)] sm:text-xl lg:text-2xl">
+            {siteName}
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">
