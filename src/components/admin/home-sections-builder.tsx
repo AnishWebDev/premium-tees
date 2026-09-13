@@ -77,7 +77,7 @@ export function HomeSectionsBuilder({
   pageLabel = "page",
 }: HomeSectionsBuilderProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [addType, setAddType] = useState<HomeSectionType>("embedFrame");
+  const [addType, setAddType] = useState<HomeSectionType | "">("");
   const [libraryPick, setLibraryPick] = useState<string>("");
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -130,7 +130,7 @@ export function HomeSectionsBuilder({
   };
 
   const add = () => {
-    if (!canManageLayout) return;
+    if (!canManageLayout || !addType) return;
     const id = `${addType}-${Date.now().toString(36)}`;
     const seeded = defaultPropsForSection(addType, content);
     onChange([
@@ -138,6 +138,7 @@ export function HomeSectionsBuilder({
       { id, type: addType, enabled: true, props: seeded },
     ]);
     setOpenId(id);
+    setAddType("");
   };
 
   const insertFromLibrary = () => {
@@ -184,11 +185,11 @@ export function HomeSectionsBuilder({
             Component type
           </Label>
           <Select
-            value={addType}
+            value={addType || undefined}
             onValueChange={(v) => setAddType(v as HomeSectionType)}
           >
             <SelectTrigger className="mt-1.5 bg-white">
-              <SelectValue placeholder="Choose a component…" />
+              <SelectValue placeholder="Select a component" />
             </SelectTrigger>
             <SelectContent>
               {HOME_SECTION_CATALOG.map((item) => (
@@ -199,7 +200,12 @@ export function HomeSectionsBuilder({
             </SelectContent>
           </Select>
         </div>
-        <Button type="button" onClick={add} className="h-11 shrink-0">
+        <Button
+          type="button"
+          onClick={add}
+          disabled={!addType}
+          className="h-11 shrink-0"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add component
         </Button>

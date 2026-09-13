@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     });
 
     revalidatePath("/admin/content");
-    revalidatePath(`/pages/${slug}`);
+    revalidatePath(`/${slug}`);
 
     return NextResponse.json({ page });
   } catch (error) {

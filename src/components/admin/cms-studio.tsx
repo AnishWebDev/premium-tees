@@ -248,8 +248,14 @@ export function CmsStudio({
     }
   };
 
-  const deletePage = async (id: string) => {
-    if (!confirm("Delete this page? This cannot be undone.")) return;
+  const deletePage = async (id: string, title: string) => {
+    if (
+      !confirm(
+        `Delete "${title}"? This page and all of its components will be removed permanently.`
+      )
+    ) {
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/pages/${id}`, { method: "DELETE" });
@@ -382,7 +388,7 @@ export function CmsStudio({
                   </Button>
                 </div>
                 <p className="text-xs text-neutral-500">
-                  Live at /pages/{newSlug || "your-slug"} when published
+                  Live at /{newSlug || "your-slug"} when published
                 </p>
               </CardContent>
             </Card>
@@ -390,15 +396,15 @@ export function CmsStudio({
             {pageDraft ? (
               <>
                 <Card>
-                  <CardHeader className="space-y-4">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <Label htmlFor="page-picker">Page</Label>
+                  <CardHeader>
+                    <div className="space-y-2">
+                      <Label htmlFor="page-picker">Page</Label>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <Select
                           value={pageDraft.id}
                           onValueChange={setSelectedPageId}
                         >
-                          <SelectTrigger id="page-picker" className="h-11">
+                          <SelectTrigger id="page-picker" className="h-11 sm:flex-1">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -421,46 +427,48 @@ export function CmsStudio({
                             ) : null}
                           </SelectContent>
                         </Select>
-                        <p className="text-xs text-neutral-500">
-                          Live at{" "}
-                          <a
-                            href={pagePathForSlug(pageDraft.slug)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium text-neutral-800 underline-offset-2 hover:underline"
-                          >
-                            {pagePathForSlug(pageDraft.slug)}
-                          </a>
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-10"
-                          asChild
-                        >
-                          <a
-                            href={pagePathForSlug(pageDraft.slug)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Preview
-                          </a>
-                        </Button>
-                        {!pageDraft.isSystem ? (
+                        <div className="flex shrink-0 items-center gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            className="h-10 text-red-600"
-                            onClick={() => void deletePage(pageDraft.id)}
+                            className="h-11"
+                            asChild
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            <a
+                              href={pagePathForSlug(pageDraft.slug)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              Preview
+                            </a>
                           </Button>
-                        ) : null}
+                          {!pageDraft.isSystem ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-11 text-red-600"
+                              onClick={() =>
+                                void deletePage(pageDraft.id, pageDraft.title)
+                              }
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
+                      <p className="text-xs text-neutral-500">
+                        Live at{" "}
+                        <a
+                          href={pagePathForSlug(pageDraft.slug)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-medium text-neutral-800 underline-offset-2 hover:underline"
+                        >
+                          {pagePathForSlug(pageDraft.slug)}
+                        </a>
+                      </p>
                     </div>
                   </CardHeader>
                   {usesSectionBuilder ? (

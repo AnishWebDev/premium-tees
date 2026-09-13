@@ -92,7 +92,7 @@ export async function PUT(request: Request, context: RouteContext) {
     if (page.slug === "home") {
       revalidatePath("/");
     } else {
-      revalidatePath(`/pages/${page.slug}`);
+      revalidatePath(`/${page.slug}`);
     }
 
     return NextResponse.json({ page });
@@ -117,7 +117,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     await deleteCmsPage(id);
 
     revalidatePath("/admin/content");
-    revalidatePath(`/pages/${existing.slug}`);
+    revalidatePath(`/${existing.slug}`);
 
     return NextResponse.json({ ok: true });
   } catch (error) {

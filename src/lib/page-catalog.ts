@@ -97,7 +97,7 @@ export const SYSTEM_PAGES: SystemPageDefinition[] = [
 export function pagePathForSlug(slug: string): string {
   const system = SYSTEM_PAGES.find((p) => p.slug === slug);
   if (system) return system.path;
-  return `/pages/${slug}`;
+  return `/${slug}`;
 }
 
 export function pageKindForSlug(slug: string): PageEditorKind {

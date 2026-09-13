@@ -193,4 +193,11 @@ export const RESERVED_PAGE_SLUGS = new Set([
   "account",
   "product",
   "pages",
+  "profile",
+  "orders",
+  "wishlist",
+  "forgot-password",
+  "reset-password",
+  "robots.txt",
+  "sitemap.xml",
 ]);
