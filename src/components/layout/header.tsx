@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ShoppingBag, Heart, User, Search } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import type { NavLinkItem } from "@/lib/site-content";
@@ -15,6 +14,7 @@ import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { cn } from "@/lib/utils";
 import { ColorModeToggle } from "@/components/theme/color-mode-toggle";
 import { MiniCartDrawer } from "@/components/cart/mini-cart-drawer";
+import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -58,7 +58,17 @@ export function Header({
 
   useEffect(() => setOpen(false), [pathname]);
 
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   const count = mounted ? itemCount : 0;
+  const wishlist = mounted ? wishlistCount : 0;
 
   return (
     <header
@@ -70,39 +80,40 @@ export function Header({
       )}
     >
       <div className="container-tight flex h-16 items-center justify-between gap-4 lg:h-20">
-        <div className="flex items-center gap-3 lg:hidden">
+        <div className="flex min-w-0 flex-1 items-center gap-3 lg:flex-none">
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
-            className="rounded-full p-2 text-[var(--foreground)] hover:bg-[var(--muted)]"
+            aria-expanded={open}
+            className="shrink-0 rounded-full p-2 text-[var(--foreground)] hover:bg-[var(--muted)] lg:hidden"
             onClick={() => setOpen((v) => !v)}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-        </div>
 
-        <Link
-          href="/"
-          title={siteName}
-          aria-label={`${siteName} home`}
-          className="flex min-w-0 max-w-[calc(100vw-9.5rem)] flex-1 items-center gap-2 lg:max-w-none lg:flex-none"
-        >
-          {hasLogoImage && (
-            <span className="relative block h-8 w-8 shrink-0 sm:h-9 sm:w-9">
-              <RemoteImage
-                src={logoImageUrl}
-                alt={logoImageAlt.trim() || `${siteName} logo`}
-                fill
-                sizes="36px"
-                className="object-contain"
-                priority
-              />
+          <Link
+            href="/"
+            title={siteName}
+            aria-label={`${siteName} home`}
+            className="flex min-w-0 items-center gap-2"
+          >
+            {hasLogoImage && (
+              <span className="relative block h-8 w-8 shrink-0 sm:h-9 sm:w-9">
+                <RemoteImage
+                  src={logoImageUrl}
+                  alt={logoImageAlt.trim() || `${siteName} logo`}
+                  fill
+                  sizes="36px"
+                  className="object-contain"
+                  priority
+                />
+              </span>
+            )}
+            <span className="font-display truncate text-base font-semibold tracking-tight text-[var(--foreground)] sm:text-xl lg:text-2xl">
+              {siteName}
             </span>
-          )}
-          <span className="font-display truncate text-base font-semibold tracking-tight text-[var(--foreground)] sm:text-xl lg:text-2xl">
-            {siteName}
-          </span>
-        </Link>
+          </Link>
+        </div>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">
           {links.map((link) => (
@@ -121,118 +132,97 @@ export function Header({
           ))}
         </nav>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <ColorModeToggle />
-          <Button variant="ghost" size="icon" asChild aria-label="Search">
-            <Link href="/shop">
-              <Search className="h-5 w-5" />
-            </Link>
-          </Button>
-          <Button variant="ghost" size="icon" asChild aria-label="Wishlist">
-            <Link href="/wishlist">
-              <Heart
-                className={cn(
-                  "h-5 w-5",
-                  wishlistCount > 0 && "fill-red-500 text-red-500"
-                )}
-              />
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={`Cart${count > 0 ? `, ${count} items` : ""}`}
-            className="relative"
-            onClick={() => setCartOpen(true)}
-          >
-            <ShoppingBag className="h-5 w-5" />
-            {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-medium text-[var(--accent-foreground)]">
-                {count}
-              </span>
-            )}
-          </Button>
-
-          {session?.user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Account menu">
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5 text-sm">
-                  <p className="font-medium">{session.user.name}</p>
-                  <p className="truncate text-[var(--muted-foreground)]">
-                    {session.user.email}
-                  </p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/orders">Orders</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/wishlist">Wishlist</Link>
-                </DropdownMenuItem>
-                {(session.user.role === "ADMIN" ||
-                  session.user.role === "SUPERADMIN") && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin">Admin</Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    resetCartForUser(null);
-                    void signOut({ callbackUrl: "/" });
-                  }}
-                >
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-              <Link href="/login">Sign in</Link>
+          <div className="hidden items-center gap-1 sm:gap-2 lg:flex">
+            <Button variant="ghost" size="icon" asChild aria-label="Search">
+              <Link href="/shop">
+                <Search className="h-5 w-5" />
+              </Link>
             </Button>
-          )}
+            <Button variant="ghost" size="icon" asChild aria-label="Wishlist">
+              <Link href="/wishlist">
+                <Heart
+                  className={cn(
+                    "h-5 w-5",
+                    wishlist > 0 && "fill-red-500 text-red-500"
+                  )}
+                />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Cart${count > 0 ? `, ${count} items` : ""}`}
+              className="relative"
+              onClick={() => setCartOpen(true)}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-medium text-[var(--accent-foreground)]">
+                  {count}
+                </span>
+              )}
+            </Button>
+
+            {session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Account menu">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5 text-sm">
+                    <p className="font-medium">{session.user.name}</p>
+                    <p className="truncate text-[var(--muted-foreground)]">
+                      {session.user.email}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders">Orders</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/wishlist">Wishlist</Link>
+                  </DropdownMenuItem>
+                  {(session.user.role === "ADMIN" ||
+                    session.user.role === "SUPERADMIN") && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">Admin</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      resetCartForUser(null);
+                      void signOut({ callbackUrl: "/" });
+                    }}
+                  >
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+                <Link href="/login">Sign in</Link>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.nav
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[var(--border)] bg-[var(--background)] lg:hidden"
-            aria-label="Mobile"
-          >
-            <div className="container-tight flex flex-col gap-1 py-4">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="rounded-xl px-3 py-3 text-base font-medium text-[var(--foreground)] hover:bg-[var(--muted)]"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {!session?.user && (
-                <Link
-                  href="/login"
-                  className="rounded-xl px-3 py-3 text-base font-medium text-[var(--foreground)] hover:bg-[var(--muted)]"
-                >
-                  Sign in
-                </Link>
-              )}
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      <MobileNavDrawer
+        open={open}
+        onOpenChange={setOpen}
+        links={links}
+        cartCount={count}
+        wishlistCount={wishlist}
+        onOpenCart={() => setCartOpen(true)}
+      />
 
       <MiniCartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </header>
