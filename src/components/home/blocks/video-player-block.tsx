@@ -109,7 +109,10 @@ export function videoPlayerSettingsFromProps(props: {
 }) {
   return {
     autoplay: isSettingEnabled(props.settingAutoplay),
-    muted: isSettingEnabled(props.settingMuted),
+    muted:
+      props.settingMuted?.trim()
+        ? isSettingEnabled(props.settingMuted)
+        : true,
     loop: isSettingEnabled(props.settingLoop),
     showControls: props.settingShowControls
       ? isSettingEnabled(props.settingShowControls)

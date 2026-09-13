@@ -54,9 +54,11 @@ export function VideoPlayerMedia({
 
   const iframeSrc = useMemo(() => {
     if (!baseIframeSrc) return null;
+    const autoplayActive = autoplay && inView;
     return withEmbedPlayback(baseIframeSrc, {
-      autoplay: autoplay && inView,
-      muted: muted || autoplay,
+      autoplay: autoplayActive,
+      // Respect "Start muted" even without autoplay; force mute when autoplaying.
+      muted: autoplayActive ? true : muted,
       loop,
     });
   }, [autoplay, baseIframeSrc, inView, loop, muted]);
@@ -77,6 +79,12 @@ export function VideoPlayerMedia({
     observer.observe(container);
     return () => observer.disconnect();
   }, [autoplay, baseIframeSrc, nativeSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !nativeSrc) return;
+    video.muted = autoplay ? true : muted;
+  }, [autoplay, muted, nativeSrc]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -107,7 +115,7 @@ export function VideoPlayerMedia({
           src={nativeSrc}
           poster={posterImageUrl.trim() || undefined}
           controls={showControls}
-          muted={muted || autoplay}
+          muted={autoplay ? true : muted}
           loop={loop}
           playsInline
           preload={autoplay ? "metadata" : "none"}

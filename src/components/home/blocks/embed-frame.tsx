@@ -28,13 +28,36 @@ export function withEmbedPlayback(
     const isYoutube =
       host.includes("youtube") || host.includes("youtube-nocookie");
 
+    const hostIsVimeo = host === "vimeo.com" || host === "player.vimeo.com";
+    const shouldMute =
+      options.muted === true || (options.autoplay && options.muted !== false);
+
+    if (hostIsVimeo) {
+      if (shouldMute) {
+        url.searchParams.set("muted", "1");
+      } else if (options.muted === false) {
+        url.searchParams.set("muted", "0");
+      } else {
+        url.searchParams.delete("muted");
+      }
+    } else if (isYoutube) {
+      if (shouldMute) {
+        url.searchParams.set("mute", "1");
+      } else if (options.muted === false) {
+        url.searchParams.set("mute", "0");
+      } else {
+        url.searchParams.delete("mute");
+      }
+    }
+
     if (options.autoplay) {
       url.searchParams.set("autoplay", "1");
-      url.searchParams.set("mute", options.muted !== false ? "1" : "0");
       url.searchParams.set("playsinline", "1");
+      // Autoplay in browsers requires muted embeds.
+      if (isYoutube) url.searchParams.set("mute", "1");
+      if (hostIsVimeo) url.searchParams.set("muted", "1");
     } else {
       url.searchParams.delete("autoplay");
-      url.searchParams.delete("mute");
       url.searchParams.delete("playsinline");
     }
 

@@ -238,7 +238,16 @@ const CONTACT_HEADERS = [
   "Message",
 ] as const;
 
+/** Older manual sheets often omit the timestamp column. */
+const LEGACY_CONTACT_HEADERS = ["Name", "Email", "Subject", "Message"] as const;
+
 const CONTACT_LAST_COLUMN = "E";
+const LEGACY_CONTACT_LAST_COLUMN = "D";
+
+function sheetRange(tabName: string, a1Range: string): string {
+  const escaped = tabName.replace(/'/g, "''");
+  return `'${escaped}'!${a1Range}`;
+}
 
 function getContactTabName(): string {
   return process.env.GOOGLE_SHEETS_CONTACT_TAB_NAME?.trim() || "Contact";
@@ -256,6 +265,25 @@ function contactHeadersMatch(existing: string[] | undefined): boolean {
   return CONTACT_HEADERS.every((header, index) => existing[index] === header);
 }
 
+function legacyContactHeadersMatch(existing: string[] | undefined): boolean {
+  if (!existing || existing.length !== LEGACY_CONTACT_HEADERS.length) return false;
+  return LEGACY_CONTACT_HEADERS.every((header, index) => existing[index] === header);
+}
+
+type ContactHeaderFormat = "standard" | "legacy";
+
+async function nextContactRow(
+  sheets: ReturnType<typeof google.sheets>,
+  tab: string
+): Promise<number> {
+  const column = await sheets.spreadsheets.values.get({
+    spreadsheetId: getSpreadsheetId()!,
+    range: sheetRange(tab, "A:A"),
+  });
+  const rowCount = column.data.values?.length ?? 0;
+  return Math.max(rowCount, 1) + 1;
+}
+
 async function ensureContactTabExists(sheets: ReturnType<typeof google.sheets>) {
   const spreadsheetId = getSpreadsheetId()!;
   const tab = getContactTabName();
@@ -271,10 +299,12 @@ async function ensureContactTabExists(sheets: ReturnType<typeof google.sheets>) 
   });
 }
 
-async function ensureContactHeaders(sheets: ReturnType<typeof google.sheets>) {
+async function ensureContactHeaders(
+  sheets: ReturnType<typeof google.sheets>
+): Promise<ContactHeaderFormat> {
   const spreadsheetId = getSpreadsheetId()!;
   const tab = getContactTabName();
-  const range = `${tab}!A1:${CONTACT_LAST_COLUMN}1`;
+  const range = sheetRange(tab, `A1:${CONTACT_LAST_COLUMN}1`);
 
   const existing = await sheets.spreadsheets.values.get({
     spreadsheetId,
@@ -282,7 +312,8 @@ async function ensureContactHeaders(sheets: ReturnType<typeof google.sheets>) {
   });
 
   const existingRow = existing.data.values?.[0];
-  if (contactHeadersMatch(existingRow)) return;
+  if (contactHeadersMatch(existingRow)) return "standard";
+  if (legacyContactHeadersMatch(existingRow)) return "legacy";
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
@@ -290,6 +321,7 @@ async function ensureContactHeaders(sheets: ReturnType<typeof google.sheets>) {
     valueInputOption: "RAW",
     requestBody: { values: [Array.from(CONTACT_HEADERS)] },
   });
+  return "standard";
 }
 
 export async function appendContactToGoogleSheets(
@@ -304,21 +336,31 @@ export async function appendContactToGoogleSheets(
   const tab = getContactTabName();
 
   await ensureContactTabExists(sheets);
-  await ensureContactHeaders(sheets);
+  const headerFormat = await ensureContactHeaders(sheets);
+  const nextRow = await nextContactRow(sheets, tab);
 
-  const row = [
+  const trimmedMessage = input.message.trim();
+  const standardRow = [
     formatSheetDateTime(new Date()),
     input.name.trim(),
     input.email.trim(),
     input.subject.trim(),
-    input.message.trim(),
+    trimmedMessage,
   ];
+  const legacyRow = [
+    input.name.trim(),
+    input.email.trim(),
+    input.subject.trim(),
+    trimmedMessage,
+  ];
+  const row = headerFormat === "legacy" ? legacyRow : standardRow;
+  const lastColumn =
+    headerFormat === "legacy" ? LEGACY_CONTACT_LAST_COLUMN : CONTACT_LAST_COLUMN;
 
-  await sheets.spreadsheets.values.append({
+  await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${tab}!A:${CONTACT_LAST_COLUMN}`,
+    range: sheetRange(tab, `A${nextRow}:${lastColumn}${nextRow}`),
     valueInputOption: "RAW",
-    insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },
   });
 }
