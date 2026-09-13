@@ -3,11 +3,11 @@ import { isSuperAdmin } from "@/lib/roles";
 import { getAllCmsContent } from "@/lib/cms-content";
 import { listCmsPages } from "@/lib/cms-pages";
 import { getAllSiteContent } from "@/lib/site-content";
+import { CmsStudio } from "@/components/admin/cms-studio";
 import {
-  CmsStudio,
   parseCmsGlobalCopyTab,
   parseCmsMainTab,
-} from "@/components/admin/cms-studio";
+} from "@/lib/cms-studio-tabs";
 import type { SectionContentSource } from "@/lib/home-sections";
 
 export const dynamic = "force-dynamic";

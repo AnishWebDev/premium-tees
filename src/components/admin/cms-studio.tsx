@@ -52,7 +52,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-type MainTab = "site" | "header" | "footer" | "pages" | "global-copy";
+import {
+  GLOBAL_COPY_SUBTABS,
+  MAIN_TABS,
+  type CmsMainTab,
+} from "@/lib/cms-studio-tabs";
+
+type MainTab = CmsMainTab;
 
 type CmsStudioProps = {
   initialPages: CmsPageRecord[];
@@ -64,39 +70,11 @@ type CmsStudioProps = {
   initialGlobalCopyTab?: CmsKey;
 };
 
-export function parseCmsMainTab(value: string | null | undefined): MainTab {
-  if (value && MAIN_TABS.some((tab) => tab.key === value)) {
-    return value as MainTab;
-  }
-  return "site";
-}
-
-export function parseCmsGlobalCopyTab(value: string | null | undefined): CmsKey {
-  if (value && GLOBAL_COPY_SUBTABS.some((tab) => tab.key === value)) {
-    return value as CmsKey;
-  }
-  return "storeCopy";
-}
-
-const MAIN_TABS: { key: MainTab; label: string }[] = [
-  { key: "site", label: "Site" },
-  { key: "header", label: "Header" },
-  { key: "footer", label: "Footer" },
-  { key: "pages", label: "Pages" },
-  { key: "global-copy", label: "Global copy" },
-];
-
 function pageUsesSectionBuilder(page: CmsPageRecord): boolean {
   if (page.slug === "home") return true;
   if (!page.isSystem) return true;
   return pageKindForSlug(page.slug) === "sections";
 }
-
-const GLOBAL_COPY_SUBTABS: { key: CmsKey; label: string }[] = [
-  { key: "storeCopy", label: "404 & messages" },
-  { key: "sizeGuide", label: "Size guide" },
-  { key: "auth", label: "Auth pages" },
-];
 
 export function CmsStudio({
   initialPages,

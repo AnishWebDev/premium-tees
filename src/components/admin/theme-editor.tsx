@@ -18,6 +18,7 @@ import {
 import { ThemePreviewPanel } from "@/components/admin/theme-preview-panel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -619,6 +620,33 @@ export function ThemeEditor({
                 <SelectItem value="bold">Bold</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Site chrome</CardTitle>
+          <CardDescription>
+            Storefront layout options that apply across every page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="theme-hide-scrollbar"
+              checked={theme.hideScrollbar}
+              onCheckedChange={(v) => set("hideScrollbar", v === true)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="theme-hide-scrollbar" className="cursor-pointer">
+                Hide page scrollbar
+              </Label>
+              <p className="text-xs text-neutral-500">
+                Hides the main browser scrollbar on the storefront. Pages still
+                scroll with trackpad, mouse wheel, and touch.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -37,6 +37,8 @@ export type ThemeData = {
   buttonStyle: ButtonStyle;
   buttonWeight: ButtonWeight;
   linkStyle: LinkStyle;
+  /** Hide the main page scrollbar while keeping scroll behavior. */
+  hideScrollbar: boolean;
 };
 
 export const DEFAULT_THEME: ThemeData = {
@@ -57,6 +59,7 @@ export const DEFAULT_THEME: ThemeData = {
   buttonStyle: "solid",
   buttonWeight: "medium",
   linkStyle: "underline",
+  hideScrollbar: false,
 };
 
 export type ThemePreset = {
@@ -255,6 +258,7 @@ export function normalizeTheme(input: unknown): ThemeData {
     fontSansWeight: partial.fontSansWeight ?? DEFAULT_THEME.fontSansWeight,
     fontDisplayWeight: partial.fontDisplayWeight ?? DEFAULT_THEME.fontDisplayWeight,
     linkStyle: partial.linkStyle ?? DEFAULT_THEME.linkStyle,
+    hideScrollbar: partial.hideScrollbar ?? DEFAULT_THEME.hideScrollbar,
   };
 }
 
@@ -530,6 +534,18 @@ export function themeToCssVariables(theme: ThemeData) {
   --link-decoration-hover: ${link.hoverDecoration};
   --link-weight: ${link.weight};
   color-scheme: dark;
+}
+${
+  normalized.hideScrollbar
+    ? `
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}`
+    : ""
 }
 `.trim();
 }
