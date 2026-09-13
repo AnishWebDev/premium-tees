@@ -101,17 +101,18 @@ export function AdminSidebar({ open, onClose, role }: AdminSidebarProps) {
           </Button>
         </div>
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
+        <nav className="admin-sidebar-nav flex-1 space-y-0.5 overflow-y-auto p-3">
           {visibleNav.map(({ href, label, icon: Icon, exact }) => (
             <Link
               key={href}
               href={href}
               onClick={onClose}
+              data-active={isActive(href, exact) ? "true" : undefined}
               className={cn(
-                "flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "admin-sidebar-link flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive(href, exact)
-                  ? "bg-neutral-800 text-white"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
+                  ? "admin-sidebar-link-active text-white"
+                  : "text-neutral-400"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -123,7 +124,7 @@ export function AdminSidebar({ open, onClose, role }: AdminSidebarProps) {
         <div className="border-t border-neutral-800 p-3">
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+            className="admin-sidebar-link flex items-center gap-2 rounded-md px-3 py-2 text-sm text-neutral-400 transition-colors"
             onClick={onClose}
           >
             ← Back to store

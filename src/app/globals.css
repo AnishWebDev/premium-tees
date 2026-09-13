@@ -276,6 +276,21 @@ textarea:-webkit-autofill:focus {
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
 }
 
+/* Admin sidebar — always dark; hover must stay visible in admin light/dark modes */
+.admin-sidebar-nav .admin-sidebar-link:hover {
+  background-color: rgb(64 64 64) !important;
+  color: #fafafa !important;
+}
+.admin-sidebar-nav .admin-sidebar-link-active,
+.admin-sidebar-nav .admin-sidebar-link[data-active="true"] {
+  background-color: rgb(64 64 64) !important;
+  color: #ffffff !important;
+}
+.admin-sidebar-nav .admin-sidebar-link:focus-visible {
+  outline: 2px solid rgb(161 161 170);
+  outline-offset: 2px;
+}
+
 /* Tailwind preflight sets cursor: default on buttons — restore pointer affordance */
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]),

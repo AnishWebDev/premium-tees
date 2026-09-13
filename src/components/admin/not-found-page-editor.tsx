@@ -39,6 +39,8 @@ import {
 type NotFoundPageEditorProps = {
   storeCopy: StoreCopyData;
   onChange: (copy: StoreCopyData) => void;
+  /** Typography colors, sizes, and fonts — SuperAdmin only. */
+  canEditTypographySettings?: boolean;
 };
 
 const TYPO_GROUPS: {
@@ -70,6 +72,7 @@ const TYPO_GROUPS: {
 export function NotFoundPageEditor({
   storeCopy,
   onChange,
+  canEditTypographySettings = false,
 }: NotFoundPageEditorProps) {
   const set = <K extends keyof StoreCopyData>(key: K, value: StoreCopyData[K]) =>
     onChange({ ...storeCopy, [key]: value });
@@ -79,8 +82,9 @@ export function NotFoundPageEditor({
       <CardHeader className="pb-3">
         <CardTitle className="text-base">404 page</CardTitle>
         <CardDescription>
-          Shown when a URL does not exist. Customize copy, images, button labels,
-          and typography.
+          Shown when a URL does not exist. Customize copy, images, and button
+          labels
+          {canEditTypographySettings ? ", plus typography" : ""}.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -96,80 +100,82 @@ export function NotFoundPageEditor({
           ))}
         </div>
 
-        <Accordion type="single" collapsible className={adminComponentSettingsDivider}>
-          <AccordionItem value="typography" className="border-none">
-            <AccordionTrigger className="py-2 text-xs font-medium text-[var(--foreground)] hover:no-underline">
-              Typography
-            </AccordionTrigger>
-            <AccordionContent className="space-y-4 pb-1 pt-2">
-              <p className="text-xs text-[var(--muted-foreground)]">
-                Leave colors and fonts blank to use your theme defaults.
-              </p>
-              {TYPO_GROUPS.map((group) => (
-                <div key={group.title} className={`space-y-3 ${adminPanelMuted}`}>
-                  <p className="text-xs font-semibold text-[var(--foreground)]">
-                    {group.title}
-                  </p>
-                  <ColorField
-                    label={STORE_COPY_LABELS[group.color]}
-                    value={storeCopy[group.color]}
-                    onChange={(v) => set(group.color, v)}
-                  />
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-xs">
-                        {STORE_COPY_LABELS[group.fontSize]}
-                      </Label>
-                      <Select
-                        value={storeCopy[group.fontSize] || "__default"}
-                        onValueChange={(v) =>
-                          set(group.fontSize, v === "__default" ? "" : v)
-                        }
-                      >
-                        <SelectTrigger className="bg-[var(--background)]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {NOT_FOUND_FONT_SIZE_OPTIONS.map((opt) => (
-                            <SelectItem
-                              key={opt.value || "default"}
-                              value={opt.value || "__default"}
-                            >
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs">
-                        {STORE_COPY_LABELS[group.fontFamily]}
-                      </Label>
-                      <Select
-                        value={storeCopy[group.fontFamily] || "__default"}
-                        onValueChange={(v) =>
-                          set(group.fontFamily, v === "__default" ? "" : v)
-                        }
-                      >
-                        <SelectTrigger className="bg-[var(--background)]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__default">Theme default</SelectItem>
-                          {FONT_OPTIONS.map((font) => (
-                            <SelectItem key={font} value={font}>
-                              {font}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+        {canEditTypographySettings ? (
+          <Accordion type="single" collapsible className={adminComponentSettingsDivider}>
+            <AccordionItem value="typography" className="border-none">
+              <AccordionTrigger className="py-2 text-xs font-medium text-[var(--foreground)] hover:no-underline">
+                Typography
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pb-1 pt-2">
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  Leave colors and fonts blank to use your theme defaults.
+                </p>
+                {TYPO_GROUPS.map((group) => (
+                  <div key={group.title} className={`space-y-3 ${adminPanelMuted}`}>
+                    <p className="text-xs font-semibold text-[var(--foreground)]">
+                      {group.title}
+                    </p>
+                    <ColorField
+                      label={STORE_COPY_LABELS[group.color]}
+                      value={storeCopy[group.color]}
+                      onChange={(v) => set(group.color, v)}
+                    />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label className="text-xs">
+                          {STORE_COPY_LABELS[group.fontSize]}
+                        </Label>
+                        <Select
+                          value={storeCopy[group.fontSize] || "__default"}
+                          onValueChange={(v) =>
+                            set(group.fontSize, v === "__default" ? "" : v)
+                          }
+                        >
+                          <SelectTrigger className="bg-[var(--background)]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {NOT_FOUND_FONT_SIZE_OPTIONS.map((opt) => (
+                              <SelectItem
+                                key={opt.value || "default"}
+                                value={opt.value || "__default"}
+                              >
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">
+                          {STORE_COPY_LABELS[group.fontFamily]}
+                        </Label>
+                        <Select
+                          value={storeCopy[group.fontFamily] || "__default"}
+                          onValueChange={(v) =>
+                            set(group.fontFamily, v === "__default" ? "" : v)
+                          }
+                        >
+                          <SelectTrigger className="bg-[var(--background)]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__default">Theme default</SelectItem>
+                            {FONT_OPTIONS.map((font) => (
+                              <SelectItem key={font} value={font}>
+                                {font}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        ) : null}
       </CardContent>
     </Card>
   );

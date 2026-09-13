@@ -30,6 +30,8 @@ type CmsExtraEditorProps = {
   defaultTab?: CmsKey;
   /** Show only one section (no inner tab list). */
   singleTab?: CmsKey;
+  /** SuperAdmin: 404 typography accordion. */
+  canEditComponentSettings?: boolean;
 };
 
 const TABS: { key: CmsKey; label: string }[] = [
@@ -46,6 +48,7 @@ export function CmsExtraEditor({
   onContentChange,
   defaultTab = "storeCopy",
   singleTab,
+  canEditComponentSettings = false,
 }: CmsExtraEditorProps) {
   const [internalContent, setInternalContent] = useState(initialContent);
   const content = controlledContent ?? internalContent;
@@ -98,6 +101,7 @@ export function CmsExtraEditor({
               onChange={(storeCopy) =>
                 setContent((p) => ({ ...p, storeCopy }))
               }
+              canEditTypographySettings={canEditComponentSettings}
             />
 
             <Card>

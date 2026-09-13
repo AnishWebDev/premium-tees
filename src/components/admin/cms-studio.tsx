@@ -645,6 +645,7 @@ export function CmsStudio({
               hideSave
               hideHeader
               singleTab={globalCopyTab}
+              canEditComponentSettings={canSelectHomeTemplate}
             />
           </TabsContent>
         </div>
