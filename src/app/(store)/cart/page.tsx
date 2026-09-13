@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CartView } from "@/components/cart/cart-view";
+import { getCmsBlock } from "@/lib/cms-content";
 import { getCommerceConfig } from "@/lib/commerce";
 import { getSiteIdentity } from "@/lib/site-identity";
 
@@ -13,12 +14,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CartPage() {
-  const commerce = await getCommerceConfig();
+  const [commerce, storeCopy] = await Promise.all([
+    getCommerceConfig(),
+    getCmsBlock("storeCopy"),
+  ]);
 
   return (
     <section className="section-padding">
       <div className="container-tight">
-        <CartView commerce={commerce} />
+        <CartView
+          commerce={commerce}
+          emptyTitle={storeCopy.cartEmptyTitle}
+          emptyDescription={storeCopy.cartEmptyDescription}
+        />
       </div>
     </section>
   );

@@ -1,5 +1,18 @@
 import { z } from "zod";
+import {
+  INDIA_STATE_OPTIONS,
+  OTHER_CITY,
+  OTHER_STATE,
+  getCitiesForState,
+  resolveCityValue,
+  resolveStateValue,
+} from "@/lib/india-locations";
 
+const pinCodeSchema = z
+  .string()
+  .regex(/^\d{6}$/, "Enter a valid 6-digit PIN code");
+
+/** API / order payload — unchanged shape for DB and Razorpay. */
 export const checkoutSchema = z
   .object({
     email: z.string().email("Enter a valid email"),
@@ -8,7 +21,7 @@ export const checkoutSchema = z
     shippingLine2: z.string().optional(),
     shippingCity: z.string().min(2, "City is required"),
     shippingState: z.string().min(2, "State is required"),
-    shippingZip: z.string().min(3, "ZIP is required"),
+    shippingZip: pinCodeSchema,
     shippingCountry: z.string().min(2).default("IN"),
     shippingPhone: z.string().optional(),
     sameAsBilling: z.boolean().default(true),
@@ -56,12 +69,216 @@ export const checkoutSchema = z
       if (!data.billingZip) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Billing ZIP is required",
+          message: "Billing PIN code is required",
           path: ["billingZip"],
         });
       }
     }
   });
+
+function validateIndiaAddress(
+  ctx: z.RefinementCtx,
+  prefix: "shipping" | "billing",
+  data: {
+    state: string;
+    stateOther?: string;
+    city: string;
+    cityOther?: string;
+    zip: string;
+  }
+) {
+  if (!data.state || !INDIA_STATE_OPTIONS.includes(data.state)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Select a state",
+      path: [`${prefix}State`],
+    });
+    return;
+  }
+
+  if (data.state === OTHER_STATE) {
+    const stateOther = data.stateOther?.trim() ?? "";
+    if (stateOther.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter your state or UT name",
+        path: [`${prefix}StateOther`],
+      });
+    }
+    const cityOther = data.cityOther?.trim() ?? "";
+    if (cityOther.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter your city name",
+        path: [`${prefix}CityOther`],
+      });
+    }
+  } else {
+    if (!data.city) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select a city",
+        path: [`${prefix}City`],
+      });
+    } else {
+      const cities = getCitiesForState(data.state);
+      if (!cities.includes(data.city)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Select a valid city",
+          path: [`${prefix}City`],
+        });
+      }
+      if (data.city === OTHER_CITY) {
+        const other = data.cityOther?.trim() ?? "";
+        if (other.length < 2) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Enter your city name",
+            path: [`${prefix}CityOther`],
+          });
+        }
+      }
+    }
+  }
+
+  const pinResult = pinCodeSchema.safeParse(data.zip);
+  if (!pinResult.success) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: pinResult.error.errors[0]?.message ?? "Invalid PIN code",
+      path: [`${prefix}Zip`],
+    });
+  }
+}
+
+/** Checkout form fields (UI) — first/last name, state→city dropdowns. */
+export const checkoutFormSchema = z
+  .object({
+    email: z.string().email("Enter a valid email"),
+    shippingFirstName: z.string().min(1, "First name is required"),
+    shippingLastName: z.string().min(1, "Last name is required"),
+    shippingLine1: z.string().min(3, "Address is required"),
+    shippingLine2: z.string().optional(),
+    shippingState: z.string().min(1, "Select a state"),
+    shippingStateOther: z.string().optional(),
+    shippingCity: z.string().optional(),
+    shippingCityOther: z.string().optional(),
+    shippingZip: z.string().min(1, "PIN code is required"),
+    shippingCountry: z.literal("IN").default("IN"),
+    shippingPhone: z.string().optional(),
+    sameAsBilling: z.boolean().default(true),
+    billingFirstName: z.string().optional(),
+    billingLastName: z.string().optional(),
+    billingLine1: z.string().optional(),
+    billingLine2: z.string().optional(),
+    billingState: z.string().optional(),
+    billingStateOther: z.string().optional(),
+    billingCity: z.string().optional(),
+    billingCityOther: z.string().optional(),
+    billingZip: z.string().optional(),
+    billingCountry: z.literal("IN").optional(),
+    shippingMethod: z.enum(["standard", "express", "overnight"]).default("standard"),
+    couponCode: z.string().optional(),
+    notes: z.string().max(500).optional(),
+  })
+  .superRefine((data, ctx) => {
+    validateIndiaAddress(ctx, "shipping", {
+      state: data.shippingState,
+      stateOther: data.shippingStateOther,
+      city: data.shippingCity ?? "",
+      cityOther: data.shippingCityOther,
+      zip: data.shippingZip,
+    });
+
+    if (!data.sameAsBilling) {
+      if (!data.billingFirstName?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "First name is required",
+          path: ["billingFirstName"],
+        });
+      }
+      if (!data.billingLastName?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Last name is required",
+          path: ["billingLastName"],
+        });
+      }
+      if (!data.billingLine1?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Billing address is required",
+          path: ["billingLine1"],
+        });
+      }
+      validateIndiaAddress(ctx, "billing", {
+        state: data.billingState ?? "",
+        stateOther: data.billingStateOther,
+        city: data.billingCity ?? "",
+        cityOther: data.billingCityOther,
+        zip: data.billingZip ?? "",
+      });
+    }
+  });
+
+export function toCheckoutPayload(data: CheckoutFormInput): CheckoutInput {
+  const shippingState = resolveStateValue(data.shippingState, data.shippingStateOther);
+  const shippingCity =
+    data.shippingState === OTHER_STATE
+      ? (data.shippingCityOther?.trim() ?? "")
+      : resolveCityValue(data.shippingCity ?? "", data.shippingCityOther);
+  const shippingName = `${data.shippingFirstName.trim()} ${data.shippingLastName.trim()}`.trim();
+
+  if (data.sameAsBilling) {
+    return {
+      email: data.email,
+      shippingName,
+      shippingLine1: data.shippingLine1,
+      shippingLine2: data.shippingLine2,
+      shippingCity,
+      shippingState,
+      shippingZip: data.shippingZip,
+      shippingCountry: "IN",
+      shippingPhone: data.shippingPhone,
+      sameAsBilling: true,
+      shippingMethod: data.shippingMethod,
+      couponCode: data.couponCode,
+      notes: data.notes,
+    };
+  }
+
+  const billingState = resolveStateValue(data.billingState ?? "", data.billingStateOther);
+  const billingCity =
+    data.billingState === OTHER_STATE
+      ? (data.billingCityOther?.trim() ?? "")
+      : resolveCityValue(data.billingCity ?? "", data.billingCityOther);
+  const billingName = `${data.billingFirstName?.trim() ?? ""} ${data.billingLastName?.trim() ?? ""}`.trim();
+
+  return {
+    email: data.email,
+    shippingName,
+    shippingLine1: data.shippingLine1,
+    shippingLine2: data.shippingLine2,
+    shippingCity,
+    shippingState,
+    shippingZip: data.shippingZip,
+    shippingCountry: "IN",
+    shippingPhone: data.shippingPhone,
+    sameAsBilling: false,
+    billingName,
+    billingLine1: data.billingLine1,
+    billingLine2: data.billingLine2,
+    billingCity,
+    billingState,
+    billingZip: data.billingZip,
+    billingCountry: "IN",
+    shippingMethod: data.shippingMethod,
+    couponCode: data.couponCode,
+    notes: data.notes,
+  };
+}
 
 export const cartItemSchema = z.object({
   productId: z.string().min(1),
@@ -81,6 +298,7 @@ export const contactSchema = z.object({
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
+export type CheckoutFormInput = z.infer<typeof checkoutFormSchema>;
 export type CartItemInput = z.infer<typeof cartItemSchema>;
 export type NewsletterInput = z.infer<typeof newsletterSchema>;
 export type ContactInput = z.infer<typeof contactSchema>;

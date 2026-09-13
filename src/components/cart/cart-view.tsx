@@ -22,9 +22,15 @@ import { Label } from "@/components/ui/label";
 
 type CartViewProps = {
   commerce?: CommerceConfig;
+  emptyTitle?: string;
+  emptyDescription?: string;
 };
 
-export function CartView({ commerce: commerceProp }: CartViewProps) {
+export function CartView({
+  commerce: commerceProp,
+  emptyTitle = "Your cart is empty",
+  emptyDescription = "Explore our collection and find your next favorite tee.",
+}: CartViewProps) {
   const [commerce, setCommerce] = useState<CommerceConfig>(
     commerceProp ?? DEFAULT_COMMERCE_CONFIG
   );
@@ -47,7 +53,6 @@ export function CartView({ commerce: commerceProp }: CartViewProps) {
 
   const [promoInput, setPromoInput] = useState(couponCode ?? "");
   const [promoLoading, setPromoLoading] = useState(false);
-  const [shippingState, setShippingState] = useState("CA");
 
   useEffect(() => {
     if (commerceProp) {
@@ -72,7 +77,7 @@ export function CartView({ commerce: commerceProp }: CartViewProps) {
       ? 0
       : commerce.shippingMethods.find((m) => m.id === shippingMethod)?.price ?? 0;
 
-  const tax = calculateTax(subtotal - discount, commerce.gstRate, shippingState);
+  const tax = calculateTax(subtotal - discount, commerce.gstRate);
   const total = Math.max(0, subtotal - discount + shippingCost + tax);
 
   const applyPromo = async () => {
@@ -107,8 +112,8 @@ export function CartView({ commerce: commerceProp }: CartViewProps) {
     return (
       <EmptyState
         icon={ShoppingBag}
-        title="Your cart is empty"
-        description="Explore our collection and find your next favorite tee."
+        title={emptyTitle}
+        description={emptyDescription}
         actionLabel="Shop now"
         actionHref="/shop"
       />
@@ -336,19 +341,6 @@ export function CartView({ commerce: commerceProp }: CartViewProps) {
               )}
             </div>
 
-            <div>
-              <Label htmlFor="tax-state" className="text-xs uppercase tracking-wider">
-                Tax estimate (state)
-              </Label>
-              <Input
-                id="tax-state"
-                value={shippingState}
-                onChange={(e) => setShippingState(e.target.value.toUpperCase().slice(0, 2))}
-                placeholder="CA"
-                maxLength={2}
-                className="mt-2 w-24 uppercase"
-              />
-            </div>
           </div>
 
           <dl className="mt-8 space-y-3 border-t border-[var(--border)] pt-6 text-sm">

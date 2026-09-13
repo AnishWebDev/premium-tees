@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
-import type { AllCmsContent, CmsKey, LegalSection, SizeGuideRow } from "@/lib/cms-content";
+import {
+  AUTH_COPY_LABELS,
+  STORE_COPY_LABELS,
+  type AllCmsContent,
+  type CmsKey,
+  type LegalSection,
+  type SizeGuideRow,
+} from "@/lib/cms-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -206,7 +213,7 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
           <TabsContent value="storeCopy" className="space-y-4">
             {(Object.keys(content.storeCopy) as (keyof typeof content.storeCopy)[]).map((key) => (
               <div key={key} className="space-y-2">
-                <Label htmlFor={`copy-${key}`}>{key.replace(/([A-Z])/g, " $1")}</Label>
+                <Label htmlFor={`copy-${key}`}>{STORE_COPY_LABELS[key]}</Label>
                 <Input
                   id={`copy-${key}`}
                   value={content.storeCopy[key]}
@@ -304,7 +311,7 @@ export function CmsExtraEditor({ initialContent }: CmsExtraEditorProps) {
           <TabsContent value="auth" className="space-y-4">
             {(Object.keys(content.auth) as (keyof typeof content.auth)[]).map((key) => (
               <div key={key} className="space-y-2">
-                <Label htmlFor={`auth-${key}`}>{key.replace(/([A-Z])/g, " $1")}</Label>
+                <Label htmlFor={`auth-${key}`}>{AUTH_COPY_LABELS[key]}</Label>
                 <Input
                   id={`auth-${key}`}
                   value={content.auth[key]}

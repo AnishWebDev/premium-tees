@@ -14,7 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-export function RegisterForm() {
+type RegisterFormProps = {
+  title?: string;
+  subtitle?: string;
+};
+
+export function RegisterForm({
+  title = "Create an account",
+  subtitle = "Join us for faster checkout and order tracking",
+}: RegisterFormProps) {
   const { name: siteName } = useSiteIdentity();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,12 +82,8 @@ export function RegisterForm() {
   return (
     <>
       <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-neutral-950">
-          Create an account
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          Join us for faster checkout and order tracking
-        </p>
+        <h1 className="font-display text-2xl font-semibold text-neutral-950">{title}</h1>
+        <p className="mt-2 text-sm text-neutral-500">{subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">

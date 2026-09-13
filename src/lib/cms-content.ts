@@ -66,6 +66,24 @@ export type AuthCopyData = {
   registerSubtitle: string;
 };
 
+export const STORE_COPY_LABELS: Record<keyof StoreCopyData, string> = {
+  shopEmptyTitle: "Shop empty title",
+  shopEmptyDescription: "Shop empty description",
+  cartEmptyTitle: "Cart empty title",
+  cartEmptyDescription: "Cart empty description",
+  notFoundTitle: "Not found title",
+  notFoundDescription: "Not found description",
+  checkoutSuccessLead: "Checkout success (lead capture)",
+  checkoutSuccessPaid: "Checkout success (paid)",
+};
+
+export const AUTH_COPY_LABELS: Record<keyof AuthCopyData, string> = {
+  loginTitle: "Login title",
+  loginSubtitle: "Login subtitle",
+  registerTitle: "Register title",
+  registerSubtitle: "Register subtitle",
+};
+
 export type AllCmsContent = {
   collections: CollectionsPageData;
   legal: LegalData;

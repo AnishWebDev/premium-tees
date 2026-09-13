@@ -4,6 +4,7 @@ import { CheckCircle2, Package } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { verifyOrderAccessToken } from "@/lib/order-access";
+import { getCmsBlock } from "@/lib/cms-content";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ type SuccessPageProps = {
 
 export default async function CheckoutSuccessPage({ searchParams }: SuccessPageProps) {
   const { order: orderNumber, key } = await searchParams;
-  const session = await auth();
+  const [session, storeCopy] = await Promise.all([auth(), getCmsBlock("storeCopy")]);
 
   const order = orderNumber
     ? await prisma.order.findFirst({
@@ -63,10 +64,10 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-[var(--muted-foreground)]">
             {order?.status === "LEAD"
-              ? "We saved your cart and shipping details. Our team will reach out to confirm availability and next steps — no payment taken yet."
+              ? storeCopy.checkoutSuccessLead
               : order && isOwner
-                ? "We've received your payment and will send a confirmation email shortly."
-                : "Your payment was successful. Check your email for order details."}
+                ? storeCopy.checkoutSuccessPaid
+                : storeCopy.checkoutSuccessPaid}
           </p>
 
           {order && isOwner && (

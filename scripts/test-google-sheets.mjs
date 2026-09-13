@@ -48,7 +48,7 @@ if (resolvedTab !== tab) {
 
 await sheets.spreadsheets.values.update({
   spreadsheetId,
-  range: `${resolvedTab}!A1:U1`,
+  range: `${resolvedTab}!A1:V1`,
   valueInputOption: "RAW",
   requestBody: {
     values: [
@@ -58,13 +58,14 @@ await sheets.spreadsheets.values.update({
         "Created At",
         "Updated At",
         "Email",
-        "Name",
+        "First Name",
+        "Last Name",
         "Phone",
         "Address Line 1",
         "Address Line 2",
         "City",
-        "State",
-        "ZIP",
+        "State / UT",
+        "PIN Code",
         "Country",
         "Items",
         "Subtotal",
@@ -81,7 +82,7 @@ await sheets.spreadsheets.values.update({
 
 await sheets.spreadsheets.values.append({
   spreadsheetId,
-  range: `${resolvedTab}!A:U`,
+  range: `${resolvedTab}!A:V`,
   valueInputOption: "RAW",
   insertDataOption: "INSERT_ROWS",
   requestBody: {
@@ -92,12 +93,13 @@ await sheets.spreadsheets.values.append({
         formatSheetDateTime(new Date()),
         formatSheetDateTime(new Date()),
         "test@premiumtees.com",
-        "Test Customer",
+        "Test",
+        "Customer",
         "+91 99999 99999",
         "123 Test Street",
         "",
         "Mumbai",
-        "MH",
+        "Maharashtra",
         "400001",
         "IN",
         "Sample Tee (Black/M) ×1 @ 1299",

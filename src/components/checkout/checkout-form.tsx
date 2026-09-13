@@ -6,7 +6,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, CreditCard, Smartphone } from "lucide-react";
 import { toast } from "sonner";
-import { checkoutSchema, type CheckoutInput } from "@/lib/validations/checkout";
+import {
+  checkoutFormSchema,
+  toCheckoutPayload,
+  type CheckoutFormInput,
+} from "@/lib/validations/checkout";
+import {
+  matchCityForState,
+  matchStateFromValue,
+  splitFullName,
+} from "@/lib/india-locations";
 import { SHIPPING_METHODS } from "@/lib/constants";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { formatPrice, calculateTax, cn } from "@/lib/utils";
@@ -15,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { IndiaAddressFields } from "@/components/checkout/india-address-fields";
 
 type CheckoutMode = "payment" | "lead" | "demo";
 
@@ -49,8 +59,8 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
     setValue,
     reset,
     formState: { errors },
-  } = useForm<CheckoutInput>({
-    resolver: zodResolver(checkoutSchema) as never,
+  } = useForm<CheckoutFormInput>({
+    resolver: zodResolver(checkoutFormSchema) as never,
     defaultValues: {
       email: session?.user?.email ?? "",
       shippingCountry: "IN",
@@ -98,15 +108,27 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
           ) ??
           addresses[0];
 
+        const { firstName, lastName } = splitFullName(defaultAddress.name ?? "");
+        const { state: matchedState, stateOther } = matchStateFromValue(
+          defaultAddress.state ?? ""
+        );
+        const { city, cityOther } = matchCityForState(
+          matchedState,
+          defaultAddress.city ?? ""
+        );
+
         reset({
           email: session.user.email ?? "",
-          shippingName: defaultAddress.name,
+          shippingFirstName: firstName,
+          shippingLastName: lastName,
           shippingLine1: defaultAddress.line1,
           shippingLine2: defaultAddress.line2 ?? "",
-          shippingCity: defaultAddress.city,
-          shippingState: defaultAddress.state,
+          shippingState: matchedState,
+          shippingStateOther: stateOther,
+          shippingCity: city,
+          shippingCityOther: cityOther,
           shippingZip: defaultAddress.zip,
-          shippingCountry: defaultAddress.country || "IN",
+          shippingCountry: "IN",
           shippingPhone: defaultAddress.phone ?? "",
           sameAsBilling: true,
           shippingMethod,
@@ -136,11 +158,13 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
       document.body.appendChild(script);
     });
 
-  const onSubmit = async (data: CheckoutInput) => {
+  const onSubmit = async (formData: CheckoutFormInput) => {
     if (items.length === 0) {
       toast.error("Your cart is empty.");
       return;
     }
+
+    const data = toCheckoutPayload(formData);
 
     setSubmitting(true);
     try {
@@ -149,7 +173,6 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          shippingCountry: data.shippingCountry || "IN",
           items: items.map((item) => ({
             productId: item.productId,
             variantId: item.variantId,
@@ -278,64 +301,19 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
           <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
             Shipping address
           </h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label htmlFor="shippingName">Full name</Label>
-              <Input id="shippingName" className="mt-2" {...register("shippingName")} />
-              {errors.shippingName && (
-                <p className="mt-1 text-xs text-red-600">{errors.shippingName.message}</p>
-              )}
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="shippingLine1">Address</Label>
-              <Input id="shippingLine1" className="mt-2" {...register("shippingLine1")} />
-              {errors.shippingLine1 && (
-                <p className="mt-1 text-xs text-red-600">{errors.shippingLine1.message}</p>
-              )}
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="shippingLine2">Apartment, suite, etc. (optional)</Label>
-              <Input id="shippingLine2" className="mt-2" {...register("shippingLine2")} />
-            </div>
-            <div>
-              <Label htmlFor="shippingCity">City</Label>
-              <Input id="shippingCity" className="mt-2" {...register("shippingCity")} />
-              {errors.shippingCity && (
-                <p className="mt-1 text-xs text-red-600">{errors.shippingCity.message}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="shippingState">State</Label>
-              <Input id="shippingState" className="mt-2" {...register("shippingState")} />
-              {errors.shippingState && (
-                <p className="mt-1 text-xs text-red-600">{errors.shippingState.message}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="shippingZip">PIN code</Label>
-              <Input id="shippingZip" className="mt-2" {...register("shippingZip")} />
-              {errors.shippingZip && (
-                <p className="mt-1 text-xs text-red-600">{errors.shippingZip.message}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="shippingCountry">Country</Label>
-              <Input
-                id="shippingCountry"
-                className="mt-2"
-                defaultValue="IN"
-                {...register("shippingCountry")}
-              />
-              {!leadCapture && (
-                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                  India (IN) — UPI & cards via Razorpay
-                </p>
-              )}
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="shippingPhone">Phone (for UPI / delivery)</Label>
-              <Input id="shippingPhone" type="tel" className="mt-2" {...register("shippingPhone")} />
-            </div>
+          {!leadCapture && (
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+              Delivering across India — UPI & cards via Razorpay
+            </p>
+          )}
+          <div className="mt-4">
+            <IndiaAddressFields
+              prefix="shipping"
+              register={register}
+              setValue={setValue}
+              watch={watch}
+              errors={errors}
+            />
           </div>
         </section>
 
@@ -354,46 +332,14 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
           </div>
 
           {!sameAsBilling && (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Label htmlFor="billingName">Full name</Label>
-                <Input id="billingName" className="mt-2" {...register("billingName")} />
-                {errors.billingName && (
-                  <p className="mt-1 text-xs text-red-600">{errors.billingName.message}</p>
-                )}
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="billingLine1">Address</Label>
-                <Input id="billingLine1" className="mt-2" {...register("billingLine1")} />
-                {errors.billingLine1 && (
-                  <p className="mt-1 text-xs text-red-600">{errors.billingLine1.message}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="billingCity">City</Label>
-                <Input id="billingCity" className="mt-2" {...register("billingCity")} />
-                {errors.billingCity && (
-                  <p className="mt-1 text-xs text-red-600">{errors.billingCity.message}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="billingState">State</Label>
-                <Input id="billingState" className="mt-2" {...register("billingState")} />
-                {errors.billingState && (
-                  <p className="mt-1 text-xs text-red-600">{errors.billingState.message}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="billingZip">ZIP</Label>
-                <Input id="billingZip" className="mt-2" {...register("billingZip")} />
-                {errors.billingZip && (
-                  <p className="mt-1 text-xs text-red-600">{errors.billingZip.message}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="billingCountry">Country</Label>
-                <Input id="billingCountry" className="mt-2" {...register("billingCountry")} />
-              </div>
+            <div className="mt-6">
+              <IndiaAddressFields
+                prefix="billing"
+                register={register}
+                setValue={setValue}
+                watch={watch}
+                errors={errors}
+              />
             </div>
           )}
         </section>

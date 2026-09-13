@@ -118,6 +118,28 @@ export function SiteContentEditor({
     }
   };
 
+  const saveSiteIdentity = async () => {
+    setSaving("site");
+    try {
+      for (const key of ["site", "header"] as const) {
+        const res = await fetch("/api/admin/content", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key, data: content[key] }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || "Save failed");
+        }
+      }
+      toast.success("Saved — live site updates within about a minute");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save");
+    } finally {
+      setSaving(null);
+    }
+  };
+
   const SaveButton = ({ keyName }: { keyName: ContentKey }) => (
     <Button onClick={() => save(keyName)} disabled={saving === keyName}>
       {saving === keyName ? (
@@ -160,10 +182,10 @@ export function SiteContentEditor({
             <CardHeader>
               <CardTitle>Site identity</CardTitle>
               <CardDescription>
-                Global site name and description — updates header, footer, emails, checkout, and SEO.
+                Site name, description, and logo — updates header, footer, emails, checkout, and SEO.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <Field
                 label="Site name"
                 value={content.site.name}
@@ -179,7 +201,38 @@ export function SiteContentEditor({
                 }
                 multiline
               />
-              <SaveButton keyName="site" />
+              <ImageUrlField
+                label="Logo image URL (optional)"
+                value={content.header.logoImageUrl}
+                onChange={(logoImageUrl) =>
+                  setContent((c) => ({
+                    ...c,
+                    header: { ...c.header, logoImageUrl },
+                  }))
+                }
+                hint="Square or mark-style logo works best next to the site name. Use a transparent PNG or SVG."
+              />
+              <Field
+                label="Logo alt text"
+                value={content.header.logoImageAlt}
+                onChange={(logoImageAlt) =>
+                  setContent((c) => ({
+                    ...c,
+                    header: { ...c.header, logoImageAlt },
+                  }))
+                }
+                placeholder="Your brand name"
+              />
+              <Button onClick={saveSiteIdentity} disabled={saving === "site"}>
+                {saving === "site" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Save changes"
+                )}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -626,7 +679,7 @@ function HeaderEditor({
       <CardHeader>
         <CardTitle>Header</CardTitle>
         <CardDescription>
-          Navigation links and optional logo image shown alongside the site name in the header.
+          Main navigation links for desktop and mobile menus. Logo is configured on the Site tab.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -635,18 +688,6 @@ function HeaderEditor({
           description="Desktop and mobile menu links."
           links={data.navLinks}
           onChange={(navLinks) => set({ navLinks })}
-        />
-        <ImageUrlField
-          label="Logo image URL (optional)"
-          value={data.logoImageUrl}
-          onChange={(logoImageUrl) => set({ logoImageUrl })}
-          hint="Square or mark-style logo works best next to the site name. Use a transparent PNG or SVG."
-        />
-        <Field
-          label="Logo alt text"
-          value={data.logoImageAlt}
-          onChange={(logoImageAlt) => set({ logoImageAlt })}
-          placeholder="Your brand name"
         />
         {saveButton}
       </CardContent>

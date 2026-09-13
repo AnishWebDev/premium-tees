@@ -12,7 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-export function LoginForm() {
+type LoginFormProps = {
+  title?: string;
+  subtitle?: string;
+};
+
+export function LoginForm({
+  title = "Welcome back",
+  subtitle = "Sign in to your account",
+}: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/profile";
@@ -51,8 +59,8 @@ export function LoginForm() {
   return (
     <>
       <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-neutral-950">Welcome back</h1>
-        <p className="mt-2 text-sm text-neutral-500">Sign in to your account</p>
+        <h1 className="font-display text-2xl font-semibold text-neutral-950">{title}</h1>
+        <p className="mt-2 text-sm text-neutral-500">{subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">

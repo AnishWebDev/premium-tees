@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import type { Order, OrderItem, User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { splitFullName } from "@/lib/india-locations";
 
 const SHEET_HEADERS = [
   "Order Number",
@@ -8,13 +9,14 @@ const SHEET_HEADERS = [
   "Created At",
   "Updated At",
   "Email",
-  "Name",
+  "First Name",
+  "Last Name",
   "Phone",
   "Address Line 1",
   "Address Line 2",
   "City",
-  "State",
-  "ZIP",
+  "State / UT",
+  "PIN Code",
   "Country",
   "Items",
   "Subtotal",
@@ -25,6 +27,8 @@ const SHEET_HEADERS = [
   "Notes",
   "Payment ID",
 ] as const;
+
+const SHEET_LAST_COLUMN = "V";
 
 type OrderForSheet = Order & {
   items: OrderItem[];
@@ -96,20 +100,23 @@ function orderEmail(order: OrderForSheet): string {
 }
 
 function orderToRow(order: OrderForSheet): string[] {
+  const { firstName, lastName } = splitFullName(order.shippingName);
+
   return [
     order.orderNumber,
     order.status,
     formatSheetDateTime(order.createdAt),
     formatSheetDateTime(order.updatedAt),
     orderEmail(order),
-    order.shippingName,
+    firstName,
+    lastName,
     order.shippingPhone ?? "",
     order.shippingLine1,
     order.shippingLine2 ?? "",
     order.shippingCity,
     order.shippingState,
     order.shippingZip,
-    order.shippingCountry,
+    order.shippingCountry || "IN",
     formatItems(order.items),
     String(Number(order.subtotal)),
     String(Number(order.shippingCost)),
@@ -121,18 +128,23 @@ function orderToRow(order: OrderForSheet): string[] {
   ];
 }
 
+function headersMatch(existing: string[] | undefined): boolean {
+  if (!existing || existing.length !== SHEET_HEADERS.length) return false;
+  return SHEET_HEADERS.every((header, index) => existing[index] === header);
+}
+
 async function ensureHeaders(sheets: ReturnType<typeof google.sheets>) {
   const spreadsheetId = getSpreadsheetId()!;
   const tab = getTabName();
-  const range = `${tab}!A1:U1`;
+  const range = `${tab}!A1:${SHEET_LAST_COLUMN}1`;
 
   const existing = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range,
   });
 
-  const firstCell = existing.data.values?.[0]?.[0];
-  if (firstCell === SHEET_HEADERS[0]) return;
+  const existingRow = existing.data.values?.[0];
+  if (headersMatch(existingRow)) return;
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
@@ -177,7 +189,7 @@ export async function syncOrderToGoogleSheets(order: OrderForSheet): Promise<voi
   if (existingRow) {
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `${tab}!A${existingRow}:U${existingRow}`,
+      range: `${tab}!A${existingRow}:${SHEET_LAST_COLUMN}${existingRow}`,
       valueInputOption: "RAW",
       requestBody: { values: [row] },
     });
@@ -186,7 +198,7 @@ export async function syncOrderToGoogleSheets(order: OrderForSheet): Promise<voi
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${tab}!A:U`,
+    range: `${tab}!A:${SHEET_LAST_COLUMN}`,
     valueInputOption: "RAW",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },

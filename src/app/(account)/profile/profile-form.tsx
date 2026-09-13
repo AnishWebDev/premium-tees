@@ -8,10 +8,12 @@ import Link from "next/link";
 import { LayoutDashboard, MapPin, Plus, Trash2 } from "lucide-react";
 import {
   profileSchema,
-  addressSchema,
+  addressFormSchema,
+  toAddressPayload,
   type ProfileInput,
-  type AddressInput,
+  type AddressFormInput,
 } from "@/lib/validations/auth";
+import { ProfileIndiaAddressFields } from "@/components/shared/profile-india-address-fields";
 import {
   updateProfile,
   createAddress,
@@ -68,12 +70,12 @@ export function ProfileForm({ user, addresses, role }: ProfileFormProps) {
     },
   });
 
-  const addressForm = useForm<AddressInput>({
-    resolver: zodResolver(addressSchema) as never,
+  const addressForm = useForm<AddressFormInput>({
+    resolver: zodResolver(addressFormSchema) as never,
     defaultValues: {
       type: "BOTH",
       isDefault: addresses.length === 0,
-      country: "US",
+      country: "IN",
     },
   });
 
@@ -88,9 +90,9 @@ export function ProfileForm({ user, addresses, role }: ProfileFormProps) {
     });
   };
 
-  const onAddressSubmit = (data: AddressInput) => {
+  const onAddressSubmit = (formData: AddressFormInput) => {
     startTransition(async () => {
-      const result = await createAddress(data);
+      const result = await createAddress(toAddressPayload(formData));
       if (result.error) {
         toast.error(result.error);
         return;
@@ -99,12 +101,15 @@ export function ProfileForm({ user, addresses, role }: ProfileFormProps) {
       addressForm.reset({
         type: "BOTH",
         isDefault: false,
-        country: "US",
-        name: "",
+        country: "IN",
+        firstName: "",
+        lastName: "",
         line1: "",
         line2: "",
         city: "",
         state: "",
+        stateOther: "",
+        cityOther: "",
         zip: "",
         phone: "",
       });
@@ -212,46 +217,12 @@ export function ProfileForm({ user, addresses, role }: ProfileFormProps) {
                 onSubmit={addressForm.handleSubmit(onAddressSubmit)}
                 className="mt-4 space-y-4"
               >
-                <div>
-                  <Label htmlFor="addr-name">Full name</Label>
-                  <Input id="addr-name" className="mt-2" {...addressForm.register("name")} />
-                </div>
-                <div>
-                  <Label htmlFor="addr-line1">Address</Label>
-                  <Input id="addr-line1" className="mt-2" {...addressForm.register("line1")} />
-                </div>
-                <div>
-                  <Label htmlFor="addr-line2">Apt, suite (optional)</Label>
-                  <Input id="addr-line2" className="mt-2" {...addressForm.register("line2")} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="addr-city">City</Label>
-                    <Input id="addr-city" className="mt-2" {...addressForm.register("city")} />
-                  </div>
-                  <div>
-                    <Label htmlFor="addr-state">State</Label>
-                    <Input id="addr-state" className="mt-2" {...addressForm.register("state")} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="addr-zip">ZIP</Label>
-                    <Input id="addr-zip" className="mt-2" {...addressForm.register("zip")} />
-                  </div>
-                  <div>
-                    <Label htmlFor="addr-country">Country</Label>
-                    <Input
-                      id="addr-country"
-                      className="mt-2"
-                      {...addressForm.register("country")}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="addr-phone">Phone (optional)</Label>
-                  <Input id="addr-phone" className="mt-2" {...addressForm.register("phone")} />
-                </div>
+                <ProfileIndiaAddressFields
+                  register={addressForm.register}
+                  setValue={addressForm.setValue}
+                  watch={addressForm.watch}
+                  errors={addressForm.formState.errors}
+                />
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="addr-default"
@@ -302,7 +273,7 @@ export function ProfileForm({ user, addresses, role }: ProfileFormProps) {
                       <br />
                       {address.city}, {address.state} {address.zip}
                       <br />
-                      {address.country}
+                      India
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">
