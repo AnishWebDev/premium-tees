@@ -1,4 +1,6 @@
+import { auth } from "@/lib/auth";
 import { adminFetch } from "@/lib/admin-api";
+import { isSuperAdmin } from "@/lib/roles";
 import { OrdersTable } from "@/components/admin/orders-table";
 
 type OrdersResponse = {
@@ -15,6 +17,7 @@ type OrdersResponse = {
 };
 
 export default async function AdminOrdersPage() {
+  const session = await auth();
   const { orders, total } = await adminFetch<OrdersResponse>("/api/admin/orders");
 
   return (
@@ -23,7 +26,10 @@ export default async function AdminOrdersPage() {
         <h1 className="text-xl font-semibold text-neutral-900">Orders</h1>
         <p className="text-sm text-neutral-500">{total} orders total</p>
       </div>
-      <OrdersTable initialOrders={orders} />
+      <OrdersTable
+        initialOrders={orders}
+        canDelete={isSuperAdmin(session?.user?.role)}
+      />
     </div>
   );
 }

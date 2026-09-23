@@ -1,4 +1,6 @@
+import { auth } from "@/lib/auth";
 import { adminFetch } from "@/lib/admin-api";
+import { isSuperAdmin } from "@/lib/roles";
 import { CouponsManager } from "@/components/admin/coupons-manager";
 
 type CouponsResponse = {
@@ -18,6 +20,7 @@ type CouponsResponse = {
 };
 
 export default async function AdminCouponsPage() {
+  const session = await auth();
   const { coupons } = await adminFetch<CouponsResponse>("/api/admin/coupons");
 
   return (
@@ -26,7 +29,10 @@ export default async function AdminCouponsPage() {
         <h1 className="text-xl font-semibold text-neutral-900">Coupons</h1>
         <p className="text-sm text-neutral-500">Manage discount codes</p>
       </div>
-      <CouponsManager initialCoupons={coupons} />
+      <CouponsManager
+        initialCoupons={coupons}
+        canDelete={isSuperAdmin(session?.user?.role)}
+      />
     </div>
   );
 }

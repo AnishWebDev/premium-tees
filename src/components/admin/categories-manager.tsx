@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ImageIcon, Loader2, Pencil, Plus } from "lucide-react";
+import { ImageIcon, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ImageUrlField } from "@/components/admin/image-url-field";
 import { Badge } from "@/components/ui/badge";
@@ -43,15 +43,20 @@ type Category = {
 
 type CategoriesManagerProps = {
   initialCategories: Category[];
+  canDelete?: boolean;
 };
 
-export function CategoriesManager({ initialCategories }: CategoriesManagerProps) {
+export function CategoriesManager({
+  initialCategories,
+  canDelete = false,
+}: CategoriesManagerProps) {
   const router = useRouter();
   const [categories, setCategories] = useState(initialCategories);
   const [loading, setLoading] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editImage, setEditImage] = useState("");
   const [savingImage, setSavingImage] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -98,6 +103,34 @@ export function CategoriesManager({ initialCategories }: CategoriesManagerProps)
   const openEditImage = (category: Category) => {
     setEditingCategory(category);
     setEditImage(category.image ?? "");
+  };
+
+  const handleDelete = async (category: Category) => {
+    if (
+      !confirm(
+        `Delete category "${category.name}"? This cannot be undone. Categories with products cannot be deleted.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(category.id);
+    try {
+      const res = await fetch(`/api/admin/categories/${category.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to delete category");
+        return;
+      }
+      toast.success("Category deleted");
+      setCategories((prev) => prev.filter((c) => c.id !== category.id));
+      router.refresh();
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const saveCategoryImage = async () => {
@@ -198,15 +231,34 @@ export function CategoriesManager({ initialCategories }: CategoriesManagerProps)
                       </TableCell>
                       <TableCell>{category.sortOrder}</TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => openEditImage(category)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                          Image
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => openEditImage(category)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Image
+                          </Button>
+                          {canDelete && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-600 hover:text-red-700"
+                              aria-label={`Delete ${category.name}`}
+                              disabled={deletingId === category.id}
+                              onClick={() => void handleDelete(category)}
+                            >
+                              {deletingId === category.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

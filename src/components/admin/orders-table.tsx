@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Loader2, Printer } from "lucide-react";
+import { Loader2, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,7 @@ type Order = {
 type OrdersTableProps = {
   initialOrders: Order[];
   initialStatus?: OrderStatus;
+  canDelete?: boolean;
 };
 
 const statusVariant: Record<
@@ -79,10 +80,15 @@ const statusVariant: Record<
   REFUNDED: "outline",
 };
 
-export function OrdersTable({ initialOrders, initialStatus }: OrdersTableProps) {
+export function OrdersTable({
+  initialOrders,
+  initialStatus,
+  canDelete = false,
+}: OrdersTableProps) {
   const [orders, setOrders] = useState(initialOrders);
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus ?? "all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [shipOrder, setShipOrder] = useState<Order | null>(null);
   const [carrier, setCarrier] = useState("");
@@ -169,6 +175,31 @@ export function OrdersTable({ initialOrders, initialStatus }: OrdersTableProps) 
       trackingNumber: trackingNumber.trim() || undefined,
     });
     if (ok) setShipOrder(null);
+  };
+
+  const handleDelete = async (order: Order) => {
+    if (
+      !confirm(
+        `Delete order ${order.orderNumber}? This permanently removes the order record and cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(order.id);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to delete order");
+        return;
+      }
+      toast.success("Order deleted");
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -273,12 +304,31 @@ export function OrdersTable({ initialOrders, initialStatus }: OrdersTableProps) 
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button asChild variant="ghost" size="sm">
-                        <Link href={`/admin/orders/${order.id}/print`}>
-                          <Printer className="mr-1.5 h-3.5 w-3.5" />
-                          Pack
-                        </Link>
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/admin/orders/${order.id}/print`}>
+                            <Printer className="mr-1.5 h-3.5 w-3.5" />
+                            Pack
+                          </Link>
+                        </Button>
+                        {canDelete && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700"
+                            aria-label={`Delete ${order.orderNumber}`}
+                            disabled={deletingId === order.id}
+                            onClick={() => void handleDelete(order)}
+                          >
+                            {deletingId === order.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

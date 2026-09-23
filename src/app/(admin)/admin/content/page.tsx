@@ -50,6 +50,7 @@ export default async function AdminContentPage({
       initialCmsContent={cmsContent}
       contentSource={toSectionContentSource(siteContent)}
       canSelectHomeTemplate={superAdmin}
+      canDeletePages={superAdmin}
       initialMainTab={parseCmsMainTab(tab)}
       initialGlobalCopyTab={parseCmsGlobalCopyTab(sub)}
     />

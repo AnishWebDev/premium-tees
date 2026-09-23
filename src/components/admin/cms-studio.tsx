@@ -66,6 +66,7 @@ type CmsStudioProps = {
   initialCmsContent: AllCmsContent;
   contentSource: SectionContentSource;
   canSelectHomeTemplate: boolean;
+  canDeletePages?: boolean;
   initialMainTab?: MainTab;
   initialGlobalCopyTab?: CmsKey;
 };
@@ -82,6 +83,7 @@ export function CmsStudio({
   initialCmsContent,
   contentSource,
   canSelectHomeTemplate,
+  canDeletePages = false,
   initialMainTab = "site",
   initialGlobalCopyTab = "storeCopy",
 }: CmsStudioProps) {
@@ -485,7 +487,7 @@ export function CmsStudio({
                               Preview
                             </a>
                           </Button>
-                          {!pageDraft.isSystem ? (
+                          {canDeletePages && !pageDraft.isSystem ? (
                             <Button
                               variant="ghost"
                               size="sm"

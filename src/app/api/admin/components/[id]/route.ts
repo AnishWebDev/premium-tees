@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { HOME_SECTION_TYPES } from "@/lib/home-sections";
 import {
   deleteCmsComponent,
@@ -70,7 +70,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { id } = await context.params;
     const existing = await getCmsComponentById(id);
     if (!existing) {
@@ -86,6 +86,9 @@ export async function DELETE(_request: Request, context: RouteContext) {
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (error instanceof Error && error.message === "Forbidden") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     return NextResponse.json(
       { error: "Failed to delete component" },

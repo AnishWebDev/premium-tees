@@ -99,6 +99,23 @@ export const couponSchema = z.object({
   expiresAt: z.coerce.date().optional().nullable(),
 });
 
+export const couponUpdateSchema = z.object({
+  code: z
+    .string()
+    .min(3)
+    .max(30)
+    .transform((v) => v.toUpperCase())
+    .optional(),
+  description: z.string().optional().nullable(),
+  discountType: z.enum(["PERCENT", "FIXED"]).optional(),
+  discountValue: z.coerce.number().positive().optional(),
+  minOrder: z.coerce.number().positive().optional().nullable(),
+  maxUses: z.coerce.number().int().positive().optional().nullable(),
+  active: z.boolean().optional(),
+  startsAt: z.coerce.date().optional(),
+  expiresAt: z.coerce.date().optional().nullable(),
+});
+
 export type ProductInput = z.infer<typeof productSchema>;
 export type ReviewInput = z.infer<typeof reviewSchema>;
 export type CategoryInput = z.infer<typeof categorySchema>;

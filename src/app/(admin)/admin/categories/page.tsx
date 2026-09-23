@@ -1,4 +1,6 @@
+import { auth } from "@/lib/auth";
 import { adminFetch } from "@/lib/admin-api";
+import { isSuperAdmin } from "@/lib/roles";
 import { CategoriesManager } from "@/components/admin/categories-manager";
 
 type CategoriesResponse = {
@@ -16,6 +18,7 @@ type CategoriesResponse = {
 };
 
 export default async function AdminCategoriesPage() {
+  const session = await auth();
   const { categories } = await adminFetch<CategoriesResponse>("/api/admin/categories");
 
   return (
@@ -24,7 +27,10 @@ export default async function AdminCategoriesPage() {
         <h1 className="text-xl font-semibold text-neutral-900">Categories</h1>
         <p className="text-sm text-neutral-500">Manage product categories</p>
       </div>
-      <CategoriesManager initialCategories={categories} />
+      <CategoriesManager
+        initialCategories={categories}
+        canDelete={isSuperAdmin(session?.user?.role)}
+      />
     </div>
   );
 }
