@@ -9,19 +9,19 @@ export default async function AuthLayout({
   const site = await getSiteIdentity();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--background)] px-4 py-12 text-[var(--foreground)]">
       <Link
         href="/"
-        className="mb-10 font-display text-2xl font-semibold tracking-tight text-neutral-950"
+        className="mb-10 font-display text-2xl font-semibold tracking-tight text-[var(--foreground)]"
       >
         {site.name}
       </Link>
 
-      <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--background)] p-6 shadow-sm sm:p-8">
         {children}
       </div>
 
-      <p className="mt-8 text-center text-xs text-neutral-400">
+      <p className="mt-8 text-center text-xs text-[var(--muted-foreground)]">
         &copy; {new Date().getFullYear()} {site.name}. All rights reserved.
       </p>
     </div>

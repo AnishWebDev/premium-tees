@@ -11,6 +11,10 @@ import {
   type CommerceConfig,
 } from "@/lib/commerce";
 import {
+  DEFAULT_SHIPPING_METHOD,
+  SHOW_SHIPPING_METHOD_UI,
+} from "@/lib/constants";
+import {
   formatPrice,
   calculateTax,
   cn,
@@ -72,10 +76,13 @@ export function CartView({
   const savedItems = getSavedItems();
   const subtotal = getSubtotal();
 
+  const activeShippingMethod = SHOW_SHIPPING_METHOD_UI
+    ? shippingMethod
+    : DEFAULT_SHIPPING_METHOD;
   const shippingCost =
     subtotal >= commerce.freeShippingThreshold
       ? 0
-      : commerce.shippingMethods.find((m) => m.id === shippingMethod)?.price ?? 0;
+      : commerce.shippingMethods.find((m) => m.id === activeShippingMethod)?.price ?? 0;
 
   const tax = calculateTax(subtotal - discount, commerce.gstRate);
   const total = Math.max(0, subtotal - discount + shippingCost + tax);
@@ -292,54 +299,56 @@ export function CartView({
               )}
             </div>
 
-            <div>
-              <Label className="text-xs uppercase tracking-wider">Shipping</Label>
-              <div className="mt-2 space-y-2" role="radiogroup" aria-label="Shipping method">
-                {commerce.shippingMethods.map((method) => {
-                  const price =
-                    subtotal >= commerce.freeShippingThreshold ? 0 : method.price;
-                  return (
-                    <label
-                      key={method.id}
-                      className={cn(
-                        "flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors",
-                        shippingMethod === method.id
-                          ? "border-[var(--foreground)] bg-[var(--muted)]"
-                          : "border-[var(--border)] hover:border-neutral-300"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="shipping"
-                          value={method.id}
-                          checked={shippingMethod === method.id}
-                          onChange={() => setShippingMethod(method.id)}
-                          className="accent-neutral-950"
-                        />
-                        <div>
-                          <span className="font-medium text-[var(--foreground)]">
-                            {method.label}
-                          </span>
-                          <span className="block text-xs text-[var(--muted-foreground)]">
-                            {method.days}
-                          </span>
+            {SHOW_SHIPPING_METHOD_UI ? (
+              <div>
+                <Label className="text-xs uppercase tracking-wider">Shipping</Label>
+                <div className="mt-2 space-y-2" role="radiogroup" aria-label="Shipping method">
+                  {commerce.shippingMethods.map((method) => {
+                    const price =
+                      subtotal >= commerce.freeShippingThreshold ? 0 : method.price;
+                    return (
+                      <label
+                        key={method.id}
+                        className={cn(
+                          "flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors",
+                          shippingMethod === method.id
+                            ? "border-[var(--foreground)] bg-[var(--muted)]"
+                            : "border-[var(--border)] hover:border-[var(--border)]"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="shipping"
+                            value={method.id}
+                            checked={shippingMethod === method.id}
+                            onChange={() => setShippingMethod(method.id)}
+                            className="accent-[var(--foreground)]"
+                          />
+                          <div>
+                            <span className="font-medium text-[var(--foreground)]">
+                              {method.label}
+                            </span>
+                            <span className="block text-xs text-[var(--muted-foreground)]">
+                              {method.days}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <span className="text-[var(--foreground)]">
-                        {price === 0 ? "Free" : formatPrice(price)}
-                      </span>
-                    </label>
-                  );
-                })}
+                        <span className="text-[var(--foreground)]">
+                          {price === 0 ? "Free" : formatPrice(price)}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {subtotal > 0 && subtotal < commerce.freeShippingThreshold && (
+                  <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+                    Add {formatPrice(commerce.freeShippingThreshold - subtotal)} more for free
+                    shipping
+                  </p>
+                )}
               </div>
-              {subtotal > 0 && subtotal < commerce.freeShippingThreshold && (
-                <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-                  Add {formatPrice(commerce.freeShippingThreshold - subtotal)} more for free
-                  shipping
-                </p>
-              )}
-            </div>
+            ) : null}
 
           </div>
 

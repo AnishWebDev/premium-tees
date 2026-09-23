@@ -6,6 +6,11 @@ export const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
 export type ShippingMethodId = "standard" | "express" | "overnight";
 
+/** Set true to show express/overnight pickers in cart and checkout again. */
+export const SHOW_SHIPPING_METHOD_UI = false;
+
+export const DEFAULT_SHIPPING_METHOD: ShippingMethodId = "standard";
+
 export const SHIPPING_METHODS: {
   id: ShippingMethodId;
   label: string;

@@ -60,8 +60,8 @@ export function LoginForm({
   return (
     <>
       <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-neutral-950">{title}</h1>
-        <p className="mt-2 text-sm text-neutral-500">{subtitle}</p>
+        <h1 className="font-display text-2xl font-semibold text-[var(--foreground)]">{title}</h1>
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">{subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
@@ -84,7 +84,7 @@ export function LoginForm({
             <Label htmlFor="password">Password</Label>
             <Link
               href="/forgot-password"
-              className="text-xs text-neutral-500 underline-offset-4 hover:text-neutral-950 hover:underline"
+              className="text-xs text-[var(--muted-foreground)] underline-offset-4 hover:text-[var(--foreground)] hover:underline"
             >
               Forgot password?
             </Link>
@@ -113,7 +113,7 @@ export function LoginForm({
 
       <div className="relative my-6">
         <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-neutral-400">
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--background)] px-3 text-xs text-[var(--muted-foreground)]">
           or
         </span>
       </div>
@@ -128,11 +128,11 @@ export function LoginForm({
         {googleLoading ? "Redirecting…" : "Continue with Google"}
       </Button>
 
-      <p className="mt-8 text-center text-sm text-neutral-500">
+      <p className="mt-8 text-center text-sm text-[var(--muted-foreground)]">
         Don&apos;t have an account?{" "}
         <Link
           href={`/register${callbackUrl !== "/profile" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`}
-          className="font-medium text-neutral-950 underline-offset-4 hover:underline"
+          className="font-medium text-[var(--foreground)] underline-offset-4 hover:underline"
         >
           Create one
         </Link>

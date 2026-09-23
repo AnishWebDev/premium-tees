@@ -17,9 +17,13 @@ import {
   matchStateFromValue,
   splitFullName,
 } from "@/lib/india-locations";
-import { SHIPPING_METHODS } from "@/lib/constants";
+import {
+  DEFAULT_SHIPPING_METHOD,
+  SHIPPING_METHODS,
+  SHOW_SHIPPING_METHOD_UI,
+} from "@/lib/constants";
 import { useCartStore } from "@/lib/stores/cart-store";
-import { formatPrice, calculateTax, cn } from "@/lib/utils";
+import { formatPrice, calculateTax } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +50,6 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
     couponCode,
     discount,
     shippingMethod,
-    setShippingMethod,
   } = useCartStore();
 
   const items = getActiveItems();
@@ -64,13 +67,21 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
     defaultValues: {
       email: session?.user?.email ?? "",
       shippingCountry: "IN",
-      shippingMethod,
+      shippingMethod: SHOW_SHIPPING_METHOD_UI ? shippingMethod : DEFAULT_SHIPPING_METHOD,
       couponCode: couponCode ?? undefined,
     },
   });
 
-  const selectedShipping = watch("shippingMethod");
+  const selectedShipping = SHOW_SHIPPING_METHOD_UI
+    ? watch("shippingMethod")
+    : DEFAULT_SHIPPING_METHOD;
   const shippingState = watch("shippingState");
+
+  useEffect(() => {
+    if (!SHOW_SHIPPING_METHOD_UI) {
+      setValue("shippingMethod", DEFAULT_SHIPPING_METHOD);
+    }
+  }, [setValue]);
 
   useEffect(() => {
     fetch("/api/store/config")
@@ -327,42 +338,37 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
           </div>
         </section>
 
-        <section>
-          <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
-            Shipping method
-          </h2>
-          <div className="mt-4 space-y-2" role="radiogroup" aria-label="Shipping method">
-            {SHIPPING_METHODS.map((method) => (
-              <label
-                key={method.id}
-                className={cn(
-                  "flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-sm",
-                  selectedShipping === method.id
-                    ? "border-[var(--foreground)] bg-[var(--muted)]"
-                    : "border-[var(--border)]"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    value={method.id}
-                    {...register("shippingMethod")}
-                    onChange={() => {
-                      setValue("shippingMethod", method.id);
-                      setShippingMethod(method.id);
-                    }}
-                    className="accent-neutral-950"
-                  />
-                  <div>
-                    <span className="font-medium">{method.label}</span>
-                    <span className="block text-xs text-[var(--muted-foreground)]">{method.days}</span>
+        {SHOW_SHIPPING_METHOD_UI ? (
+          <section>
+            <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
+              Shipping method
+            </h2>
+            <div className="mt-4 space-y-2" role="radiogroup" aria-label="Shipping method">
+              {SHIPPING_METHODS.map((method) => (
+                <label
+                  key={method.id}
+                  className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3 text-sm has-[:checked]:border-[var(--foreground)] has-[:checked]:bg-[var(--muted)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      value={method.id}
+                      {...register("shippingMethod")}
+                      className="accent-[var(--foreground)]"
+                    />
+                    <div>
+                      <span className="font-medium">{method.label}</span>
+                      <span className="block text-xs text-[var(--muted-foreground)]">
+                        {method.days}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <span>{formatPrice(method.price)}</span>
-              </label>
-            ))}
-          </div>
-        </section>
+                  <span>{formatPrice(method.price)}</span>
+                </label>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section>
           <Label htmlFor="notes">Order notes (optional)</Label>
