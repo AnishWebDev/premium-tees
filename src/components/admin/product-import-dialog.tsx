@@ -127,8 +127,14 @@ export function ProductImportDialog() {
         <DialogHeader>
           <DialogTitle>Import products from CSV</DialogTitle>
           <DialogDescription>
-            One row per product. Use pipe-separated lists for images, sizes, colors, and tags.
-            Variants are created for every size × color combination.
+            One row per product. Put multiple URLs in{" "}
+            <strong className="font-medium text-neutral-800">image_urls</strong>, comma-separated
+            (the whole cell must be quoted in Excel/Sheets). Or add{" "}
+            <strong className="font-medium text-neutral-800">image_url_2</strong>,{" "}
+            <strong className="font-medium text-neutral-800">image_url_3</strong>, etc. Optional{" "}
+            <strong className="font-medium text-neutral-800">image_alts</strong> — same order,
+            comma-separated. Sizes, colors, and tags use{" "}
+            <strong className="font-medium text-neutral-800">|</strong>.
           </DialogDescription>
         </DialogHeader>
 

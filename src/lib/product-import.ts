@@ -14,6 +14,7 @@ export const PRODUCT_IMPORT_HEADERS = [
   "price",
   "compare_at",
   "image_urls",
+  "image_alts",
   "sizes",
   "colors",
   "stock",
@@ -26,6 +27,10 @@ export const PRODUCT_IMPORT_HEADERS = [
   "care",
   "origin",
   "tags",
+  "free_shipping",
+  "design",
+  "neck",
+  "sleeve_style",
 ] as const;
 
 export const PRODUCT_IMPORT_TEMPLATE_ROW = {
@@ -39,7 +44,9 @@ export const PRODUCT_IMPORT_TEMPLATE_ROW = {
   short_desc: "Premium organic cotton crew neck",
   price: "799",
   compare_at: "999",
-  image_urls: "https://images.pexels.com/photos/7671166/pexels-photo-7671166.jpeg",
+  image_urls:
+    "https://images.pexels.com/photos/7671166/pexels-photo-7671166.jpeg, https://images.pexels.com/photos/7671167/pexels-photo-7671167.jpeg, https://images.pexels.com/photos/7671168/pexels-photo-7671168.jpeg",
+  image_alts: "Front view, Back view, Detail shot",
   sizes: "S|M|L|XL|XXL",
   colors: "Black|White|Stone",
   stock: "25",
@@ -52,6 +59,10 @@ export const PRODUCT_IMPORT_TEMPLATE_ROW = {
   care: "Machine wash cold, tumble dry low",
   origin: "Portugal",
   tags: "essentials|organic|crew-neck",
+  free_shipping: "false",
+  design: "Minimal front print",
+  neck: "Crew neck",
+  sleeve_style: "Short sleeve",
 };
 
 export type ImportRowError = {
@@ -132,9 +143,12 @@ function rowToProductInput(
     return { error: `Unknown category "${raw.category}". Use an existing category slug or name.` };
   }
 
-  const imageUrls = splitList(raw.image_urls ?? raw.images ?? raw.image_url, []);
+  const imageUrls = parseImageUrlsFromRow(raw);
   if (imageUrls.length === 0) {
-    return { error: "image_urls is required (pipe-separated https URLs)" };
+    return {
+      error:
+        "At least one image is required — use image_urls (comma-separated https URLs in one cell) and/or image_url_2, image_url_3, … columns",
+    };
   }
 
   for (const url of imageUrls) {
@@ -142,6 +156,8 @@ function rowToProductInput(
       return { error: `Invalid image URL: "${url}"` };
     }
   }
+
+  const imageAlts = splitCommaList(raw.image_alts ?? raw.image_alt ?? "");
 
   const price = parseNumber(raw.price);
   if (price === null || price <= 0) {
@@ -207,17 +223,21 @@ function rowToProductInput(
       bestSeller: parseBoolean(raw.best_seller, false),
       newArrival: parseBoolean(raw.new_arrival, false),
       active: parseBoolean(raw.active, true),
+      freeShippingEligible: parseBoolean(raw.free_shipping, false),
       audience,
       kidsAge,
       material: raw.material?.trim() || undefined,
       fit: raw.fit?.trim() || undefined,
       care: raw.care?.trim() || undefined,
+      design: raw.design?.trim() || undefined,
+      neck: raw.neck?.trim() || undefined,
+      sleeveStyle: raw.sleeve_style?.trim() || undefined,
       origin: raw.origin?.trim() || undefined,
       tags: splitList(raw.tags, []),
       categoryId,
       images: imageUrls.map((url, index) => ({
         url,
-        alt: name,
+        alt: imageAlts[index]?.trim() || name,
         sortOrder: index,
       })),
       variants,
@@ -239,12 +259,67 @@ export function buildCategoryLookup(
   return lookup;
 }
 
+/** Comma-separated image URLs (commas between URLs, not inside a URL). Pipe still accepted for older CSVs. */
+export function splitImageUrlList(value: string | undefined): string[] {
+  if (!value?.trim()) return [];
+  const trimmed = value.trim();
+
+  let parts: string[];
+  if (trimmed.includes("|") && !/,/.test(trimmed)) {
+    parts = trimmed.split("|");
+  } else if (/,/.test(trimmed)) {
+    parts = trimmed.split(/\s*,\s*(?=https?:\/\/)/i);
+    if (parts.length === 1) {
+      parts = trimmed.split(/\s*,\s*/);
+    }
+  } else {
+    parts = [trimmed];
+  }
+
+  return parts.map((part) => part.trim()).filter(Boolean);
+}
+
+function splitCommaList(value: string | undefined): string[] {
+  if (!value?.trim()) return [];
+  return value
+    .split(/\s*,\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 function splitList(value: string | undefined, fallback: string[]): string[] {
   if (!value?.trim()) return [...fallback];
   return value
     .split(/[|,]/)
     .map((part) => part.trim())
     .filter(Boolean);
+}
+
+const EXTRA_IMAGE_KEY = /^image_url_(\d+)$/;
+
+/** Collect image URLs from image_urls (comma-separated) plus optional image_url_2 … columns. */
+export function parseImageUrlsFromRow(raw: Record<string, string>): string[] {
+  const fromList = splitImageUrlList(raw.image_urls ?? raw.images ?? "");
+  const fromLegacy = splitImageUrlList(raw.image_url ?? "");
+  const primary = fromList.length > 0 ? fromList : fromLegacy;
+
+  const extras: { order: number; url: string }[] = [];
+  for (const [key, value] of Object.entries(raw)) {
+    const match = key.match(EXTRA_IMAGE_KEY);
+    if (!match || !value?.trim()) continue;
+    extras.push({ order: Number(match[1]), url: value.trim() });
+  }
+  extras.sort((a, b) => a.order - b.order);
+
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const url of [...primary, ...extras.map((e) => e.url)]) {
+    if (seen.has(url)) continue;
+    seen.add(url);
+    merged.push(url);
+  }
+
+  return merged;
 }
 
 function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {

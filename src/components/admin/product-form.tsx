@@ -58,6 +58,13 @@ type ProductFormData = {
   bestSeller: boolean;
   newArrival: boolean;
   active: boolean;
+  freeShippingEligible: boolean;
+  design: string;
+  neck: string;
+  sleeveStyle: string;
+  material: string;
+  fit: string;
+  care: string;
   images: ImageRow[];
   variants: VariantRow[];
 };
@@ -101,6 +108,13 @@ export function ProductForm({
     bestSeller: initialData?.bestSeller ?? false,
     newArrival: initialData?.newArrival ?? false,
     active: initialData?.active ?? true,
+    freeShippingEligible: initialData?.freeShippingEligible ?? false,
+    design: initialData?.design ?? "",
+    neck: initialData?.neck ?? "",
+    sleeveStyle: initialData?.sleeveStyle ?? "",
+    material: initialData?.material ?? "",
+    fit: initialData?.fit ?? "",
+    care: initialData?.care ?? "",
     images: initialData?.images?.length ? initialData.images : [defaultImage()],
     variants: initialData?.variants?.length ? initialData.variants : [defaultVariant()],
   });
@@ -136,6 +150,13 @@ export function ProductForm({
     bestSeller: form.bestSeller,
     newArrival: form.newArrival,
     active: form.active,
+    freeShippingEligible: form.freeShippingEligible,
+    design: form.design.trim() || undefined,
+    neck: form.neck.trim() || undefined,
+    sleeveStyle: form.sleeveStyle.trim() || undefined,
+    material: form.material.trim() || undefined,
+    fit: form.fit.trim() || undefined,
+    care: form.care.trim() || undefined,
     images: form.images
       .filter((img) => img.url.trim())
       .map((img, index) => ({
@@ -241,6 +262,65 @@ export function ProductForm({
                   onChange={(e) => updateField("description", e.target.value)}
                   required
                   minLength={20}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-lg shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base">About the T-shirt</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="design">Design</Label>
+                <Input
+                  id="design"
+                  value={form.design}
+                  onChange={(e) => updateField("design", e.target.value)}
+                  placeholder="e.g. Minimal logo print"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="neck">Neck</Label>
+                <Input
+                  id="neck"
+                  value={form.neck}
+                  onChange={(e) => updateField("neck", e.target.value)}
+                  placeholder="e.g. Crew neck"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sleeveStyle">Sleeve style</Label>
+                <Input
+                  id="sleeveStyle"
+                  value={form.sleeveStyle}
+                  onChange={(e) => updateField("sleeveStyle", e.target.value)}
+                  placeholder="e.g. Short sleeve"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="material">Material</Label>
+                <Input
+                  id="material"
+                  value={form.material}
+                  onChange={(e) => updateField("material", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fit">Fit</Label>
+                <Input
+                  id="fit"
+                  value={form.fit}
+                  onChange={(e) => updateField("fit", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="care">Care</Label>
+                <Input
+                  id="care"
+                  value={form.care}
+                  onChange={(e) => updateField("care", e.target.value)}
                 />
               </div>
             </CardContent>
@@ -490,6 +570,7 @@ export function ProductForm({
                   ["featured", "Featured"],
                   ["bestSeller", "Best seller"],
                   ["newArrival", "New arrival"],
+                  ["freeShippingEligible", "Eligible for free shipping message"],
                 ] as const
               ).map(([key, label]) => (
                 <label key={key} className="flex cursor-pointer items-center gap-2">

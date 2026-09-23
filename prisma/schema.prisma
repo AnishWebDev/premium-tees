@@ -142,11 +142,15 @@ model Product {
   featured      Boolean  @default(false)
   bestSeller    Boolean  @default(false)
   newArrival    Boolean  @default(false)
-  active        Boolean  @default(true)
-  material      String?
-  fit           String?
-  care          String?
-  origin        String?
+  active                 Boolean  @default(true)
+  freeShippingEligible   Boolean  @default(false)
+  material               String?
+  fit                    String?
+  care                   String?
+  design                 String?
+  neck                   String?
+  sleeveStyle            String?  @map("sleeve_style")
+  origin                 String?
   tags          Json           @default("[]")
   metaTitle     String?
   metaDesc      String?

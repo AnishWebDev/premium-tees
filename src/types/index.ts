@@ -88,7 +88,7 @@ export type CheckoutFormData = {
   shippingState: string;
   shippingZip: string;
   shippingCountry: string;
-  shippingPhone?: string;
+  shippingPhone: string;
   couponCode?: string;
 };
 

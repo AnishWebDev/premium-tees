@@ -76,7 +76,7 @@ export function IndiaAddressFields({
             )}
           </div>
           <div>
-            <Label htmlFor={`${prefix}-last-name`}>Last name</Label>
+            <Label htmlFor={`${prefix}-last-name`}>Last name (optional)</Label>
             <Input
               id={`${prefix}-last-name`}
               className="mt-2"
@@ -256,14 +256,28 @@ export function IndiaAddressFields({
       </div>
 
       <div className="sm:col-span-2">
-        <Label htmlFor={`${prefix}-phone`}>Phone (for UPI / delivery)</Label>
+        <Label htmlFor={`${prefix}-phone`}>Phone (10 digits, required)</Label>
         <Input
           id={`${prefix}-phone`}
           type="tel"
           className="mt-2"
+          inputMode="numeric"
+          maxLength={10}
           autoComplete="tel"
-          {...register("shippingPhone")}
+          {...register("shippingPhone", {
+            onChange: (event) => {
+              const digits = event.target.value.replace(/\D/g, "").slice(0, 10);
+              if (digits !== event.target.value) {
+                setValue("shippingPhone", digits, { shouldValidate: true });
+              }
+            },
+          })}
         />
+        {errors.shippingPhone && (
+          <p className="mt-1 text-xs text-red-600" role="alert">
+            {errors.shippingPhone.message}
+          </p>
+        )}
       </div>
     </div>
   );

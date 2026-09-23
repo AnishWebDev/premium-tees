@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { indianMobileSchema } from "@/lib/validations/phone";
 import {
   INDIA_STATE_OPTIONS,
   OTHER_CITY,
@@ -23,7 +24,7 @@ export const checkoutSchema = z
     shippingState: z.string().min(2, "State is required"),
     shippingZip: pinCodeSchema,
     shippingCountry: z.string().min(2).default("IN"),
-    shippingPhone: z.string().optional(),
+    shippingPhone: indianMobileSchema,
     shippingMethod: z.enum(["standard", "express", "overnight"]).default("standard"),
     couponCode: z.string().optional(),
     notes: z.string().max(500).optional(),
@@ -110,7 +111,7 @@ export const checkoutFormSchema = z
   .object({
     email: z.string().email("Enter a valid email"),
     shippingFirstName: z.string().min(1, "First name is required"),
-    shippingLastName: z.string().min(1, "Last name is required"),
+    shippingLastName: z.string().optional(),
     shippingLine1: z.string().min(3, "Address is required"),
     shippingLine2: z.string().optional(),
     shippingState: z.string().min(1, "Select a state"),
@@ -119,12 +120,21 @@ export const checkoutFormSchema = z
     shippingCityOther: z.string().optional(),
     shippingZip: pinCodeSchema,
     shippingCountry: z.literal("IN").default("IN"),
-    shippingPhone: z.string().optional(),
+    shippingPhone: z.string().min(1, "Phone number is required"),
     shippingMethod: z.enum(["standard", "express", "overnight"]).default("standard"),
     couponCode: z.string().optional(),
     notes: z.string().max(500).optional(),
   })
   .superRefine((data, ctx) => {
+    const phoneResult = indianMobileSchema.safeParse(data.shippingPhone);
+    if (!phoneResult.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: phoneResult.error.errors[0]?.message ?? "Invalid phone number",
+        path: ["shippingPhone"],
+      });
+    }
+
     validateIndiaAddress(ctx, "shipping", {
       state: data.shippingState,
       stateOther: data.shippingStateOther,
@@ -140,7 +150,9 @@ export function toCheckoutPayload(data: CheckoutFormInput): CheckoutInput {
     data.shippingState === OTHER_STATE
       ? (data.shippingCityOther?.trim() ?? "")
       : resolveCityValue(data.shippingCity ?? "", data.shippingCityOther);
-  const shippingName = `${data.shippingFirstName.trim()} ${data.shippingLastName.trim()}`.trim();
+  const shippingName = `${data.shippingFirstName.trim()} ${data.shippingLastName?.trim() ?? ""}`.trim();
+  const phoneParsed = indianMobileSchema.safeParse(data.shippingPhone);
+  const shippingPhone = phoneParsed.success ? phoneParsed.data : data.shippingPhone;
 
   return {
     email: data.email,
@@ -151,7 +163,7 @@ export function toCheckoutPayload(data: CheckoutFormInput): CheckoutInput {
     shippingState,
     shippingZip: data.shippingZip,
     shippingCountry: "IN",
-    shippingPhone: data.shippingPhone,
+    shippingPhone,
     shippingMethod: data.shippingMethod,
     couponCode: data.couponCode,
     notes: data.notes,

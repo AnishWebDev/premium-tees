@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { indianMobileSchema } from "@/lib/validations/phone";
 import {
   INDIA_STATE_OPTIONS,
   OTHER_CITY,
@@ -50,7 +51,7 @@ export const addressSchema = z.object({
   state: z.string().min(2, "State is required"),
   zip: pinCodeSchema,
   country: z.string().min(2).default("IN"),
-  phone: z.string().optional(),
+  phone: indianMobileSchema,
 });
 
 function validateProfileIndiaAddress(
@@ -129,7 +130,7 @@ export const addressFormSchema = z
     type: z.enum(["SHIPPING", "BILLING", "BOTH"]),
     isDefault: z.boolean().default(false),
     firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
+    lastName: z.string().optional(),
     line1: z.string().min(3, "Address is required"),
     line2: z.string().optional(),
     state: z.string().min(1, "Select a state"),
@@ -138,9 +139,18 @@ export const addressFormSchema = z
     cityOther: z.string().optional(),
     zip: z.string().min(1, "PIN code is required"),
     country: z.literal("IN").default("IN"),
-    phone: z.string().optional(),
+    phone: z.string().min(1, "Phone number is required"),
   })
   .superRefine((data, ctx) => {
+    const phoneResult = indianMobileSchema.safeParse(data.phone);
+    if (!phoneResult.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: phoneResult.error.errors[0]?.message ?? "Invalid phone number",
+        path: ["phone"],
+      });
+    }
+
     validateProfileIndiaAddress(ctx, {
       state: data.state,
       stateOther: data.stateOther,
@@ -160,14 +170,14 @@ export function toAddressPayload(data: AddressFormInput): AddressInput {
   return {
     type: data.type,
     isDefault: data.isDefault,
-    name: `${data.firstName.trim()} ${data.lastName.trim()}`.trim(),
+    name: `${data.firstName.trim()} ${data.lastName?.trim() ?? ""}`.trim(),
     line1: data.line1,
     line2: data.line2,
     city,
     state,
     zip: data.zip,
     country: "IN",
-    phone: data.phone,
+    phone: indianMobileSchema.parse(data.phone),
   };
 }
 

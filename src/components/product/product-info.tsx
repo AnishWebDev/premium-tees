@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 
 type ProductVariant = {
   id: string;
+  sku: string;
   size: string;
   color: string;
   colorHex: string | null;
@@ -36,9 +37,13 @@ type ProductInfoProps = {
     price: number;
     compareAt: number | null;
     description: string;
+    freeShippingEligible?: boolean;
     material: string | null;
     fit: string | null;
     care: string | null;
+    design: string | null;
+    neck: string | null;
+    sleeveStyle: string | null;
     averageRating?: number;
     reviews?: unknown[];
     variants: ProductVariant[];
@@ -166,7 +171,11 @@ export function ProductInfo({
     }
   };
 
-  const specs = [
+  const aboutRows = [
+    { label: "SKU", value: selectedVariant?.sku },
+    { label: "Design", value: product.design },
+    { label: "Neck", value: product.neck },
+    { label: "Sleeve style", value: product.sleeveStyle },
     { label: "Material", value: product.material },
     { label: "Fit", value: product.fit },
     { label: "Care", value: product.care },
@@ -201,21 +210,39 @@ export function ProductInfo({
             </span>
           )}
         </div>
+
+        {product.freeShippingEligible && (
+          <p className="mt-3 text-sm font-medium text-green-700 dark:text-green-400">
+            This product is eligible for FREE SHIPPING
+          </p>
+        )}
       </div>
 
       <p className="mt-6 text-sm leading-relaxed text-[var(--muted-foreground)]">
         {product.description}
       </p>
 
-      {specs.length > 0 && (
-        <dl className="mt-8 space-y-3 border-t border-[var(--border)] pt-8">
-          {specs.map((spec) => (
-            <div key={spec.label} className="grid grid-cols-3 gap-4 text-sm">
-              <dt className="font-medium text-[var(--foreground)]">{spec.label}</dt>
-              <dd className="col-span-2 text-[var(--muted-foreground)]">{spec.value}</dd>
-            </div>
-          ))}
-        </dl>
+      {aboutRows.length > 0 && (
+        <div className="mt-8 border-t border-[var(--border)] pt-8">
+          <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
+            About the T-shirt
+          </h2>
+          <dl className="mt-4 space-y-3">
+            {aboutRows.map((spec) => (
+              <div key={spec.label} className="grid grid-cols-3 gap-4 text-sm">
+                <dt className="font-medium text-[var(--foreground)]">{spec.label}</dt>
+                <dd
+                  className={cn(
+                    "col-span-2 text-[var(--muted-foreground)]",
+                    spec.label === "SKU" && "font-mono text-xs tracking-wide"
+                  )}
+                >
+                  {spec.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       )}
 
       <div className="mt-8 space-y-6 border-t border-[var(--border)] pt-8">

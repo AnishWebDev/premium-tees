@@ -24,6 +24,13 @@ type ProductResponse = {
   bestSeller: boolean;
   newArrival: boolean;
   active: boolean;
+  freeShippingEligible?: boolean;
+  design?: string | null;
+  neck?: string | null;
+  sleeveStyle?: string | null;
+  material?: string | null;
+  fit?: string | null;
+  care?: string | null;
   audience: string;
   kidsAge: string | null;
   images: Array<{ url: string; alt: string | null }>;
@@ -84,6 +91,13 @@ export default async function EditProductPage({ params }: PageProps) {
           bestSeller: product.bestSeller,
           newArrival: product.newArrival,
           active: product.active,
+          freeShippingEligible: product.freeShippingEligible ?? false,
+          design: product.design ?? "",
+          neck: product.neck ?? "",
+          sleeveStyle: product.sleeveStyle ?? "",
+          material: product.material ?? "",
+          fit: product.fit ?? "",
+          care: product.care ?? "",
           audience: fromPrismaAudience(product.audience) as AudienceId,
           kidsAge: fromPrismaKidsAge(product.kidsAge),
           images: product.images.map((img) => ({

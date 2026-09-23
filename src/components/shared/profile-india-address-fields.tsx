@@ -64,7 +64,7 @@ export function ProfileIndiaAddressFields({
           )}
         </div>
         <div>
-          <Label htmlFor={`${idPrefix}-last-name`}>Last name</Label>
+          <Label htmlFor={`${idPrefix}-last-name`}>Last name (optional)</Label>
           <Input
             id={`${idPrefix}-last-name`}
             className="mt-2"
@@ -237,14 +237,28 @@ export function ProfileIndiaAddressFields({
       </div>
 
       <div>
-        <Label htmlFor={`${idPrefix}-phone`}>Phone (optional)</Label>
+        <Label htmlFor={`${idPrefix}-phone`}>Phone (10 digits, required)</Label>
         <Input
           id={`${idPrefix}-phone`}
           type="tel"
           className="mt-2"
+          inputMode="numeric"
+          maxLength={10}
           autoComplete="tel"
-          {...register("phone")}
+          {...register("phone", {
+            onChange: (event) => {
+              const digits = event.target.value.replace(/\D/g, "").slice(0, 10);
+              if (digits !== event.target.value) {
+                setValue("phone", digits, { shouldValidate: true });
+              }
+            },
+          })}
         />
+        {errors.phone && (
+          <p className="mt-1 text-xs text-red-600" role="alert">
+            {errors.phone.message}
+          </p>
+        )}
       </div>
     </>
   );
