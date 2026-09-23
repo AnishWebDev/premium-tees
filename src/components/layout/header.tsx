@@ -39,7 +39,8 @@ export function Header({
   const links = navLinks.length > 0 ? navLinks : NAV_LINKS;
   const hasLogoImage = logoImageUrl.trim().length > 0;
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const sessionReady = sessionStatus !== "loading";
   const itemCount = useCartStore((s) => s.getItemCount());
   const wishlistCount = useWishlistStore((s) => s.productIds.length);
   const [mounted, setMounted] = useState(false);
@@ -166,7 +167,18 @@ export function Header({
               )}
             </Button>
 
-            {session?.user ? (
+            {!sessionReady ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-hidden
+                tabIndex={-1}
+                className="pointer-events-none opacity-0"
+                disabled
+              >
+                <User className="h-5 w-5" />
+              </Button>
+            ) : session?.user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Account menu">

@@ -40,7 +40,8 @@ export function MobileNavDrawer({
   siteName = "",
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
+  const sessionReady = sessionStatus !== "loading";
   const hasLogoImage = logoImageUrl.trim().length > 0;
 
   const close = () => onOpenChange(false);
@@ -161,7 +162,7 @@ export function MobileNavDrawer({
             ) : null}
           </button>
 
-          {session?.user ? (
+          {!sessionReady ? null : session?.user ? (
             <>
               <div className="my-2 border-t border-[var(--border)]" />
               <div className="px-3 py-2">

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +49,7 @@ export function CouponsManager({ initialCoupons }: CouponsManagerProps) {
   const router = useRouter();
   const [coupons, setCoupons] = useState(initialCoupons);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     code: "",
     description: "",
@@ -112,6 +113,26 @@ export function CouponsManager({ initialCoupons }: CouponsManagerProps) {
       ? `${coupon.discountValue}%`
       : formatPrice(coupon.discountValue);
 
+  const handleDelete = async (id: string, code: string) => {
+    if (!confirm(`Delete coupon "${code}"? This cannot be undone.`)) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/coupons/${id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to delete coupon");
+        return;
+      }
+      toast.success("Coupon deleted");
+      setCoupons((prev) => prev.filter((c) => c.id !== id));
+      router.refresh();
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <Card className="rounded-lg shadow-sm lg:col-span-2">
@@ -128,12 +149,15 @@ export function CouponsManager({ initialCoupons }: CouponsManagerProps) {
                 <TableHead>Uses</TableHead>
                 <TableHead>Expires</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="w-[72px]">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {coupons.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-neutral-500">
+                  <TableCell colSpan={7} className="py-8 text-center text-neutral-500">
                     No coupons yet
                   </TableCell>
                 </TableRow>
@@ -165,6 +189,23 @@ export function CouponsManager({ initialCoupons }: CouponsManagerProps) {
                       <Badge variant={coupon.active ? "success" : "secondary"}>
                         {coupon.active ? "Active" : "Inactive"}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-neutral-500 hover:text-red-600"
+                        aria-label={`Delete ${coupon.code}`}
+                        disabled={deletingId === coupon.id}
+                        onClick={() => handleDelete(coupon.id, coupon.code)}
+                      >
+                        {deletingId === coupon.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { Minus, Plus, ShoppingBag, Trash2, Bookmark, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { PromoCodeField } from "@/components/cart/promo-code-field";
 import {
   DEFAULT_COMMERCE_CONFIG,
   type CommerceConfig,
@@ -21,7 +21,6 @@ import {
 } from "@/lib/utils";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type CartViewProps = {
@@ -41,22 +40,17 @@ export function CartView({
 
   const {
     items,
-    couponCode,
     discount,
     shippingMethod,
     removeItem,
     updateQuantity,
     saveForLater,
     moveToCart,
-    setCoupon,
     setShippingMethod,
     getSubtotal,
     getActiveItems,
     getSavedItems,
   } = useCartStore();
-
-  const [promoInput, setPromoInput] = useState(couponCode ?? "");
-  const [promoLoading, setPromoLoading] = useState(false);
 
   useEffect(() => {
     if (commerceProp) {
@@ -86,34 +80,6 @@ export function CartView({
 
   const tax = calculateTax(subtotal - discount, commerce.gstRate);
   const total = Math.max(0, subtotal - discount + shippingCost + tax);
-
-  const applyPromo = async () => {
-    if (!promoInput.trim()) return;
-
-    setPromoLoading(true);
-    try {
-      const res = await fetch("/api/coupons", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoInput.trim(), subtotal }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Invalid promo code");
-
-      setCoupon(body.code, body.discount);
-      toast.success(`Promo applied — ${formatPrice(body.discount)} off`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Invalid promo code");
-      setCoupon(null, 0);
-    } finally {
-      setPromoLoading(false);
-    }
-  };
-
-  const removePromo = () => {
-    setPromoInput("");
-    setCoupon(null, 0);
-  };
 
   if (items.length === 0) {
     return (
@@ -265,39 +231,7 @@ export function CartView({
           </h2>
 
           <div className="mt-6 space-y-4">
-            <div>
-              <Label htmlFor="promo-code" className="text-xs uppercase tracking-wider">
-                Promo code
-              </Label>
-              <div className="mt-2 flex gap-2">
-                <Input
-                  id="promo-code"
-                  value={promoInput}
-                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                  placeholder="Enter code"
-                  disabled={!!couponCode}
-                />
-                {couponCode ? (
-                  <Button type="button" variant="outline" onClick={removePromo}>
-                    Remove
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={applyPromo}
-                    disabled={promoLoading || !promoInput.trim()}
-                  >
-                    {promoLoading ? "…" : "Apply"}
-                  </Button>
-                )}
-              </div>
-              {couponCode && (
-                <p className="mt-2 text-xs text-green-700">
-                  {couponCode} applied — {formatPrice(discount)} off
-                </p>
-              )}
-            </div>
+            <PromoCodeField subtotal={subtotal} />
 
             {SHOW_SHIPPING_METHOD_UI ? (
               <div>

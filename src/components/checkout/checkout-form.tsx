@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { IndiaAddressFields } from "@/components/checkout/india-address-fields";
+import { PromoCodeField } from "@/components/cart/promo-code-field";
 
 type CheckoutMode = "payment" | "lead" | "demo";
 
@@ -195,6 +196,7 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          couponCode: data.couponCode ?? couponCode ?? undefined,
           items: items.map((item) => ({
             productId: item.productId,
             variantId: item.variantId,
@@ -386,6 +388,13 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
           <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
             Order summary
           </h2>
+
+          <div className="mt-6">
+            <PromoCodeField
+              subtotal={subtotal}
+              onCouponChange={(code) => setValue("couponCode", code)}
+            />
+          </div>
 
           <ul className="mt-6 space-y-4">
             {items.map((item) => (
