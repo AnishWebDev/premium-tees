@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Check, Minus, Plus, Heart } from "lucide-react";
@@ -77,6 +77,8 @@ export function ProductInfo({
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [sizeHighlight, setSizeHighlight] = useState(false);
+  const sizeSectionRef = useRef<HTMLDivElement>(null);
 
   const sizesForColor = useMemo(() => {
     const sizes = product.variants
@@ -97,8 +99,38 @@ export function ProductInfo({
     : null;
 
   const unitPrice = selectedVariant?.price ?? product.price;
+  const needsSize = sizesForColor.length > 0 && !selectedSize;
+
+  useEffect(() => {
+    if (sizesForColor.length !== 1 || selectedSize) return;
+    const onlySize = sizesForColor[0];
+    const variant = product.variants.find(
+      (v) => v.color === selectedColor && v.size === onlySize
+    );
+    const available =
+      (variant?.inventory?.quantity ?? 0) - (variant?.inventory?.reserved ?? 0);
+    if (available > 0) {
+      setSelectedSize(onlySize);
+    }
+  }, [selectedColor, selectedSize, sizesForColor, product.variants]);
+
+  useEffect(() => {
+    if (selectedSize) setSizeHighlight(false);
+  }, [selectedSize]);
+
+  const promptForSize = () => {
+    setSizeHighlight(true);
+    sizeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    toast.message("Select your size", {
+      description: "Choose a size above, then add to cart or buy now.",
+    });
+  };
 
   const handleAddToCart = () => {
+    if (!selectedSize && sizesForColor.length > 0) {
+      promptForSize();
+      return;
+    }
     if (!selectedVariant) {
       toast.error("Please select a size and color.");
       return;
@@ -143,6 +175,10 @@ export function ProductInfo({
   };
 
   const handleBuyNow = () => {
+    if (!selectedSize && sizesForColor.length > 0) {
+      promptForSize();
+      return;
+    }
     if (!selectedVariant) {
       toast.error("Please select a size and color.");
       return;
@@ -316,9 +352,22 @@ export function ProductInfo({
         )}
 
         {sizesForColor.length > 0 && (
-          <div>
+          <div
+            id="product-size-picker"
+            ref={sizeSectionRef}
+            className={cn(
+              "rounded-xl transition-[box-shadow]",
+              sizeHighlight &&
+                "ring-2 ring-[var(--foreground)] ring-offset-2 ring-offset-[var(--background)]"
+            )}
+          >
             <div className="mb-3 flex items-center justify-between">
-              <Label>Size</Label>
+              <Label>
+                Size
+                <span className="ml-1 text-[var(--destructive)]" aria-hidden>
+                  *
+                </span>
+              </Label>
               {sizeGuide && <SizeGuideModal data={sizeGuide} />}
             </div>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Size">
@@ -351,6 +400,12 @@ export function ProductInfo({
                 );
               })}
             </div>
+            {needsSize && (
+              <p className="mt-3 text-sm text-[var(--muted-foreground)]" role="status">
+                Select a size to enable <strong className="font-medium text-[var(--foreground)]">Add to cart</strong> and{" "}
+                <strong className="font-medium text-[var(--foreground)]">Buy now</strong>.
+              </p>
+            )}
           </div>
         )}
 
@@ -402,18 +457,20 @@ export function ProductInfo({
             size="lg"
             className="flex-1"
             onClick={handleAddToCart}
-            disabled={!selectedVariant || stock?.status === "out"}
+            disabled={stock?.status === "out"}
+            aria-disabled={needsSize || stock?.status === "out"}
           >
-            Add to cart
+            {needsSize ? "Select size to add" : "Add to cart"}
           </Button>
           <Button
             size="lg"
             variant="secondary"
             className="flex-1"
             onClick={handleBuyNow}
-            disabled={!selectedVariant || stock?.status === "out"}
+            disabled={stock?.status === "out"}
+            aria-disabled={needsSize || stock?.status === "out"}
           >
-            Buy now
+            {needsSize ? "Select size to buy" : "Buy now"}
           </Button>
           <Button
             size="lg"
@@ -435,10 +492,12 @@ export function ProductInfo({
     <StickyAddToCartBar
       productName={product.name}
       unitPrice={unitPrice}
+      needsSize={needsSize}
       selectedVariant={!!selectedVariant}
-      disabled={!selectedVariant || stock?.status === "out"}
+      disabled={stock?.status === "out"}
       onAddToCart={handleAddToCart}
       onBuyNow={handleBuyNow}
+      onPromptSize={promptForSize}
     />
     </>
   );

@@ -1,3 +1,4 @@
+import { incrementCouponUsedCount } from "@/lib/coupon-usage";
 import { syncOrderByIdSafe } from "@/lib/google-sheets";
 import { prisma } from "@/lib/prisma";
 import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
@@ -79,23 +80,7 @@ export async function fulfillOrder(
     }
 
     if (order.couponCode) {
-      const coupon = await tx.coupon.findUnique({
-        where: { code: order.couponCode },
-      });
-      if (coupon) {
-        const couponUpdate = await tx.coupon.updateMany({
-          where: {
-            code: order.couponCode,
-            ...(coupon.maxUses !== null
-              ? { usedCount: { lt: coupon.maxUses } }
-              : {}),
-          },
-          data: { usedCount: { increment: 1 } },
-        });
-        if (coupon.maxUses !== null && couponUpdate.count === 0) {
-          throw new Error(`Coupon ${order.couponCode} has no remaining uses`);
-        }
-      }
+      await incrementCouponUsedCount(order.couponCode, tx);
     }
 
     return true;

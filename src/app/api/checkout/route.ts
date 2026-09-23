@@ -18,6 +18,7 @@ import {
   composeOrderNumber,
   siteOrderCodeFromName,
 } from "@/lib/order-number";
+import { hasCustomerUsedCoupon, incrementCouponUsedCount } from "@/lib/coupon-usage";
 import { calculateShipping, calculateTax, getDiscountAmount } from "@/lib/utils";
 import { checkoutSchema, cartItemSchema } from "@/lib/validations/checkout";
 
@@ -123,6 +124,17 @@ export async function POST(request: Request) {
       });
     }
 
+    let linkedUserId: string | undefined;
+    if (session?.user?.id) {
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+      });
+      if (userExists) {
+        linkedUserId = userExists.id;
+      }
+    }
+
     let discount = 0;
     let couponCode: string | undefined;
 
@@ -142,6 +154,17 @@ export async function POST(request: Request) {
       if (!valid) {
         return NextResponse.json(
           { error: "This coupon is invalid or no longer available" },
+          { status: 400 }
+        );
+      }
+
+      const alreadyUsed = await hasCustomerUsedCoupon(coupon.code, {
+        userId: linkedUserId,
+        email: data.email,
+      });
+      if (alreadyUsed) {
+        return NextResponse.json(
+          { error: "You have already used this coupon on a previous order" },
           { status: 400 }
         );
       }
@@ -169,17 +192,6 @@ export async function POST(request: Request) {
 
     const siteIdentity = await getSiteIdentity();
     const siteCode = siteOrderCodeFromName(siteIdentity.name);
-
-    let linkedUserId: string | undefined;
-    if (session?.user?.id) {
-      const userExists = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { id: true },
-      });
-      if (userExists) {
-        linkedUserId = userExists.id;
-      }
-    }
 
     const billingCountry = data.shippingCountry || "IN";
 
@@ -237,7 +249,7 @@ export async function POST(request: Request) {
           }
         }
 
-        return tx.order.create({
+        const created = await tx.order.create({
           data: {
             orderNumber,
             currency: "inr",
@@ -269,6 +281,12 @@ export async function POST(request: Request) {
             items: { create: itemsCreate },
           },
         });
+
+        if (couponCode && leadCapture) {
+          await incrementCouponUsedCount(couponCode, tx);
+        }
+
+        return created;
       });
     } catch (error) {
       const prismaCode =

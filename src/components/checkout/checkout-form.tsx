@@ -441,7 +441,7 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
             {submitting
               ? "Processing…"
               : leadCapture
-                ? "Submit order request"
+                ? "Submit free order"
                 : demoMode
                   ? "Complete demo checkout"
                   : "Pay with UPI / Card"}
@@ -471,7 +471,7 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
 
           <p className="mt-4 text-center text-xs text-[var(--muted-foreground)]">
             {leadCapture
-              ? "No payment required — we’ll email you to confirm availability and next steps."
+              ? "No payment required. We’ll use your address to ship your order for free."
               : demoMode
                 ? "Staff demo — order is marked paid without Razorpay"
                 : "Secure checkout powered by Razorpay — UPI, cards & more"}

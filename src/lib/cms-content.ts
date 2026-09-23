@@ -276,7 +276,7 @@ export const DEFAULT_CMS_CONTENT: AllCmsContent = {
     notFoundDescriptionFontSize: "",
     notFoundDescriptionFontFamily: "",
     checkoutSuccessLead:
-      "Thanks — we received your details. Our team will reach out to confirm your order.",
+      "Thanks — we have your delivery details. We’ll ship your tee for free and email you when it’s on the way.",
     checkoutSuccessPaid: "Payment successful. We are preparing your order.",
   },
   sizeGuide: {

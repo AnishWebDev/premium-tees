@@ -137,7 +137,7 @@ export function StoreSettingsCard({ isSuperAdmin }: StoreSettingsCardProps) {
             <p className="mt-1 text-xs text-neutral-500">
               {paymentsEnabled
                 ? "Customers pay via Razorpay at checkout."
-                : "Customers submit their cart, shipping address, and contact info. Orders are saved as leads."}
+                : "Customers submit cart + delivery address (no payment). Orders save as LEAD for free-ship fulfillment."}
             </p>
 
             {isSuperAdmin && (

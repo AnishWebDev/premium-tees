@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
+import { hasCustomerUsedCoupon } from "@/lib/coupon-usage";
 import { prisma } from "@/lib/prisma";
 import { getDiscountAmount } from "@/lib/utils";
 
 const validateCouponSchema = z.object({
   code: z.string().min(1).transform((v) => v.toUpperCase().trim()),
   subtotal: z.coerce.number().min(0),
+  email: z.string().email().optional(),
 });
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
     const body = await request.json();
     const parsed = validateCouponSchema.safeParse(body);
 
@@ -20,7 +24,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const { code, subtotal } = parsed.data;
+    const { code, subtotal, email: emailFromBody } = parsed.data;
+    const email = emailFromBody ?? session?.user?.email ?? undefined;
 
     const coupon = await prisma.coupon.findUnique({ where: { code } });
 
@@ -48,6 +53,19 @@ export async function POST(request: Request) {
         },
         { status: 400 }
       );
+    }
+
+    if (email || session?.user?.id) {
+      const alreadyUsed = await hasCustomerUsedCoupon(code, {
+        userId: session?.user?.id,
+        email,
+      });
+      if (alreadyUsed) {
+        return NextResponse.json(
+          { error: "You have already used this coupon on a previous order" },
+          { status: 400 }
+        );
+      }
     }
 
     const discount = getDiscountAmount(

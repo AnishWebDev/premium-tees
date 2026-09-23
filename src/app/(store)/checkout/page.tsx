@@ -29,13 +29,13 @@ export default async function CheckoutPage() {
       <div className="container-tight">
         <div className="mb-10 max-w-xl">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-[var(--foreground)]">
-            {leadCapture ? "Submit your order" : "Checkout"}
+            {leadCapture ? "Place your free order" : "Checkout"}
           </h1>
           <p className="mt-2 text-sm text-[var(--muted-foreground)]">
             {!checkoutAvailable
               ? "Online payment isn’t set up yet — guest checkout will open once Razorpay is connected."
               : leadCapture
-                ? "Tell us where to send your tees — no payment required yet. We’ll reach out to confirm your order."
+                ? "No payment needed — add your delivery address and we’ll ship your tee for free (while stock lasts)."
                 : demoMode
                   ? "Staff demo checkout — orders are marked paid without Razorpay (guests cannot use this)."
                   : "Secure payment powered by Razorpay (UPI, cards & netbanking)."}

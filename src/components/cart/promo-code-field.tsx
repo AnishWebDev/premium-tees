@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { formatPrice } from "@/lib/utils";
@@ -20,6 +21,7 @@ export function PromoCodeField({
   onCouponChange,
   labelClassName = "text-xs uppercase tracking-wider",
 }: PromoCodeFieldProps) {
+  const { data: session } = useSession();
   const { couponCode, discount, setCoupon } = useCartStore();
   const [promoInput, setPromoInput] = useState(couponCode ?? "");
   const [promoLoading, setPromoLoading] = useState(false);
@@ -36,7 +38,11 @@ export function PromoCodeField({
       const res = await fetch("/api/coupons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoInput.trim(), subtotal }),
+        body: JSON.stringify({
+          code: promoInput.trim(),
+          subtotal,
+          ...(session?.user?.email ? { email: session.user.email } : {}),
+        }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Invalid promo code");

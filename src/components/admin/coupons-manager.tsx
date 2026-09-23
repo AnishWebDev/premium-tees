@@ -399,6 +399,9 @@ export function CouponsManager({
         <Card className="rounded-lg shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Create coupon</CardTitle>
+            <p className="text-xs text-neutral-500">
+              Each customer (email or account) can use a code once. Optional max uses caps total redemptions store-wide.
+            </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

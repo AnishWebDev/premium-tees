@@ -66,7 +66,7 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
 
           <h1 className="mt-8 font-display text-3xl font-semibold tracking-tight text-[var(--foreground)]">
             {order?.status === "LEAD"
-              ? "Thanks — we got your request"
+              ? "You’re all set — free delivery"
               : "Thank you for your order"}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-[var(--muted-foreground)]">
