@@ -5,8 +5,7 @@ import { getCmsBlock } from "@/lib/cms-content";
 import { SITE_URL } from "@/lib/constants";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { getStoreSettings } from "@/lib/store-settings";
-import { ProductGallery } from "@/components/product/product-gallery";
-import { ProductInfo } from "@/components/product/product-info";
+import { ProductDetailShell } from "@/components/product/product-detail-shell";
 import { ProductBreadcrumbs } from "@/components/product/product-breadcrumbs";
 import { ProductReviews } from "@/components/product/product-reviews";
 import { RelatedProducts } from "@/components/product/related-products";
@@ -126,14 +125,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             category={product.category}
           />
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-            <ProductGallery
-              images={product.images.map((img) => ({
-                url: img.url,
-                alt: img.alt,
-              }))}
-              name={product.name}
-            />
-            <ProductInfo
+            <ProductDetailShell
               product={product}
               sizeGuide={sizeGuide}
               pincodeDeliveryDays={storeSettings.shipping.pincodeDeliveryDays}

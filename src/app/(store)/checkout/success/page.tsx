@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { verifyOrderAccessToken } from "@/lib/order-access";
 import { getCmsBlock } from "@/lib/cms-content";
 import { getSiteIdentity } from "@/lib/site-identity";
+import { OrderLineItem } from "@/components/order/order-line-item";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -32,7 +33,13 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
   const order = orderNumber
     ? await prisma.order.findFirst({
         where: { orderNumber },
-        include: { items: true },
+        include: {
+          items: {
+            include: {
+              product: { select: { slug: true, active: true } },
+            },
+          },
+        },
       })
     : null;
 
@@ -99,17 +106,17 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
 
               <ul className="mt-6 space-y-3 border-t border-[var(--border)] pt-4">
                 {order.items.map((item) => (
-                  <li key={item.id} className="flex justify-between gap-4 text-sm">
-                    <span className="text-[var(--muted-foreground)]">
-                      {item.name}{" "}
-                      <span className="text-[var(--muted-foreground)]">
-                        · {item.color} / {item.size} × {item.quantity}
-                      </span>
-                    </span>
-                    <span className="shrink-0 font-medium">
-                      {formatPrice(Number(item.price) * item.quantity)}
-                    </span>
-                  </li>
+                  <OrderLineItem
+                    key={item.id}
+                    layout="compact"
+                    name={item.name}
+                    color={item.color}
+                    size={item.size}
+                    quantity={item.quantity}
+                    price={Number(item.price)}
+                    productSlug={item.product?.slug}
+                    productActive={item.product?.active}
+                  />
                 ))}
               </ul>
             </div>

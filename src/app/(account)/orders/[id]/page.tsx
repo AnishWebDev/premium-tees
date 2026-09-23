@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { RemoteImage } from "@/components/shared/remote-image";
+import { OrderLineItem } from "@/components/order/order-line-item";
 import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, Truck } from "lucide-react";
 import { auth } from "@/lib/auth";
@@ -39,7 +39,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: { select: { slug: true, active: true } },
+        },
+      },
       returnRequests: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -158,32 +162,17 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           <h3 className="text-sm font-medium text-[var(--foreground)]">Items</h3>
           <ul className="mt-4 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)]">
             {order.items.map((item) => (
-              <li key={item.id} className="flex gap-4 p-4 sm:p-5">
-                <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
-                  {item.image && (
-                    <RemoteImage
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                    />
-                  )}
-                </div>
-                <div className="flex flex-1 items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-[var(--foreground)]">
-                      {item.name}
-                    </p>
-                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      {item.color} · {item.size} · Qty {item.quantity}
-                    </p>
-                  </div>
-                  <p className="text-sm font-medium text-[var(--foreground)]">
-                    {formatPrice(Number(item.price) * item.quantity)}
-                  </p>
-                </div>
-              </li>
+              <OrderLineItem
+                key={item.id}
+                name={item.name}
+                color={item.color}
+                size={item.size}
+                quantity={item.quantity}
+                price={Number(item.price)}
+                image={item.image}
+                productSlug={item.product?.slug}
+                productActive={item.product?.active}
+              />
             ))}
           </ul>
         </div>

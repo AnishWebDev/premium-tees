@@ -33,6 +33,7 @@ type ProductVariant = {
 type ProductInfoProps = {
   sizeGuide?: SizeGuideData;
   pincodeDeliveryDays?: string;
+  onColorChange?: (color: string) => void;
   product: {
     id: string;
     name: string;
@@ -58,6 +59,7 @@ export function ProductInfo({
   product,
   sizeGuide,
   pincodeDeliveryDays = "4–6 business days",
+  onColorChange,
 }: ProductInfoProps) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -275,6 +277,7 @@ export function ProductInfo({
                     onClick={() => {
                       setSelectedColor(color);
                       setSelectedSize("");
+                      onColorChange?.(color);
                     }}
                     className={cn(
                       "relative h-[4.5rem] w-[3.25rem] shrink-0 overflow-hidden rounded-lg border-2 bg-[var(--muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",

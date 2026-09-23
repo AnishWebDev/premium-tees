@@ -18,10 +18,27 @@ type GalleryImage = {
 type ProductGalleryProps = {
   images: GalleryImage[];
   name: string;
+  activeIndex?: number;
+  onActiveIndexChange?: (index: number) => void;
 };
 
-export function ProductGallery({ images, name }: ProductGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+export function ProductGallery({
+  images,
+  name,
+  activeIndex: activeIndexProp,
+  onActiveIndexChange,
+}: ProductGalleryProps) {
+  const [uncontrolledIndex, setUncontrolledIndex] = useState(0);
+  const isControlled = activeIndexProp !== undefined;
+  const activeIndex = isControlled ? activeIndexProp : uncontrolledIndex;
+
+  const setActiveIndex = useCallback(
+    (index: number) => {
+      if (isControlled) onActiveIndexChange?.(index);
+      else setUncontrolledIndex(index);
+    },
+    [isControlled, onActiveIndexChange]
+  );
   const [zoomOpen, setZoomOpen] = useState(false);
 
   const activeImage = images[activeIndex] ?? images[0];
@@ -29,10 +46,17 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
   const goTo = useCallback(
     (index: number) => {
       if (images.length === 0) return;
-      setActiveIndex((index + images.length) % images.length);
+      setActiveIndex(((index % images.length) + images.length) % images.length);
     },
-    [images.length]
+    [images.length, setActiveIndex]
   );
+
+  useEffect(() => {
+    if (!isControlled) return;
+    if (activeIndexProp >= images.length && images.length > 0) {
+      onActiveIndexChange?.(0);
+    }
+  }, [activeIndexProp, images.length, isControlled, onActiveIndexChange]);
 
   useEffect(() => {
     if (!zoomOpen) return;
