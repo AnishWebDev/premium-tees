@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Minus, Plus, Heart } from "lucide-react";
+import { Check, Minus, Plus, Heart } from "lucide-react";
+import { RemoteImage } from "@/components/shared/remote-image";
+import { resolveColorThumbnail } from "@/lib/product-color-image";
 import { toast } from "sonner";
 import { SIZES } from "@/lib/constants";
 import { useCartStore } from "@/lib/stores/cart-store";
@@ -23,6 +25,7 @@ type ProductVariant = {
   size: string;
   color: string;
   colorHex: string | null;
+  colorImageUrl?: string | null;
   price: number | null;
   inventory: { quantity: number; reserved: number } | null;
 };
@@ -248,35 +251,60 @@ export function ProductInfo({
       <div className="mt-8 space-y-6 border-t border-[var(--border)] pt-8">
         {colors.length > 0 && (
           <div>
-            <Label className="mb-3 block">Color — {selectedColor}</Label>
-            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Color">
+            <p className="mb-3 text-sm font-medium text-[var(--foreground)]">
+              Colour: <span className="font-semibold">{selectedColor}</span>
+            </p>
+            <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Colour">
               {colors.map((color) => {
+                const selected = selectedColor === color;
+                const thumbnail = resolveColorThumbnail(
+                  color,
+                  colors,
+                  product.variants,
+                  product.images
+                );
                 const variant = product.variants.find((v) => v.color === color);
                 return (
                   <button
                     key={color}
                     type="button"
                     role="radio"
-                    aria-checked={selectedColor === color}
+                    aria-checked={selected}
+                    aria-label={color}
+                    title={color}
                     onClick={() => {
                       setSelectedColor(color);
                       setSelectedSize("");
                     }}
                     className={cn(
-                      "flex h-10 items-center gap-2 rounded-full border px-4 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
-                      selectedColor === color
-                        ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]"
-                        : "border-[var(--border)] hover:border-[var(--muted-foreground)]"
+                      "relative h-[4.5rem] w-[3.25rem] shrink-0 overflow-hidden rounded-lg border-2 bg-[var(--muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
+                      selected
+                        ? "border-[var(--foreground)]"
+                        : "border-transparent hover:border-[var(--border)]"
                     )}
                   >
-                    {variant?.colorHex && (
+                    {thumbnail ? (
+                      <RemoteImage
+                        src={thumbnail}
+                        alt=""
+                        width={52}
+                        height={72}
+                        className="h-full w-full object-cover object-top"
+                      />
+                    ) : (
                       <span
-                        className="h-4 w-4 rounded-full border border-[var(--border)]"
-                        style={{ backgroundColor: variant.colorHex }}
+                        className="block h-full w-full"
+                        style={{ backgroundColor: variant?.colorHex ?? "#d4d4d4" }}
                         aria-hidden
                       />
                     )}
-                    {color}
+                    {selected && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-sm">
+                          <Check className="h-4 w-4 text-[var(--foreground)]" strokeWidth={2.5} />
+                        </span>
+                      </span>
+                    )}
                   </button>
                 );
               })}

@@ -38,6 +38,7 @@ type ProductResponse = {
     size: string;
     color: string;
     colorHex: string | null;
+    colorImageUrl?: string | null;
     inventory: { quantity: number } | null;
   }>;
 };
@@ -108,6 +109,7 @@ export default async function EditProductPage({ params }: PageProps) {
             size: v.size,
             color: v.color,
             colorHex: v.colorHex ?? "",
+            colorImageUrl: v.colorImageUrl ?? "",
             quantity: v.inventory?.quantity ?? 0,
           })),
         }}

@@ -190,9 +190,10 @@ model Variant {
   id        String  @id @default(cuid())
   sku       String  @unique
   size      String
-  color     String
-  colorHex  String?
-  price     Decimal?
+  color          String
+  colorHex       String?
+  colorImageUrl  String?
+  price          Decimal?
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 

@@ -37,6 +37,7 @@ type VariantRow = {
   size: string;
   color: string;
   colorHex: string;
+  colorImageUrl: string;
   quantity: number;
 };
 
@@ -80,6 +81,7 @@ const defaultVariant = (): VariantRow => ({
   size: "M",
   color: "Black",
   colorHex: "#000000",
+  colorImageUrl: "",
   quantity: 0,
 });
 
@@ -168,6 +170,7 @@ export function ProductForm({
       size: v.size,
       color: v.color,
       colorHex: v.colorHex || undefined,
+      colorImageUrl: v.colorImageUrl.trim() || undefined,
       quantity: Number(v.quantity),
     })),
   });
@@ -422,6 +425,14 @@ export function ProductForm({
                       value={variant.colorHex}
                       onChange={(e) => updateVariant(index, "colorHex", e.target.value)}
                       placeholder="#000000"
+                    />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2 lg:col-span-2">
+                    <Label>Color thumbnail URL (optional)</Label>
+                    <Input
+                      value={variant.colorImageUrl}
+                      onChange={(e) => updateVariant(index, "colorImageUrl", e.target.value)}
+                      placeholder="https://… photo for this color on PDP"
                     />
                   </div>
                   <div className="space-y-1.5">

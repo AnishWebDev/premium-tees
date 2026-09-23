@@ -55,6 +55,10 @@ const productFieldsSchema = z.object({
         size: z.string().min(1),
         color: z.string().min(1),
         colorHex: z.string().optional(),
+        colorImageUrl: z.preprocess(
+          (val) => (typeof val === "string" && !val.trim() ? undefined : val),
+          z.string().url().optional()
+        ),
         sku: z.string().optional(),
         price: z.coerce.number().positive().optional().nullable(),
         quantity: z.coerce.number().int().min(0).default(0),

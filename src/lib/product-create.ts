@@ -60,6 +60,7 @@ export async function createProduct(data: ProductInput) {
           size: variant.size,
           color: variant.color,
           colorHex: variant.colorHex,
+          colorImageUrl: variant.colorImageUrl?.trim() || null,
           sku:
             variant.sku ??
             `${slug.toUpperCase().replace(/-/g, "")}-${variant.color.toUpperCase().slice(0, 3)}-${variant.size}`,
