@@ -12,12 +12,13 @@ import {
   createRazorpayOrder,
   isRazorpayConfigured,
 } from "@/lib/razorpay";
+import { validateIndiaPincode } from "@/lib/india-pincode";
 import {
-  calculateShipping,
-  calculateTax,
-  generateOrderNumber,
-  getDiscountAmount,
-} from "@/lib/utils";
+  allocateLineOrderNumber,
+  composeOrderNumber,
+  siteOrderCodeFromName,
+} from "@/lib/order-number";
+import { calculateShipping, calculateTax, getDiscountAmount } from "@/lib/utils";
 import { checkoutSchema, cartItemSchema } from "@/lib/validations/checkout";
 
 const checkoutBodySchema = z.intersection(
@@ -160,51 +161,55 @@ export async function POST(request: Request) {
       data.shippingState
     );
     const total = Math.max(0, subtotal + shippingCost + tax - discount);
-    const orderNumber = generateOrderNumber();
 
-    const orderData = {
-      orderNumber,
-      currency: "inr" as const,
-      subtotal,
-      shippingCost,
-      tax,
-      discount,
-      total,
-      couponCode,
-      notes: data.notes,
-      guestEmail: session?.user?.email ? undefined : data.email,
-      shippingName: data.shippingName,
-      shippingLine1: data.shippingLine1,
-      shippingLine2: data.shippingLine2,
-      shippingCity: data.shippingCity,
-      shippingState: data.shippingState,
-      shippingZip: data.shippingZip,
-      shippingCountry: data.shippingCountry || "IN",
-      shippingPhone: data.shippingPhone,
-      billingName: data.sameAsBilling ? data.shippingName : data.billingName,
-      billingLine1: data.sameAsBilling ? data.shippingLine1 : data.billingLine1,
-      billingLine2: data.sameAsBilling ? data.shippingLine2 : data.billingLine2,
-      billingCity: data.sameAsBilling ? data.shippingCity : data.billingCity,
-      billingState: data.sameAsBilling ? data.shippingState : data.billingState,
-      billingZip: data.sameAsBilling ? data.shippingZip : data.billingZip,
-      billingCountry: data.sameAsBilling
-        ? data.shippingCountry || "IN"
-        : data.billingCountry,
-      userId: session?.user?.id,
-      items: { create: orderItems },
-    };
+    const pinCheck = await validateIndiaPincode(data.shippingZip, data.shippingState);
+    if (!pinCheck.ok) {
+      return NextResponse.json({ error: pinCheck.message }, { status: 400 });
+    }
+
+    const siteIdentity = await getSiteIdentity();
+    const siteCode = siteOrderCodeFromName(siteIdentity.name);
+
+    let linkedUserId: string | undefined;
+    if (session?.user?.id) {
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+      });
+      if (userExists) {
+        linkedUserId = userExists.id;
+      }
+    }
+
+    const billingCountry = data.shippingCountry || "IN";
 
     let order;
     try {
-      if (leadCapture) {
-        order = await prisma.order.create({
-          data: {
-            ...orderData,
-            status: "LEAD",
-          },
-        });
-      } else {
-        order = await prisma.$transaction(async (tx) => {
+      order = await prisma.$transaction(async (tx) => {
+        const lineOrderNumbers: string[] = [];
+        for (const item of orderItems) {
+          const variant = variantMap.get(item.variantId);
+          if (!variant) {
+            throw new Error("Invalid variant");
+          }
+          lineOrderNumbers.push(
+            await allocateLineOrderNumber(tx, {
+              siteCode,
+              productSlug: variant.product.slug,
+              size: item.size,
+              color: item.color,
+              variantId: item.variantId,
+            })
+          );
+        }
+
+        const orderNumber = composeOrderNumber(lineOrderNumbers);
+        const itemsCreate = orderItems.map((item, index) => ({
+          ...item,
+          lineOrderNumber: lineOrderNumbers[index],
+        }));
+
+        if (!leadCapture) {
           for (const item of orderItems) {
             const inv = await tx.inventory.findUnique({
               where: { variantId: item.variantId },
@@ -230,16 +235,55 @@ export async function POST(request: Request) {
               );
             }
           }
+        }
 
-          return tx.order.create({
-            data: {
-              ...orderData,
-              status: "PENDING",
-            },
-          });
+        return tx.order.create({
+          data: {
+            orderNumber,
+            currency: "inr",
+            subtotal,
+            shippingCost,
+            tax,
+            discount,
+            total,
+            couponCode,
+            notes: data.notes,
+            guestEmail: linkedUserId ? undefined : data.email,
+            shippingName: data.shippingName,
+            shippingLine1: data.shippingLine1,
+            shippingLine2: data.shippingLine2,
+            shippingCity: data.shippingCity,
+            shippingState: data.shippingState,
+            shippingZip: data.shippingZip,
+            shippingCountry: billingCountry,
+            shippingPhone: data.shippingPhone,
+            billingName: data.shippingName,
+            billingLine1: data.shippingLine1,
+            billingLine2: data.shippingLine2,
+            billingCity: data.shippingCity,
+            billingState: data.shippingState,
+            billingZip: data.shippingZip,
+            billingCountry,
+            ...(linkedUserId ? { userId: linkedUserId } : {}),
+            status: leadCapture ? "LEAD" : "PENDING",
+            items: { create: itemsCreate },
+          },
         });
-      }
+      });
     } catch (error) {
+      const prismaCode =
+        error && typeof error === "object" && "code" in error
+          ? String((error as { code: string }).code)
+          : "";
+      if (prismaCode === "P2003") {
+        return NextResponse.json(
+          {
+            error:
+              "Your sign-in session is out of date for this database. Sign out, sign in again, or finish checkout in a private window.",
+          },
+          { status: 400 }
+        );
+      }
       const message =
         error instanceof Error ? error.message : "Could not create order";
       return NextResponse.json({ error: message }, { status: 400 });
@@ -284,8 +328,6 @@ export async function POST(request: Request) {
       });
     }
 
-    const site = await getSiteIdentity();
-
     const razorpayOrder = await createRazorpayOrder({
       amountInRupees: total,
       receipt: order.orderNumber,
@@ -308,7 +350,7 @@ export async function POST(request: Request) {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      name: site.name,
+      name: siteIdentity.name,
       email: session?.user?.email ?? data.email,
       contact: data.shippingPhone ?? "",
       redirectUrl: successUrl,

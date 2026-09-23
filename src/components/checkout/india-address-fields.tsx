@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/select";
 
 type IndiaAddressFieldsProps = {
-  prefix: "shipping" | "billing";
   register: UseFormRegister<CheckoutFormInput>;
   setValue: UseFormSetValue<CheckoutFormInput>;
   watch: UseFormWatch<CheckoutFormInput>;
@@ -35,29 +34,28 @@ type IndiaAddressFieldsProps = {
 };
 
 export function IndiaAddressFields({
-  prefix,
   register,
   setValue,
   watch,
   errors,
   showNameFields = true,
 }: IndiaAddressFieldsProps) {
-  const state = watch(`${prefix}State`) ?? "";
-  const city = watch(`${prefix}City`) ?? "";
+  const prefix = "shipping";
+  const state = watch("shippingState") ?? "";
+  const city = watch("shippingCity") ?? "";
   const isOtherState = state === OTHER_STATE;
   const cityOptions = state && !isOtherState ? getCitiesForState(state) : [];
   const showCityOther = isOtherState || city === OTHER_CITY;
 
-  const firstNameKey = prefix === "shipping" ? "shippingFirstName" : "billingFirstName";
-  const lastNameKey = prefix === "shipping" ? "shippingLastName" : "billingLastName";
-  const line1Key = prefix === "shipping" ? "shippingLine1" : "billingLine1";
-  const line2Key = prefix === "shipping" ? "shippingLine2" : "billingLine2";
-  const stateKey = prefix === "shipping" ? "shippingState" : "billingState";
-  const stateOtherKey = prefix === "shipping" ? "shippingStateOther" : "billingStateOther";
-  const cityKey = prefix === "shipping" ? "shippingCity" : "billingCity";
-  const cityOtherKey = prefix === "shipping" ? "shippingCityOther" : "billingCityOther";
-  const zipKey = prefix === "shipping" ? "shippingZip" : "billingZip";
-  const phoneKey = prefix === "shipping" ? "shippingPhone" : undefined;
+  const firstNameKey = "shippingFirstName" as const;
+  const lastNameKey = "shippingLastName" as const;
+  const line1Key = "shippingLine1" as const;
+  const line2Key = "shippingLine2" as const;
+  const stateKey = "shippingState" as const;
+  const stateOtherKey = "shippingStateOther" as const;
+  const cityKey = "shippingCity" as const;
+  const cityOtherKey = "shippingCityOther" as const;
+  const zipKey = "shippingZip" as const;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -68,7 +66,7 @@ export function IndiaAddressFields({
             <Input
               id={`${prefix}-first-name`}
               className="mt-2"
-              autoComplete={prefix === "shipping" ? "given-name" : "billing given-name"}
+              autoComplete="given-name"
               {...register(firstNameKey)}
             />
             {errors[firstNameKey] && (
@@ -82,7 +80,7 @@ export function IndiaAddressFields({
             <Input
               id={`${prefix}-last-name`}
               className="mt-2"
-              autoComplete={prefix === "shipping" ? "family-name" : "billing family-name"}
+              autoComplete="family-name"
               {...register(lastNameKey)}
             />
             {errors[lastNameKey] && (
@@ -99,7 +97,7 @@ export function IndiaAddressFields({
         <Input
           id={`${prefix}-line1`}
           className="mt-2"
-          autoComplete={prefix === "shipping" ? "address-line1" : "billing address-line1"}
+          autoComplete="address-line1"
           {...register(line1Key)}
         />
         {errors[line1Key] && (
@@ -114,7 +112,7 @@ export function IndiaAddressFields({
         <Input
           id={`${prefix}-line2`}
           className="mt-2"
-          autoComplete={prefix === "shipping" ? "address-line2" : "billing address-line2"}
+          autoComplete="address-line2"
           {...register(line2Key)}
         />
       </div>
@@ -211,7 +209,7 @@ export function IndiaAddressFields({
             id={`${prefix}-city-other`}
             className="mt-2"
             placeholder="Enter your city"
-            autoComplete={prefix === "shipping" ? "address-level2" : "billing address-level2"}
+            autoComplete="address-level2"
             {...register(cityOtherKey)}
           />
           {errors[cityOtherKey] && (
@@ -229,8 +227,15 @@ export function IndiaAddressFields({
           className="mt-2"
           inputMode="numeric"
           maxLength={6}
-          autoComplete={prefix === "shipping" ? "postal-code" : "billing postal-code"}
-          {...register(zipKey)}
+          autoComplete="postal-code"
+          {...register(zipKey, {
+            onChange: (event) => {
+              const digits = event.target.value.replace(/\D/g, "").slice(0, 6);
+              if (digits !== event.target.value) {
+                setValue(zipKey, digits, { shouldValidate: true });
+              }
+            },
+          })}
         />
         {errors[zipKey] && (
           <p className="mt-1 text-xs text-red-600" role="alert">
@@ -239,31 +244,27 @@ export function IndiaAddressFields({
         )}
       </div>
 
-      {prefix === "shipping" && (
-        <div>
-          <Label className="text-[var(--foreground)]">Country</Label>
-          <p
-            className="mt-2 flex h-11 items-center rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 text-sm text-[var(--foreground)]"
-            aria-label="Country: India"
-          >
-            India
-          </p>
-          <input type="hidden" {...register("shippingCountry")} />
-        </div>
-      )}
+      <div>
+        <Label className="text-[var(--foreground)]">Country</Label>
+        <p
+          className="mt-2 flex h-11 items-center rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 text-sm text-[var(--foreground)]"
+          aria-label="Country: India"
+        >
+          India
+        </p>
+        <input type="hidden" {...register("shippingCountry")} />
+      </div>
 
-      {phoneKey && (
-        <div className="sm:col-span-2">
-          <Label htmlFor={`${prefix}-phone`}>Phone (for UPI / delivery)</Label>
-          <Input
-            id={`${prefix}-phone`}
-            type="tel"
-            className="mt-2"
-            autoComplete="tel"
-            {...register(phoneKey)}
-          />
-        </div>
-      )}
+      <div className="sm:col-span-2">
+        <Label htmlFor={`${prefix}-phone`}>Phone (for UPI / delivery)</Label>
+        <Input
+          id={`${prefix}-phone`}
+          type="tel"
+          className="mt-2"
+          autoComplete="tel"
+          {...register("shippingPhone")}
+        />
+      </div>
     </div>
   );
 }

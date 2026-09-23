@@ -23,7 +23,6 @@ import { formatPrice, calculateTax, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { IndiaAddressFields } from "@/components/checkout/india-address-fields";
 
@@ -65,14 +64,11 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
     defaultValues: {
       email: session?.user?.email ?? "",
       shippingCountry: "IN",
-      billingCountry: "IN",
-      sameAsBilling: true,
       shippingMethod,
       couponCode: couponCode ?? undefined,
     },
   });
 
-  const sameAsBilling = watch("sameAsBilling");
   const selectedShipping = watch("shippingMethod");
   const shippingState = watch("shippingState");
 
@@ -131,10 +127,8 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
           shippingZip: defaultAddress.zip,
           shippingCountry: "IN",
           shippingPhone: defaultAddress.phone ?? "",
-          sameAsBilling: true,
           shippingMethod,
           couponCode: couponCode ?? undefined,
-          billingCountry: "IN",
         });
         setAddressPrefilled(true);
       })
@@ -166,9 +160,25 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
     }
 
     const data = toCheckoutPayload(formData);
-
     setSubmitting(true);
     try {
+      const pinRes = await fetch("/api/pincode/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pin: formData.shippingZip,
+          state: formData.shippingState,
+        }),
+      });
+      const pinBody = await pinRes.json().catch(() => ({}));
+      if (!pinRes.ok) {
+        throw new Error(
+          typeof pinBody.message === "string"
+            ? pinBody.message
+            : "Enter a valid PIN code for your state"
+        );
+      }
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -309,40 +319,12 @@ export function CheckoutForm({ mode = "payment" }: CheckoutFormProps) {
           )}
           <div className="mt-4">
             <IndiaAddressFields
-              prefix="shipping"
               register={register}
               setValue={setValue}
               watch={watch}
               errors={errors}
             />
           </div>
-        </section>
-
-        <section>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              id="sameAsBilling"
-              checked={sameAsBilling}
-              onCheckedChange={(checked) =>
-                setValue("sameAsBilling", checked === true)
-              }
-            />
-            <Label htmlFor="sameAsBilling" className="cursor-pointer">
-              Billing address same as shipping
-            </Label>
-          </div>
-
-          {!sameAsBilling && (
-            <div className="mt-6">
-              <IndiaAddressFields
-                prefix="billing"
-                register={register}
-                setValue={setValue}
-                watch={watch}
-                errors={errors}
-              />
-            </div>
-          )}
         </section>
 
         <section>

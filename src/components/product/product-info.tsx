@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Minus, Plus, Heart } from "lucide-react";
 import { toast } from "sonner";
@@ -50,8 +51,10 @@ export function ProductInfo({
   sizeGuide,
   pincodeDeliveryDays = "4–6 business days",
 }: ProductInfoProps) {
+  const router = useRouter();
   const { data: session } = useSession();
   const addItem = useCartStore((s) => s.addItem);
+  const buyNow = useCartStore((s) => s.buyNow);
   const isSaved = useWishlistStore((s) => s.productIds.includes(product.id));
   const toggleWishlist = useWishlistStore((s) => s.toggle);
 
@@ -110,6 +113,38 @@ export function ProductInfo({
     });
 
     toast.success("Added to cart");
+  };
+
+  const buildCartLine = () => {
+    if (!selectedVariant || stock?.status === "out") return null;
+    return {
+      productId: product.id,
+      variantId: selectedVariant.id,
+      name: product.name,
+      slug: product.slug,
+      price: unitPrice,
+      image: product.images[0]?.url ?? "",
+      size: selectedVariant.size,
+      color: selectedVariant.color,
+      colorHex: selectedVariant.colorHex,
+      quantity,
+      maxStock: stock?.available ?? 1,
+    };
+  };
+
+  const handleBuyNow = () => {
+    if (!selectedVariant) {
+      toast.error("Please select a size and color.");
+      return;
+    }
+    if (stock?.status === "out") {
+      toast.error("This variant is out of stock.");
+      return;
+    }
+    const line = buildCartLine();
+    if (!line) return;
+    buyNow(line);
+    router.push("/checkout");
   };
 
   const handleWishlist = async () => {
@@ -315,6 +350,15 @@ export function ProductInfo({
           </Button>
           <Button
             size="lg"
+            variant="secondary"
+            className="flex-1"
+            onClick={handleBuyNow}
+            disabled={!selectedVariant || stock?.status === "out"}
+          >
+            Buy now
+          </Button>
+          <Button
+            size="lg"
             variant="outline"
             onClick={handleWishlist}
             disabled={loading}
@@ -336,6 +380,7 @@ export function ProductInfo({
       selectedVariant={!!selectedVariant}
       disabled={!selectedVariant || stock?.status === "out"}
       onAddToCart={handleAddToCart}
+      onBuyNow={handleBuyNow}
     />
     </>
   );

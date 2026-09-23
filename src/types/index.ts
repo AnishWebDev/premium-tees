@@ -89,14 +89,6 @@ export type CheckoutFormData = {
   shippingZip: string;
   shippingCountry: string;
   shippingPhone?: string;
-  sameAsBilling: boolean;
-  billingName?: string;
-  billingLine1?: string;
-  billingLine2?: string;
-  billingCity?: string;
-  billingState?: string;
-  billingZip?: string;
-  billingCountry?: string;
   couponCode?: string;
 };
 

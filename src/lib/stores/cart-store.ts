@@ -27,6 +27,8 @@ type CartState = {
   discount: number;
   shippingMethod: "standard" | "express" | "overnight";
   addItem: (item: Omit<LocalCartItem, "id" | "savedForLater">) => void;
+  /** Replace cart with a single line and go straight to checkout. */
+  buyNow: (item: Omit<LocalCartItem, "id" | "savedForLater">) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   saveForLater: (id: string) => void;
@@ -52,6 +54,20 @@ export const useCartStore = create<CartState>()(
       couponCode: null,
       discount: 0,
       shippingMethod: "standard",
+
+      buyNow: (item) => {
+        set({
+          items: [
+            {
+              ...item,
+              id: `${item.variantId}-buynow-${Date.now()}`,
+              savedForLater: false,
+            },
+          ],
+          couponCode: null,
+          discount: 0,
+        });
+      },
 
       addItem: (item) => {
         set((state) => {

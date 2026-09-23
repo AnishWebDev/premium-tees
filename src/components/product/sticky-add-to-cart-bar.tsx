@@ -9,6 +9,7 @@ type StickyAddToCartBarProps = {
   selectedVariant: boolean;
   disabled: boolean;
   onAddToCart: () => void;
+  onBuyNow: () => void;
 };
 
 export function StickyAddToCartBar({
@@ -17,6 +18,7 @@ export function StickyAddToCartBar({
   selectedVariant,
   disabled,
   onAddToCart,
+  onBuyNow,
 }: StickyAddToCartBarProps) {
   if (!selectedVariant) return null;
 
@@ -31,9 +33,14 @@ export function StickyAddToCartBar({
           <p className="truncate text-sm font-medium text-[var(--foreground)]">{productName}</p>
           <p className="text-sm text-[var(--muted-foreground)]">{formatPrice(unitPrice)}</p>
         </div>
-        <Button size="lg" onClick={onAddToCart} disabled={disabled} className="shrink-0">
-          Add to cart
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button size="lg" variant="secondary" onClick={onBuyNow} disabled={disabled}>
+            Buy now
+          </Button>
+          <Button size="lg" onClick={onAddToCart} disabled={disabled}>
+            Add to cart
+          </Button>
+        </div>
       </div>
     </div>
   );

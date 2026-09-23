@@ -13,14 +13,38 @@ type PincodeCheckerProps = {
 export function PincodeChecker({ pincodeDeliveryDays }: PincodeCheckerProps) {
   const [pincode, setPincode] = useState("");
   const [result, setResult] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
-  const handleCheck = () => {
+  const handleCheck = async () => {
     const trimmed = pincode.trim();
     if (!/^\d{6}$/.test(trimmed)) {
       setResult("Please enter a valid 6-digit PIN code.");
       return;
     }
-    setResult(`Estimated delivery: ${pincodeDeliveryDays}`);
+
+    setChecking(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/pincode/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: trimmed, state: "__other_state__" }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setResult(
+          typeof body.message === "string"
+            ? body.message
+            : "This PIN code does not look valid."
+        );
+        return;
+      }
+      setResult(`We deliver here — estimated ${pincodeDeliveryDays}.`);
+    } catch {
+      setResult("Could not verify PIN code. Try again.");
+    } finally {
+      setChecking(false);
+    }
   };
 
   return (
@@ -42,11 +66,11 @@ export function PincodeChecker({ pincodeDeliveryDays }: PincodeCheckerProps) {
             placeholder="Enter PIN code"
             value={pincode}
             onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleCheck())}
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), void handleCheck())}
           />
         </div>
-        <Button type="button" onClick={handleCheck}>
-          Check
+        <Button type="button" onClick={() => void handleCheck()} disabled={checking}>
+          {checking ? "Checking…" : "Check"}
         </Button>
       </div>
       {result && (
