@@ -400,7 +400,8 @@ export function CouponsManager({
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Create coupon</CardTitle>
             <p className="text-xs text-neutral-500">
-              Each customer (email or account) can use a code once. Optional max uses caps total redemptions store-wide.
+              Each customer (email or account) can use a code once; Admin and SuperAdmin accounts are exempt. Optional max
+              uses caps total redemptions store-wide.
             </p>
           </CardHeader>
           <CardContent>

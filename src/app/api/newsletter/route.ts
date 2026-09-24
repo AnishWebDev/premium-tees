@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { syncNewsletterToGoogleSheetsSafe } from "@/lib/google-sheets";
 import { prisma } from "@/lib/prisma";
 import { newsletterSchema } from "@/lib/validations/checkout";
 
@@ -20,18 +21,38 @@ export async function POST(request: Request) {
 
     if (existing) {
       if (existing.active) {
+        await syncNewsletterToGoogleSheetsSafe({
+          email: existing.email,
+          active: true,
+          createdAt: existing.createdAt,
+          updatedAt: new Date(),
+        });
         return NextResponse.json({ message: "Already subscribed" }, { status: 200 });
       }
 
-      await prisma.newsletter.update({
+      const updated = await prisma.newsletter.update({
         where: { email },
         data: { active: true },
+      });
+
+      await syncNewsletterToGoogleSheetsSafe({
+        email: updated.email,
+        active: updated.active,
+        createdAt: updated.createdAt,
+        updatedAt: new Date(),
       });
 
       return NextResponse.json({ message: "Resubscribed successfully" });
     }
 
-    await prisma.newsletter.create({ data: { email } });
+    const created = await prisma.newsletter.create({ data: { email } });
+
+    await syncNewsletterToGoogleSheetsSafe({
+      email: created.email,
+      active: created.active,
+      createdAt: created.createdAt,
+      updatedAt: created.createdAt,
+    });
 
     return NextResponse.json({ message: "Subscribed successfully" }, { status: 201 });
   } catch (error) {

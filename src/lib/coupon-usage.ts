@@ -1,13 +1,22 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { isStaff } from "@/lib/roles";
 
 const BLOCKING_STATUSES = ["CANCELLED", "REFUNDED"] as const;
 
 /** True if this account/email already completed an order with this coupon. */
 export async function hasCustomerUsedCoupon(
   couponCode: string,
-  identity: { userId?: string | null; email?: string | null }
+  identity: {
+    userId?: string | null;
+    email?: string | null;
+    role?: string | null;
+  }
 ): Promise<boolean> {
+  if (isStaff(identity.role)) {
+    return false;
+  }
+
   const code = couponCode.toUpperCase().trim();
   const email = identity.email?.trim().toLowerCase();
   const or: Prisma.OrderWhereInput[] = [];

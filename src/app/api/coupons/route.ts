@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       const alreadyUsed = await hasCustomerUsedCoupon(code, {
         userId: session?.user?.id,
         email,
+        role: session?.user?.role,
       });
       if (alreadyUsed) {
         return NextResponse.json(

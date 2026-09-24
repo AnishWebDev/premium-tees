@@ -364,3 +364,133 @@ export async function appendContactToGoogleSheets(
     requestBody: { values: [row] },
   });
 }
+
+const NEWSLETTER_HEADERS = ["Email", "Subscribed At", "Updated At", "Active"] as const;
+const NEWSLETTER_LAST_COLUMN = "D";
+
+function getNewsletterTabName(): string {
+  return process.env.GOOGLE_SHEETS_NEWSLETTER_TAB_NAME?.trim() || "Newsletter";
+}
+
+function newsletterHeadersMatch(existing: string[] | undefined): boolean {
+  if (!existing || existing.length !== NEWSLETTER_HEADERS.length) return false;
+  return NEWSLETTER_HEADERS.every((header, index) => existing[index] === header);
+}
+
+async function ensureNewsletterTabExists(sheets: ReturnType<typeof google.sheets>) {
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getNewsletterTabName();
+  const meta = await sheets.spreadsheets.get({ spreadsheetId });
+  const exists = meta.data.sheets?.some((sheet) => sheet.properties?.title === tab);
+  if (exists) return;
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      requests: [{ addSheet: { properties: { title: tab } } }],
+    },
+  });
+}
+
+async function ensureNewsletterHeaders(sheets: ReturnType<typeof google.sheets>) {
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getNewsletterTabName();
+  const range = sheetRange(tab, `A1:${NEWSLETTER_LAST_COLUMN}1`);
+
+  const existing = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range,
+  });
+
+  const existingRow = existing.data.values?.[0];
+  if (newsletterHeadersMatch(existingRow)) return;
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range,
+    valueInputOption: "RAW",
+    requestBody: { values: [Array.from(NEWSLETTER_HEADERS)] },
+  });
+}
+
+async function findNewsletterRowByEmail(
+  sheets: ReturnType<typeof google.sheets>,
+  email: string
+): Promise<number | null> {
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getNewsletterTabName();
+  const column = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: sheetRange(tab, "A:A"),
+  });
+
+  const normalized = email.trim().toLowerCase();
+  const rows = column.data.values ?? [];
+  for (let i = 1; i < rows.length; i++) {
+    const cell = rows[i]?.[0]?.toString().trim().toLowerCase();
+    if (cell === normalized) {
+      return i + 1;
+    }
+  }
+  return null;
+}
+
+export type NewsletterSheetInput = {
+  email: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function newsletterToRow(input: NewsletterSheetInput): string[] {
+  return [
+    input.email.trim().toLowerCase(),
+    formatSheetDateTime(input.createdAt),
+    formatSheetDateTime(input.updatedAt),
+    input.active ? "yes" : "no",
+  ];
+}
+
+export async function syncNewsletterToGoogleSheets(
+  input: NewsletterSheetInput
+): Promise<void> {
+  if (!isGoogleSheetsConfigured()) return;
+
+  const sheets = await getSheetsClient();
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getNewsletterTabName();
+
+  await ensureNewsletterTabExists(sheets);
+  await ensureNewsletterHeaders(sheets);
+
+  const row = newsletterToRow(input);
+  const existingRow = await findNewsletterRowByEmail(sheets, input.email);
+
+  if (existingRow) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: sheetRange(tab, `A${existingRow}:${NEWSLETTER_LAST_COLUMN}${existingRow}`),
+      valueInputOption: "RAW",
+      requestBody: { values: [row] },
+    });
+    return;
+  }
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: sheetRange(tab, `A:${NEWSLETTER_LAST_COLUMN}`),
+    valueInputOption: "RAW",
+    insertDataOption: "INSERT_ROWS",
+    requestBody: { values: [row] },
+  });
+}
+
+export async function syncNewsletterToGoogleSheetsSafe(
+  input: NewsletterSheetInput
+): Promise<void> {
+  try {
+    await syncNewsletterToGoogleSheets(input);
+  } catch (error) {
+    console.error("[google-sheets] newsletter sync failed", error);
+  }
+}
