@@ -494,3 +494,136 @@ export async function syncNewsletterToGoogleSheetsSafe(
     console.error("[google-sheets] newsletter sync failed", error);
   }
 }
+
+async function getNewsletterSheetId(
+  sheets: ReturnType<typeof google.sheets>
+): Promise<number> {
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getNewsletterTabName();
+  const meta = await sheets.spreadsheets.get({ spreadsheetId });
+  const sheet = meta.data.sheets?.find((s) => s.properties?.title === tab);
+  if (sheet?.properties?.sheetId == null) {
+    throw new Error(`Newsletter tab "${tab}" not found`);
+  }
+  return sheet.properties.sheetId;
+}
+
+/** Remove a subscriber row from the Newsletter tab (no-op if missing). */
+export async function removeNewsletterFromGoogleSheets(email: string): Promise<void> {
+  if (!isGoogleSheetsConfigured()) return;
+
+  const sheets = await getSheetsClient();
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getNewsletterTabName();
+
+  const rowIndex = await findNewsletterRowByEmail(sheets, email);
+  if (!rowIndex) return;
+
+  const sheetId = await getNewsletterSheetId(sheets);
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: "ROWS",
+              startIndex: rowIndex - 1,
+              endIndex: rowIndex,
+            },
+          },
+        },
+      ],
+    },
+  });
+}
+
+export async function removeNewsletterFromGoogleSheetsSafe(email: string): Promise<void> {
+  try {
+    await removeNewsletterFromGoogleSheets(email);
+  } catch (error) {
+    console.error("[google-sheets] newsletter remove failed", error);
+  }
+}
+
+async function listNewsletterSheetRows(
+  sheets: ReturnType<typeof google.sheets>
+): Promise<Array<{ email: string; rowIndex: number }>> {
+  const spreadsheetId = getSpreadsheetId()!;
+  const tab = getNewsletterTabName();
+  const column = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: sheetRange(tab, "A:A"),
+  });
+
+  const rows = column.data.values ?? [];
+  const result: Array<{ email: string; rowIndex: number }> = [];
+  for (let i = 1; i < rows.length; i++) {
+    const email = rows[i]?.[0]?.toString().trim().toLowerCase();
+    if (email) {
+      result.push({ email, rowIndex: i + 1 });
+    }
+  }
+  return result;
+}
+
+/** Upsert every DB subscriber to Sheets and remove sheet rows with no DB record. */
+export async function syncAllNewslettersFromDatabase(): Promise<{
+  synced: number;
+  removedFromSheet: number;
+}> {
+  if (!isGoogleSheetsConfigured()) {
+    throw new Error("Google Sheets is not configured");
+  }
+
+  const subscribers = await prisma.newsletter.findMany({
+    orderBy: { createdAt: "asc" },
+  });
+
+  const sheets = await getSheetsClient();
+  await ensureNewsletterTabExists(sheets);
+  await ensureNewsletterHeaders(sheets);
+
+  const now = new Date();
+  for (const sub of subscribers) {
+    await syncNewsletterToGoogleSheets({
+      email: sub.email,
+      active: sub.active,
+      createdAt: sub.createdAt,
+      updatedAt: now,
+    });
+  }
+
+  const dbEmails = new Set(subscribers.map((s) => s.email.trim().toLowerCase()));
+  const sheetRows = await listNewsletterSheetRows(sheets);
+  const orphanRows = sheetRows
+    .filter((row) => !dbEmails.has(row.email))
+    .sort((a, b) => b.rowIndex - a.rowIndex);
+
+  const spreadsheetId = getSpreadsheetId()!;
+  const sheetId = await getNewsletterSheetId(sheets);
+
+  for (const orphan of orphanRows) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId,
+                dimension: "ROWS",
+                startIndex: orphan.rowIndex - 1,
+                endIndex: orphan.rowIndex,
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  return { synced: subscribers.length, removedFromSheet: orphanRows.length };
+}
