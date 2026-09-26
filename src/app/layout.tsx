@@ -12,6 +12,8 @@ import { normalizeTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
+export const revalidate = 60;
+
 export async function generateMetadata(): Promise<Metadata> {
   const [site, faviconUrl, storeSettings] = await Promise.all([
     getSiteIdentity(),
@@ -89,8 +91,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [site, storeSettings, theme] = await Promise.all([
+  const [site, faviconUrl, storeSettings, theme] = await Promise.all([
     getSiteIdentity(),
+    getSiteFaviconUrl(),
     getStoreSettings(),
     getContentBlock("theme"),
   ]);
@@ -107,6 +110,13 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {faviconUrl ? (
+          <>
+            <link rel="icon" href={faviconUrl} type="image/png" sizes="any" />
+            <link rel="shortcut icon" href={faviconUrl} type="image/png" />
+            <link rel="apple-touch-icon" href={faviconUrl} />
+          </>
+        ) : null}
         <ThemeStyle />
       </head>
       <body className="min-h-screen bg-[var(--background)] font-sans text-[var(--foreground)] antialiased">
