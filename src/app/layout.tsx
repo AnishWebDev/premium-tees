@@ -4,6 +4,7 @@ import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ThemeStyle } from "@/components/theme/theme-style";
 import { fontVariableClassName } from "@/lib/fonts";
 import { SITE_URL } from "@/lib/constants";
+import { getSiteFaviconUrl } from "@/lib/site-branding";
 import { getSiteIdentity } from "@/lib/site-identity";
 import { getContentBlock } from "@/lib/site-content";
 import { getStoreSettings } from "@/lib/store-settings";
@@ -12,14 +13,13 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [site, siteContent, storeSettings] = await Promise.all([
+  const [site, faviconUrl, storeSettings] = await Promise.all([
     getSiteIdentity(),
-    getContentBlock("site"),
+    getSiteFaviconUrl(),
     getStoreSettings(),
   ]);
   const suffix = storeSettings.seo.titleSuffix;
   const ogImage = storeSettings.seo.ogImageUrl || "/og.jpg";
-  const faviconUrl = siteContent.faviconUrl?.trim() ?? "";
 
   return {
     metadataBase: new URL(SITE_URL),
