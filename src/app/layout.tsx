@@ -12,9 +12,14 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [site, storeSettings] = await Promise.all([getSiteIdentity(), getStoreSettings()]);
+  const [site, siteContent, storeSettings] = await Promise.all([
+    getSiteIdentity(),
+    getContentBlock("site"),
+    getStoreSettings(),
+  ]);
   const suffix = storeSettings.seo.titleSuffix;
   const ogImage = storeSettings.seo.ogImageUrl || "/og.jpg";
+  const faviconUrl = siteContent.faviconUrl?.trim() ?? "";
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -61,6 +66,15 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: SITE_URL,
     },
+    ...(faviconUrl
+      ? {
+          icons: {
+            icon: [{ url: faviconUrl }],
+            shortcut: [{ url: faviconUrl }],
+            apple: [{ url: faviconUrl }],
+          },
+        }
+      : {}),
   };
 }
 

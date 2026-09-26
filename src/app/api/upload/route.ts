@@ -23,10 +23,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+      "image/x-icon",
+      "image/vnd.microsoft.icon",
+    ];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Invalid file type. Allowed: JPEG, PNG, WebP, GIF" },
+        { error: "Invalid file type. Allowed: JPEG, PNG, WebP, GIF, SVG, ICO" },
         { status: 400 }
       );
     }

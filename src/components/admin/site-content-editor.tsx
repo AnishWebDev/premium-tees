@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ImageIcon, Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type {
   AboutData,
@@ -18,6 +18,7 @@ import type {
   NavLinkItem,
   TestimonialsData,
 } from "@/lib/site-content";
+import { ImageUploadUrlField } from "@/components/admin/image-upload-url-field";
 import { ImageUrlField } from "@/components/admin/image-url-field";
 import { adminFixedSaveBar, adminTabsList } from "@/lib/admin-ui-classes";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
@@ -208,6 +209,20 @@ export function SiteContentEditor({
                     header: { ...c.header, ...patch },
                   }))
                 }
+              />
+              <ImageUploadUrlField
+                label="Favicon"
+                hint="Browser tab icon. Square PNG or ICO works best (32×32 or 512×512). Upload or paste a URL. Leave empty to use the default favicon."
+                value={content.site.faviconUrl}
+                onChange={(faviconUrl) =>
+                  setContent((c) => ({
+                    ...c,
+                    site: { ...c.site, faviconUrl },
+                  }))
+                }
+                uploadFolder="premium-tees/site/favicon"
+                accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/svg+xml,image/jpeg,image/webp"
+                previewSize="sm"
               />
               <Field
                 label="Site name"
@@ -615,72 +630,27 @@ function SiteLogoEditor({
   logoImageAlt: string;
   onChange: (patch: Pick<HeaderData, "logoImageUrl" | "logoImageAlt">) => void;
 }) {
-  const [broken, setBroken] = useState(false);
-  const trimmed = logoImageUrl.trim();
-  const showPreview = trimmed.length > 0 && !broken;
-
   return (
     <div className="space-y-4">
+      <ImageUploadUrlField
+        label="Logo"
+        hint="Shown in the site header next to your site name. Upload or paste a URL — transparent PNG or SVG recommended."
+        value={logoImageUrl}
+        onChange={(url) => onChange({ logoImageUrl: url, logoImageAlt })}
+        uploadFolder="premium-tees/site/logo"
+        previewSize="lg"
+      />
       <div>
-        <Label>Logo</Label>
-        <p className="mt-1 text-xs text-neutral-500">
-          Shown in the site header next to your site name. Use a transparent PNG or SVG.
-        </p>
-      </div>
-
-      <div
-        className="flex min-h-[10rem] items-center justify-center rounded-xl border border-dashed border-neutral-200 bg-neutral-50 p-8 sm:min-h-[12rem]"
-        aria-live="polite"
-      >
-        {showPreview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={trimmed}
-            alt={logoImageAlt.trim() || "Logo preview"}
-            className="max-h-32 max-w-full object-contain sm:max-h-40"
-            onError={() => setBroken(true)}
-          />
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-neutral-400">
-            <ImageIcon className="h-12 w-12 sm:h-14 sm:w-14" aria-hidden />
-            <span className="text-sm">No logo yet — add a URL below</span>
-          </div>
-        )}
-      </div>
-
-      {trimmed && broken ? (
-        <p className="text-xs text-amber-700" role="alert">
-          Preview unavailable — check the URL is public and direct.
-        </p>
-      ) : null}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="site-logo-url">Logo image URL</Label>
-          <Input
-            id="site-logo-url"
-            type="url"
-            className="mt-2"
-            value={logoImageUrl}
-            placeholder="https://example.com/logo.png"
-            onChange={(e) => {
-              setBroken(false);
-              onChange({ logoImageUrl: e.target.value, logoImageAlt });
-            }}
-          />
-        </div>
-        <div>
-          <Label htmlFor="site-logo-alt">Logo alt text</Label>
-          <Input
-            id="site-logo-alt"
-            className="mt-2"
-            value={logoImageAlt}
-            placeholder="Your brand name"
-            onChange={(e) =>
-              onChange({ logoImageUrl, logoImageAlt: e.target.value })
-            }
-          />
-        </div>
+        <Label htmlFor="site-logo-alt">Logo alt text</Label>
+        <Input
+          id="site-logo-alt"
+          className="mt-2"
+          value={logoImageAlt}
+          placeholder="Your brand name"
+          onChange={(e) =>
+            onChange({ logoImageUrl, logoImageAlt: e.target.value })
+          }
+        />
       </div>
     </div>
   );

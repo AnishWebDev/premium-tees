@@ -55,6 +55,8 @@ export type ContentKey = (typeof CONTENT_KEYS)[number];
 export type SiteData = {
   name: string;
   description: string;
+  /** Browser tab icon (PNG, ICO, or SVG URL). */
+  faviconUrl: string;
 };
 
 export type NavLinkItem = {
@@ -217,6 +219,7 @@ export const DEFAULT_SITE_CONTENT: AllSiteContent = {
   site: {
     name: DEFAULT_SITE_NAME,
     description: DEFAULT_SITE_DESCRIPTION,
+    faviconUrl: "",
   },
   header: {
     navLinks: [...NAV_LINKS],
