@@ -1,6 +1,49 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { isCloudinaryConfigured, uploadImage } from "@/lib/cloudinary";
+import {
+  cloudinaryErrorMessage,
+  isCloudinaryConfigured,
+  uploadImage,
+} from "@/lib/cloudinary";
+
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+  "image/x-icon",
+  "image/vnd.microsoft.icon",
+] as const;
+
+function mimeFromFilename(filename: string): string | null {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  switch (ext) {
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "png":
+      return "image/png";
+    case "webp":
+      return "image/webp";
+    case "gif":
+      return "image/gif";
+    case "svg":
+      return "image/svg+xml";
+    case "ico":
+      return "image/x-icon";
+    default:
+      return null;
+  }
+}
+
+function resolveUploadMime(file: File): string | null {
+  const fromBrowser = file.type?.split(";")[0]?.trim();
+  if (fromBrowser && (ALLOWED_TYPES as readonly string[]).includes(fromBrowser)) {
+    return fromBrowser;
+  }
+  return mimeFromFilename(file.name);
+}
 
 export async function POST(request: Request) {
   try {
@@ -23,16 +66,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/gif",
-      "image/svg+xml",
-      "image/x-icon",
-      "image/vnd.microsoft.icon",
-    ];
-    if (!allowedTypes.includes(file.type)) {
+    const mimeType = resolveUploadMime(file);
+    if (!mimeType) {
       return NextResponse.json(
         { error: "Invalid file type. Allowed: JPEG, PNG, WebP, GIF, SVG, ICO" },
         { status: 400 }
@@ -48,7 +83,8 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(bytes);
     const folder = (formData.get("folder") as string) || "premium-tees/products";
 
-    const result = await uploadImage(buffer, folder);
+    const siteAsset = folder.includes("/site/");
+    const result = await uploadImage(buffer, folder, { mimeType, siteAsset });
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
@@ -61,6 +97,10 @@ export async function POST(request: Request) {
       }
     }
     console.error("[POST /api/upload]", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    const cloudinaryMsg = cloudinaryErrorMessage(error);
+    return NextResponse.json(
+      { error: cloudinaryMsg ?? "Upload failed. Check Cloudinary credentials on Vercel." },
+      { status: 500 }
+    );
   }
 }
