@@ -1,0 +1,39 @@
+---
+description: Auto-push small changes; full pre-push checklist for large diffs (>5 files or major)
+alwaysApply: true
+---
+
+# Auto-push policy
+
+When the user asks for work that results in code changes, **ship to `main` by default** without waiting for them to say “push” — unless they explicitly say not to push or only to commit locally.
+
+## Small / routine changes (default)
+
+Applies when **at most 5 files** changed (added + modified + deleted, excluding local-only artifacts like Lighthouse HTML reports, `.env`, and one-off debug files) and the change is **not** a major refactor (see below).
+
+Before `git push`:
+
+1. `npx tsc --noEmit` — must pass.
+2. `npm run lint` — no new errors.
+3. `npm run build` — must exit 0 (use network if DB step needs it).
+4. Commit with a clear message (only files that belong in the repo; never `.env` or secrets).
+5. `git push origin main` (use project git at `/opt/homebrew/bin/git` if needed).
+6. After push, verify GitHub/Vercel deploy **success**; fix and push again if production deploy fails.
+
+Briefly tell the user the commit hash and deploy status.
+
+## Large changes — push after testing
+
+Use the full **Push After Testing** checklist (`.cursor/rules/push-after-testing.mdc`) when **any** of these apply:
+
+- **More than 5** repo files in the change set.
+- **Major scope**: new Prisma migrations/schema, payments/checkout, auth, middleware, multi-route features, CMS overhaul, or broad refactors touching many layers.
+- User explicitly says **push after testing** or similar.
+
+Do not push until that checklist passes (or the user accepts a documented exception). Report the pre-push checklist block before pushing.
+
+## Do not auto-push
+
+- User says not to push, review only, or local-only.
+- Only questions/docs with no code change.
+- Changes that only touch secrets or `.env` (guide the user to set Vercel env manually).
