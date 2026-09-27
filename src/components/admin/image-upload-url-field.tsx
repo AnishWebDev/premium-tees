@@ -18,6 +18,8 @@ type ImageUploadUrlFieldProps = {
   accept?: string;
   previewContain?: boolean;
   previewSize?: "sm" | "md" | "lg";
+  className?: string;
+  inputClassName?: string;
 };
 
 export function ImageUploadUrlField({
@@ -30,6 +32,8 @@ export function ImageUploadUrlField({
   accept = "image/jpeg,image/png,image/webp,image/gif,image/svg+xml",
   previewContain = true,
   previewSize = "md",
+  className,
+  inputClassName,
 }: ImageUploadUrlFieldProps) {
   const id = useId();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -72,7 +76,7 @@ export function ImageUploadUrlField({
   };
 
   return (
-    <div className="space-y-3">
+    <div className={cn("space-y-3", className)}>
       <div>
         <Label htmlFor={id}>{label}</Label>
         {hint ? <p className="mt-1 text-xs text-neutral-500">{hint}</p> : null}
@@ -138,7 +142,7 @@ export function ImageUploadUrlField({
           type="url"
           value={value}
           placeholder={placeholder}
-          className="flex-1"
+          className={cn("flex-1", inputClassName)}
           onChange={(e) => {
             setBroken(false);
             onChange(e.target.value);

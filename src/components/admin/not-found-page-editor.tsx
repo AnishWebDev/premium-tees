@@ -201,6 +201,7 @@ function NotFoundField({
         label={label}
         value={value}
         onChange={onChange}
+        uploadFolder="premium-tees/cms/not-found"
         inputClassName="mt-1"
       />
     );

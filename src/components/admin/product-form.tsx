@@ -351,7 +351,8 @@ export function ProductForm({
                       label="Image URL"
                       value={img.url}
                       onChange={(url) => updateImage(index, "url", url)}
-                      hint="Any public https image URL (Pexels, Imgur, your CDN, etc.)"
+                      uploadFolder="premium-tees/products"
+                      hint="Upload or paste a public https image URL (Cloudinary, Pexels CDN, your CDN, etc.)"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -428,11 +429,14 @@ export function ProductForm({
                     />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2 lg:col-span-2">
-                    <Label>Color thumbnail URL (optional)</Label>
-                    <Input
+                    <ImageUrlField
+                      label="Color thumbnail (optional)"
                       value={variant.colorImageUrl}
-                      onChange={(e) => updateVariant(index, "colorImageUrl", e.target.value)}
+                      onChange={(url) => updateVariant(index, "colorImageUrl", url)}
+                      uploadFolder="premium-tees/products/colors"
                       placeholder="https://… photo for this color on PDP"
+                      hint="Upload or paste URL — shown when shoppers pick this color on the product page."
+                      previewSize="sm"
                     />
                   </div>
                   <div className="space-y-1.5">

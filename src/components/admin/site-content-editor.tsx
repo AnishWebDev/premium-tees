@@ -18,7 +18,6 @@ import type {
   NavLinkItem,
   TestimonialsData,
 } from "@/lib/site-content";
-import { ImageUploadUrlField } from "@/components/admin/image-upload-url-field";
 import { ImageUrlField } from "@/components/admin/image-url-field";
 import { adminFixedSaveBar, adminTabsList } from "@/lib/admin-ui-classes";
 import { HOME_TEMPLATES } from "@/lib/home-templates";
@@ -210,7 +209,7 @@ export function SiteContentEditor({
                   }))
                 }
               />
-              <ImageUploadUrlField
+              <ImageUrlField
                 label="Favicon"
                 hint="Browser tab icon. Square PNG or ICO works best (32×32 or 512×512). Upload or paste a URL. Leave empty to use the default favicon."
                 value={content.site.faviconUrl}
@@ -221,8 +220,8 @@ export function SiteContentEditor({
                   }))
                 }
                 uploadFolder="premium-tees/site/favicon"
-                accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/svg+xml,image/jpeg,image/webp"
                 previewSize="sm"
+                accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/svg+xml,image/jpeg,image/webp"
               />
               <Field
                 label="Site name"
@@ -632,7 +631,7 @@ function SiteLogoEditor({
 }) {
   return (
     <div className="space-y-4">
-      <ImageUploadUrlField
+      <ImageUrlField
         label="Logo"
         hint="Shown in the site header next to your site name. Upload or paste a URL — transparent PNG or SVG recommended."
         value={logoImageUrl}
@@ -843,9 +842,10 @@ function FooterEditor({
                 <>
                   <ImageUrlField
                     label="Banner image URL"
+                    uploadFolder="premium-tees/site/footer"
                     value={data.bannerImageUrl}
                     onChange={(bannerImageUrl) => set({ bannerImageUrl })}
-                    hint="Wide landscape photo works best."
+                    hint="Wide landscape photo works best. Upload or paste URL."
                   />
                   <Field
                     label="Banner image alt text"
@@ -1066,6 +1066,7 @@ function HeroEditor({
                 <>
                   <ImageUrlField
                     label="Poster / fallback image URL"
+                    uploadFolder="premium-tees/site/hero"
                     value={data.imageUrl}
                     onChange={(v) => set({ imageUrl: v })}
                   />
@@ -1683,7 +1684,7 @@ function InstagramEditor({
     <Card>
       <CardHeader>
         <CardTitle>Instagram gallery</CardTitle>
-        <CardDescription>Paste image URLs (one per field).</CardDescription>
+        <CardDescription>Upload or paste image URLs (one per field).</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <EditorSectionsAccordion
@@ -1729,6 +1730,7 @@ function InstagramEditor({
                   <div className="flex-1">
                     <ImageUrlField
                       label="Image URL"
+                      uploadFolder="premium-tees/site/instagram"
                       value={url}
                       onChange={(v) => {
                         const images = [...data.images];

@@ -133,6 +133,7 @@ export function SectionFieldGrid({
                 label={SECTION_FIELD_LABELS[key]}
                 value={value}
                 onChange={(v) => onSetProp(key, v)}
+                uploadFolder="premium-tees/cms/sections"
                 className="mt-0"
                 inputClassName="mt-1.5"
               />
