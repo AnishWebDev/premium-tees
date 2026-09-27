@@ -631,35 +631,56 @@ export function ThemeEditor({
         </CardContent>
       </Card>
 
-      {isSuperAdmin && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Site chrome</CardTitle>
-            <CardDescription>
-              SuperAdmin storefront layout options that apply across every page.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center gap-3">
-              <Checkbox
-                id="theme-hide-scrollbar"
-                checked={theme.hideScrollbar}
-                onCheckedChange={(v) => set("hideScrollbar", v === true)}
-              />
-              <Label
-                htmlFor="theme-hide-scrollbar"
-                className="cursor-pointer text-sm font-medium leading-none"
-              >
-                Hide page scrollbar
-              </Label>
+      <Card>
+        <CardHeader>
+          <CardTitle>Layout</CardTitle>
+          <CardDescription>
+            Storefront content width — applies to header, homepage sections, shop, and
+            other pages using the main content column.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="theme-content-max-width">Max content width</Label>
+            <Select
+              value={theme.contentMaxWidth}
+              onValueChange={(v) =>
+                set("contentMaxWidth", v as ThemeData["contentMaxWidth"])
+              }
+            >
+              <SelectTrigger id="theme-content-max-width" className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="narrow">Narrow (1024px)</SelectItem>
+                <SelectItem value="default">Default (1280px)</SelectItem>
+                <SelectItem value="wide">Wide (1536px)</SelectItem>
+                <SelectItem value="full">Full width</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {isSuperAdmin ? (
+            <div className="space-y-2 border-t border-neutral-200 pt-4">
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="theme-hide-scrollbar"
+                  checked={theme.hideScrollbar}
+                  onCheckedChange={(v) => set("hideScrollbar", v === true)}
+                />
+                <Label
+                  htmlFor="theme-hide-scrollbar"
+                  className="cursor-pointer text-sm font-medium leading-none"
+                >
+                  Hide page scrollbar
+                </Label>
+              </div>
+              <p className="text-xs text-neutral-500">
+                SuperAdmin only. Hides the main browser scrollbar on the storefront.
+              </p>
             </div>
-            <p className="text-xs text-neutral-500">
-              Hides the main browser scrollbar on the storefront. Pages still
-              scroll with trackpad, mouse wheel, and touch.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+          ) : null}
+        </CardContent>
+      </Card>
 
       {isSuperAdmin && (
         <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">

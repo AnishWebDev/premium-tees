@@ -10,6 +10,8 @@ type HorizontalScrollProps = {
   edgePadding?: boolean;
   label?: string;
   showArrows?: boolean;
+  /** `container` aligns with `.container-tight` (use inside that wrapper). */
+  align?: "viewport" | "container";
 };
 
 function getItems(scroller: HTMLElement) {
@@ -62,7 +64,9 @@ export function HorizontalScroll({
   edgePadding = true,
   label = "Horizontal product list",
   showArrows = true,
+  align = "viewport",
 }: HorizontalScrollProps) {
+  const inContainer = align === "container";
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [itemCount, setItemCount] = useState(0);
@@ -118,7 +122,8 @@ export function HorizontalScroll({
             disabled={!canPrev}
             onClick={() => scrollBySlide(-1)}
             className={cn(
-              "absolute left-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] shadow-sm sm:flex",
+              "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] shadow-sm sm:flex",
+              inContainer ? "left-0 -translate-x-1/2" : "left-2",
               "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
               "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-25",
               "hover:bg-[var(--muted)]"
@@ -133,7 +138,8 @@ export function HorizontalScroll({
             disabled={!canNext}
             onClick={() => scrollBySlide(1)}
             className={cn(
-              "absolute right-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] shadow-sm sm:flex",
+              "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] shadow-sm sm:flex",
+              inContainer ? "right-0 translate-x-1/2" : "right-2",
               "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
               "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-25",
               "hover:bg-[var(--muted)]"
@@ -153,11 +159,13 @@ export function HorizontalScroll({
           "flex gap-4 overflow-x-auto pb-2 scroll-smooth",
           "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
           "snap-x snap-mandatory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
-          showArrows
-            ? "px-4 sm:px-14 lg:px-16"
-            : edgePadding
-              ? "px-4 sm:px-6 lg:px-8"
-              : null,
+          inContainer
+            ? "px-0"
+            : showArrows
+              ? "px-4 sm:px-14 lg:px-16"
+              : edgePadding
+                ? "px-4 sm:px-6 lg:px-8"
+                : null,
           className
         )}
       >

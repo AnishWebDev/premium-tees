@@ -5,6 +5,21 @@ export type ButtonStyle = "solid" | "outline" | "soft";
 export type FontWeightOption = "normal" | "medium" | "semibold" | "bold";
 export type ButtonWeight = FontWeightOption;
 export type LinkStyle = "underline" | "accent" | "subtle" | "bold";
+export type ContentMaxWidth = "narrow" | "default" | "wide" | "full";
+
+export function contentMaxWidthToCss(width: ContentMaxWidth): string {
+  switch (width) {
+    case "narrow":
+      return "64rem";
+    case "wide":
+      return "96rem";
+    case "full":
+      return "none";
+    case "default":
+    default:
+      return "80rem";
+  }
+}
 
 export function fontWeightToCss(weight: FontWeightOption): string {
   switch (weight) {
@@ -39,6 +54,8 @@ export type ThemeData = {
   linkStyle: LinkStyle;
   /** Hide the main page scrollbar while keeping scroll behavior. */
   hideScrollbar: boolean;
+  /** Max width of `.container-tight` content column. */
+  contentMaxWidth: ContentMaxWidth;
 };
 
 export const DEFAULT_THEME: ThemeData = {
@@ -60,6 +77,7 @@ export const DEFAULT_THEME: ThemeData = {
   buttonWeight: "medium",
   linkStyle: "underline",
   hideScrollbar: false,
+  contentMaxWidth: "default",
 };
 
 export type ThemePreset = {
@@ -259,6 +277,7 @@ export function normalizeTheme(input: unknown): ThemeData {
     fontDisplayWeight: partial.fontDisplayWeight ?? DEFAULT_THEME.fontDisplayWeight,
     linkStyle: partial.linkStyle ?? DEFAULT_THEME.linkStyle,
     hideScrollbar: partial.hideScrollbar ?? DEFAULT_THEME.hideScrollbar,
+    contentMaxWidth: partial.contentMaxWidth ?? DEFAULT_THEME.contentMaxWidth,
   };
 }
 
@@ -490,6 +509,7 @@ export function themeToCssVariables(theme: ThemeData) {
   const button = themeButtonTokens(normalized);
   const darkButton = themeButtonTokens(themeForDarkMode(normalized));
   const link = linkTokens(normalized);
+  const layoutMax = contentMaxWidthToCss(normalized.contentMaxWidth);
 
   const sans = fontFamilyStack(normalized.fontSans, "system-ui, sans-serif");
   const display = fontFamilyStack(normalized.fontDisplay, "Georgia, serif");
@@ -521,6 +541,7 @@ export function themeToCssVariables(theme: ThemeData) {
   --font-display-family: ${display};
   --font-sans-weight: ${sansWeight};
   --font-display-weight: ${displayWeight};
+  --layout-max-width: ${layoutMax};
   color-scheme: light;
 }
 .dark {
