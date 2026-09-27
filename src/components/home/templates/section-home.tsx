@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { HomeSectionItem } from "@/lib/home-sections";
 import {
+  resolveCarouselSlides,
   resolveContentCards,
   resolveGalleryImages,
   resolveMosaicCells,
@@ -174,26 +175,15 @@ function renderSection(section: HomeSectionItem, props: HomeTemplateProps) {
         />
       );
     case "carousel": {
-      const slides = [
-        {
-          id: "hero",
-          image: sectionText(o.imageUrl, content.hero.imageUrl),
-          title: sectionText(o.title, content.hero.headline),
-          subtitle: sectionText(o.subtitle, content.hero.subheadline),
-        },
-        {
-          id: "story",
-          image: home.story.imageUrl,
-          title: home.story.title,
-          subtitle: home.story.body,
-        },
-        ...categories.slice(0, 2).map((c) => ({
-          id: c.id,
-          image: c.image ?? FALLBACK,
-          title: c.name,
-          subtitle: c.description ?? "Explore the collection",
-        })),
-      ];
+      const items = resolveCarouselSlides(o);
+      if (items.length === 0) return null;
+      const slides = items.map((item, index) => ({
+        id: `carousel-${section.id}-${index}`,
+        image: item.imageUrl,
+        alt: item.imageAlt || item.title,
+        title: item.title,
+        subtitle: item.subtitle,
+      }));
       return <Carousel slides={slides} autoPlayMs={5500} />;
     }
     case "marquee": {

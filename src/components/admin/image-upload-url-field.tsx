@@ -4,6 +4,13 @@ import { useId, useRef, useState } from "react";
 import { ImageIcon, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -82,6 +89,7 @@ export function ImageUploadUrlField({
   const fileRef = useRef<HTMLInputElement>(null);
   const [broken, setBroken] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const trimmed = value.trim();
   const showPreview = trimmed.length > 0 && !broken;
 
@@ -91,6 +99,36 @@ export function ImageUploadUrlField({
       : previewSize === "sm"
         ? "h-16 w-16"
         : "h-20 w-20";
+
+  const openPreview = () => {
+    if (showPreview) setPreviewOpen(true);
+  };
+
+  const previewImage = (className: string) =>
+    showPreview ? (
+      <button
+        type="button"
+        onClick={openPreview}
+        className={cn(
+          "cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
+          className
+        )}
+        aria-label={`Preview ${label}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={trimmed}
+          alt=""
+          className={cn(
+            previewSize === "lg"
+              ? "max-h-32 max-w-full sm:max-h-40"
+              : "h-full w-full",
+            previewContain ? "object-contain" : "object-cover"
+          )}
+          onError={() => setBroken(true)}
+        />
+      </button>
+    ) : null;
 
   const uploadFile = async (file: File) => {
     setUploading(true);
@@ -134,18 +172,7 @@ export function ImageUploadUrlField({
             previewBox
           )}
         >
-          {showPreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={trimmed}
-              alt=""
-              className={cn(
-                "max-h-32 max-w-full sm:max-h-40",
-                previewContain ? "object-contain" : "object-cover"
-              )}
-              onError={() => setBroken(true)}
-            />
-          ) : (
+          {previewImage("inline-block max-w-full") ?? (
             <div className="flex flex-col items-center gap-2 text-neutral-400">
               <ImageIcon className="h-12 w-12" aria-hidden />
               <span className="text-sm">No image yet</span>
@@ -160,15 +187,7 @@ export function ImageUploadUrlField({
               previewBox
             )}
           >
-            {showPreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={trimmed}
-                alt=""
-                className={cn("h-full w-full", previewContain ? "object-contain" : "object-cover")}
-                onError={() => setBroken(true)}
-              />
-            ) : (
+            {previewImage("block h-full w-full") ?? (
               <ImageIcon className="h-5 w-5 text-neutral-400" aria-hidden />
             )}
           </div>
@@ -218,6 +237,23 @@ export function ImageUploadUrlField({
           Upload
         </Button>
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-[min(96vw,56rem)] gap-3 p-4 sm:p-6">
+          <DialogHeader>
+            <DialogTitle>{label}</DialogTitle>
+            <DialogDescription>Full-size preview</DialogDescription>
+          </DialogHeader>
+          <div className="flex max-h-[min(80vh,720px)] items-center justify-center overflow-auto rounded-lg bg-neutral-100 p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={trimmed}
+              alt={label}
+              className="max-h-[min(78vh,700px)] w-full object-contain"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

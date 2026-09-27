@@ -132,6 +132,8 @@ export type HomeSectionProps = {
   cellsJson?: string;
   /** Image gallery items as JSON array of GalleryImageItem */
   imagesJson?: string;
+  /** Campaign carousel slides as JSON array of CarouselSlideItem */
+  slidesJson?: string;
   /** Promo hello bar / countdown — show from (ISO or datetime-local) */
   scheduleStartAt?: string;
   /** Promo hello bar / countdown — show until */
@@ -175,6 +177,13 @@ export type GalleryImageItem = {
   title: string;
   caption: string;
   linkHref: string;
+  imageAlt: string;
+};
+
+export type CarouselSlideItem = {
+  imageUrl: string;
+  title: string;
+  subtitle: string;
   imageAlt: string;
 };
 
@@ -300,7 +309,7 @@ export function editableFieldsForType(
         "ctaHref",
       ]);
     case "carousel":
-      return contentFields(["title", "subtitle", "imageUrl"]);
+      return contentFields([]);
     case "marquee":
       return contentFields(["marqueeItems"]);
     case "promoBanner":
@@ -478,6 +487,7 @@ export const SECTION_FIELD_LABELS: Record<HomeSectionFieldKey, string> = {
   cardsJson: "Cards data",
   cellsJson: "Mosaic tiles data",
   imagesJson: "Gallery images data",
+  slidesJson: "Carousel slides data",
   scheduleStartAt: "Starts at (date & time)",
   scheduleEndAt: "Show until (date & time)",
   countdownTargetAt: "Ends at (date & time)",
@@ -624,9 +634,14 @@ export function defaultPropsForSection(
       };
     case "carousel":
       return {
-        title: hero.headline,
-        subtitle: hero.subheadline,
-        imageUrl: hero.imageUrl,
+        slidesJson: JSON.stringify([
+          {
+            imageUrl: hero.imageUrl,
+            title: hero.headline,
+            subtitle: hero.subheadline,
+            imageAlt: hero.headline,
+          },
+        ] satisfies CarouselSlideItem[]),
       };
     case "marquee":
       return { marqueeItems: home.marqueeItems.join(", ") };
@@ -1233,6 +1248,7 @@ function normalizeSectionProps(raw: unknown): HomeSectionProps | undefined {
     "cardsJson",
     "cellsJson",
     "imagesJson",
+    "slidesJson",
     "scheduleStartAt",
     "scheduleEndAt",
     "countdownTargetAt",
@@ -1291,6 +1307,51 @@ export function resolveMosaicCells(
           : undefined,
     };
   });
+}
+
+const EMPTY_CAROUSEL_SLIDE: CarouselSlideItem = {
+  imageUrl: "",
+  title: "",
+  subtitle: "",
+  imageAlt: "",
+};
+
+function parseCarouselSlide(raw: unknown): CarouselSlideItem {
+  const c =
+    raw && typeof raw === "object"
+      ? (raw as CarouselSlideItem)
+      : ({} as CarouselSlideItem);
+  return {
+    imageUrl: typeof c.imageUrl === "string" ? c.imageUrl : "",
+    title: typeof c.title === "string" ? c.title : "",
+    subtitle: typeof c.subtitle === "string" ? c.subtitle : "",
+    imageAlt: typeof c.imageAlt === "string" ? c.imageAlt : "",
+  };
+}
+
+/** Carousel slides for storefront + admin editor. */
+export function resolveCarouselSlides(
+  props?: HomeSectionProps
+): CarouselSlideItem[] {
+  const parsed = parseJsonArray(props?.slidesJson, parseCarouselSlide);
+  const withImages = (parsed ?? []).filter((s) => s.imageUrl.trim());
+  if (withImages.length > 0) {
+    return withImages;
+  }
+
+  const o = props ?? {};
+  if (o.imageUrl?.trim() || o.title?.trim() || o.subtitle?.trim()) {
+    return [
+      {
+        imageUrl: o.imageUrl?.trim() ?? "",
+        title: o.title?.trim() ?? "",
+        subtitle: o.subtitle?.trim() ?? "",
+        imageAlt: o.title?.trim() ?? "",
+      },
+    ];
+  }
+
+  return [];
 }
 
 /** Gallery images from imagesJson. */

@@ -8,6 +8,7 @@ import {
   defaultPropsForSection,
   defaultSectionsForTemplate,
   editableFieldsForType,
+  resolveCarouselSlides,
   resolveContentCards,
   resolveGalleryImages,
   resolveMosaicCells,
@@ -26,6 +27,7 @@ import {
   adminPanelMuted,
 } from "@/lib/admin-ui-classes";
 import {
+  CarouselSlidesEditor,
   GalleryImagesEditor,
   MosaicCellsEditor,
 } from "@/components/admin/section-json-editors";
@@ -411,7 +413,8 @@ export function HomeSectionsBuilder({
                         />
                       ) : section.type !== "contentCard" &&
                         section.type !== "imageMosaic" &&
-                        section.type !== "imageGallery" ? (
+                        section.type !== "imageGallery" &&
+                        section.type !== "carousel" ? (
                         <p className="text-xs text-[var(--muted-foreground)]">
                           No direct fields for this block.
                         </p>
@@ -451,6 +454,19 @@ export function HomeSectionsBuilder({
                               section.id,
                               "imagesJson",
                               JSON.stringify(images)
+                            )
+                          }
+                        />
+                      ) : null}
+
+                      {section.type === "carousel" ? (
+                        <CarouselSlidesEditor
+                          slides={resolveCarouselSlides(section.props)}
+                          onChange={(slides) =>
+                            setProp(
+                              section.id,
+                              "slidesJson",
+                              JSON.stringify(slides)
                             )
                           }
                         />

@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 import type {
+  CarouselSlideItem,
   GalleryImageItem,
   MosaicCellItem,
 } from "@/lib/home-sections";
@@ -32,6 +33,113 @@ const EMPTY_GALLERY_IMAGE: GalleryImageItem = {
   linkHref: "",
   imageAlt: "",
 };
+
+const EMPTY_CAROUSEL_SLIDE: CarouselSlideItem = {
+  imageUrl: "",
+  title: "",
+  subtitle: "",
+  imageAlt: "",
+};
+
+export function CarouselSlidesEditor({
+  slides,
+  onChange,
+}: {
+  slides: CarouselSlideItem[];
+  onChange: (slides: CarouselSlideItem[]) => void;
+}) {
+  const list = slides.length > 0 ? slides : [{ ...EMPTY_CAROUSEL_SLIDE }];
+
+  const update = (index: number, patch: Partial<CarouselSlideItem>) => {
+    onChange(list.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  };
+
+  return (
+    <div className="space-y-3 border-t border-neutral-100 pt-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-neutral-700">Carousel slides</p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8"
+          onClick={() =>
+            onChange([
+              ...list,
+              { ...EMPTY_CAROUSEL_SLIDE, title: `Slide ${list.length + 1}` },
+            ])
+          }
+        >
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          Add slide
+        </Button>
+      </div>
+      <p className="text-xs text-neutral-500">
+        Only slides you add here appear in the carousel — story and category images
+        are no longer added automatically.
+      </p>
+      <ul className="space-y-3">
+        {list.map((slide, index) => (
+          <li
+            key={index}
+            className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-neutral-800">
+                Slide {index + 1}
+              </p>
+              {list.length > 1 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-neutral-500"
+                  onClick={() => onChange(list.filter((_, i) => i !== index))}
+                >
+                  Remove
+                </Button>
+              ) : null}
+            </div>
+            <ImageUrlField
+              label="Slide image"
+              uploadFolder="premium-tees/cms/carousel"
+              guide="cmsBanner"
+              value={slide.imageUrl}
+              onChange={(imageUrl) => update(index, { imageUrl })}
+              inputClassName="mt-1"
+            />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs">Title (optional)</Label>
+                <Input
+                  className="mt-1"
+                  value={slide.title}
+                  onChange={(e) => update(index, { title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Image alt text</Label>
+                <Input
+                  className="mt-1"
+                  value={slide.imageAlt}
+                  onChange={(e) => update(index, { imageAlt: e.target.value })}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label className="text-xs">Subtitle (optional)</Label>
+                <Input
+                  className="mt-1"
+                  value={slide.subtitle}
+                  onChange={(e) => update(index, { subtitle: e.target.value })}
+                />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function MosaicCellsEditor({
   cells,
