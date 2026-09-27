@@ -7,6 +7,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import {
+  IMAGE_UPLOAD_GUIDES,
+  type ImageUploadGuide,
+  type ImageUploadGuideKey,
+} from "@/lib/image-upload-guides";
+
+function resolveGuide(
+  guide?: ImageUploadGuide | ImageUploadGuideKey
+): ImageUploadGuide | null {
+  if (!guide) return null;
+  if (typeof guide === "string") return IMAGE_UPLOAD_GUIDES[guide];
+  return guide;
+}
+
+function ImageUploadGuideBlock({ guide }: { guide: ImageUploadGuide }) {
+  const maxDiagramWidth = 88;
+  const diagramHeight = Math.round(maxDiagramWidth / guide.aspectRatio);
+
+  return (
+    <div className="flex gap-3 rounded-lg border border-dashed border-neutral-200 bg-neutral-50/80 p-3">
+      <div
+        className="flex shrink-0 items-center justify-center rounded border border-neutral-300 bg-white text-[10px] font-medium uppercase tracking-wide text-neutral-400"
+        style={{ width: maxDiagramWidth, height: Math.min(diagramHeight, 56), maxHeight: 56 }}
+        aria-hidden
+      >
+        {guide.ratioLabel.split(" ")[0]}
+      </div>
+      <div className="min-w-0 text-xs text-neutral-600">
+        <p className="font-medium text-neutral-800">Recommended</p>
+        <p className="mt-0.5">
+          <span className="text-neutral-500">Ratio:</span> {guide.ratioLabel}
+        </p>
+        <p>
+          <span className="text-neutral-500">Size:</span> {guide.sizeLabel}
+        </p>
+        {guide.note ? <p className="mt-1 text-neutral-500">{guide.note}</p> : null}
+      </div>
+    </div>
+  );
+}
 
 type ImageUploadUrlFieldProps = {
   label: string;
@@ -20,6 +60,7 @@ type ImageUploadUrlFieldProps = {
   previewSize?: "sm" | "md" | "lg";
   className?: string;
   inputClassName?: string;
+  guide?: ImageUploadGuide | ImageUploadGuideKey;
 };
 
 export function ImageUploadUrlField({
@@ -34,7 +75,9 @@ export function ImageUploadUrlField({
   previewSize = "md",
   className,
   inputClassName,
+  guide,
 }: ImageUploadUrlFieldProps) {
+  const resolvedGuide = resolveGuide(guide);
   const id = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [broken, setBroken] = useState(false);
@@ -81,6 +124,8 @@ export function ImageUploadUrlField({
         <Label htmlFor={id}>{label}</Label>
         {hint ? <p className="mt-1 text-xs text-neutral-500">{hint}</p> : null}
       </div>
+
+      {resolvedGuide ? <ImageUploadGuideBlock guide={resolvedGuide} /> : null}
 
       {previewSize === "lg" ? (
         <div

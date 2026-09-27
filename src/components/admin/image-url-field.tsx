@@ -1,6 +1,10 @@
 "use client";
 
 import { ImageUploadUrlField } from "@/components/admin/image-upload-url-field";
+import type {
+  ImageUploadGuide,
+  ImageUploadGuideKey,
+} from "@/lib/image-upload-guides";
 
 type ImageUrlFieldProps = {
   label: string;
@@ -14,6 +18,7 @@ type ImageUrlFieldProps = {
   uploadFolder?: string;
   previewSize?: "sm" | "md" | "lg";
   accept?: string;
+  guide?: ImageUploadGuide | ImageUploadGuideKey;
 };
 
 export function ImageUrlField({
@@ -27,6 +32,7 @@ export function ImageUrlField({
   uploadFolder = "premium-tees/content",
   previewSize = "md",
   accept,
+  guide = "generic",
 }: ImageUrlFieldProps) {
   const uploadHint =
     hint ??
@@ -44,6 +50,7 @@ export function ImageUrlField({
       inputClassName={inputClassName}
       previewSize={previewSize}
       accept={accept}
+      guide={guide}
     />
   );
 }

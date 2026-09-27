@@ -97,6 +97,7 @@ export function MosaicCellsEditor({
                 <ImageUrlField
                   label="Image URL"
                   uploadFolder="premium-tees/cms/sections"
+                  guide="cmsSection"
                   value={cell.imageUrl}
                   onChange={(imageUrl) => update(index, { imageUrl })}
                   inputClassName="mt-1"
@@ -219,6 +220,7 @@ export function GalleryImagesEditor({
                 <ImageUrlField
                   label="Image URL"
                   uploadFolder="premium-tees/cms/sections"
+                  guide="cmsSection"
                   value={img.imageUrl}
                   onChange={(imageUrl) => update(index, { imageUrl })}
                   inputClassName="mt-1"

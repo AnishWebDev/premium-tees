@@ -16,6 +16,29 @@ function pexelsPageToCdn(url: string): string | null {
   return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1920`;
 }
 
+type CloudinaryDisplayOptions = {
+  /** Max width for delivery (long edge for limit crop). */
+  width?: number;
+  quality?: "auto" | "auto:good" | "auto:best" | "90";
+};
+
+/** Apply Cloudinary delivery transforms (format, quality, max width). */
+export function cloudinaryDisplayUrl(
+  url: string,
+  { width = 2560, quality = "auto:good" }: CloudinaryDisplayOptions = {}
+): string {
+  const trimmed = url.trim();
+  if (!trimmed.includes("res.cloudinary.com") || !trimmed.includes("/upload/")) {
+    return trimmed;
+  }
+  if (/\/upload\/[^/]*(?:f_|q_|w_|c_)/.test(trimmed)) {
+    return trimmed;
+  }
+  const qualityToken = quality === "90" ? "q_90" : `q_${quality}`;
+  const transform = `f_auto,${qualityToken},w_${width},c_limit`;
+  return trimmed.replace(/\/upload\/((?:v\d+\/)?)/, `/upload/${transform}/$1`);
+}
+
 export function normalizeImageUrl(url: string): string {
   const trimmed = url.trim();
   if (!trimmed) return trimmed;

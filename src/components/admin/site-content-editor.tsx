@@ -221,6 +221,7 @@ export function SiteContentEditor({
                 }
                 uploadFolder="premium-tees/site/favicon"
                 previewSize="sm"
+                guide="favicon"
                 accept="image/png,image/x-icon,image/vnd.microsoft.icon,image/svg+xml,image/jpeg,image/webp"
               />
               <Field
@@ -638,6 +639,7 @@ function SiteLogoEditor({
         onChange={(url) => onChange({ logoImageUrl: url, logoImageAlt })}
         uploadFolder="premium-tees/site/logo"
         previewSize="lg"
+        guide="logo"
       />
       <div>
         <Label htmlFor="site-logo-alt">Logo alt text</Label>
@@ -845,7 +847,8 @@ function FooterEditor({
                     uploadFolder="premium-tees/site/footer"
                     value={data.bannerImageUrl}
                     onChange={(bannerImageUrl) => set({ bannerImageUrl })}
-                    hint="Wide landscape photo works best. Upload or paste URL."
+                    guide="footerBanner"
+                    hint="Upload or paste URL — use a wide landscape file for a sharp full-width footer."
                   />
                   <Field
                     label="Banner image alt text"
@@ -1069,6 +1072,7 @@ function HeroEditor({
                     uploadFolder="premium-tees/site/hero"
                     value={data.imageUrl}
                     onChange={(v) => set({ imageUrl: v })}
+                    guide="heroPoster"
                   />
                   <Field
                     label="Hero video URL (optional)"
@@ -1731,6 +1735,7 @@ function InstagramEditor({
                     <ImageUrlField
                       label="Image URL"
                       uploadFolder="premium-tees/site/instagram"
+                      guide="instagram"
                       value={url}
                       onChange={(v) => {
                         const images = [...data.images];

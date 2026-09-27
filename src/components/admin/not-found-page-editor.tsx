@@ -202,6 +202,7 @@ function NotFoundField({
         value={value}
         onChange={onChange}
         uploadFolder="premium-tees/cms/not-found"
+        guide="notFound"
         inputClassName="mt-1"
       />
     );

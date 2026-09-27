@@ -52,15 +52,21 @@ export async function uploadImage(
       : `data:${mimeType};base64,${file.toString("base64")}`;
 
   const uploadOptions: Record<string, unknown> = { folder };
+  const isCmsOrMarketing =
+    folder.includes("/cms/") ||
+    folder.includes("/site/") ||
+    folder.includes("/content");
 
-  if (siteAsset || isSvgMime(mimeType) || isIconMime(mimeType)) {
-    // SVG/ICO/favicon break when forced through product JPEG/WebP transforms.
-    if (!isSvgMime(mimeType) && !isIconMime(mimeType)) {
-      uploadOptions.transformation = [{ width: 1200, height: 1200, crop: "limit" }];
-    }
+  if (isSvgMime(mimeType) || isIconMime(mimeType)) {
+    // SVG/ICO — store as uploaded.
+  } else if (isCmsOrMarketing || siteAsset) {
+    // Keep hero/footer/marketing sharp — only cap very large originals.
+    uploadOptions.transformation = [
+      { width: 3840, height: 3840, crop: "limit", quality: "auto:good", fetch_format: "auto" },
+    ];
   } else {
     uploadOptions.transformation = [
-      { width: 1200, height: 1500, crop: "limit", quality: "auto", fetch_format: "auto" },
+      { width: 1600, height: 2000, crop: "limit", quality: "auto:good", fetch_format: "auto" },
     ];
   }
 

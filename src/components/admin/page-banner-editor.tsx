@@ -110,6 +110,7 @@ export function PageBannerEditor({
                       value={banner.backgroundImageUrl}
                       onChange={(v) => set("backgroundImageUrl", v)}
                       uploadFolder="premium-tees/cms/banners"
+                      guide="cmsBanner"
                       inputClassName="mt-1"
                     />
                   </div>

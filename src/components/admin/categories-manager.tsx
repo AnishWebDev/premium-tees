@@ -293,6 +293,7 @@ export function CategoriesManager({
               </div>
               <ImageUrlField
                 uploadFolder="premium-tees/categories"
+                guide="category"
                 label="Image URL"
                 value={form.image}
                 onChange={(image) => setForm((f) => ({ ...f, image }))}
@@ -344,6 +345,7 @@ export function CategoriesManager({
           </DialogHeader>
           <ImageUrlField
             uploadFolder="premium-tees/categories"
+            guide="category"
             label="Image URL"
             value={editImage}
             onChange={setEditImage}

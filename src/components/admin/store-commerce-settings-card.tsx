@@ -245,6 +245,7 @@ export function StoreCommerceSettingsCard({ isSuperAdmin }: Props) {
             <ImageUrlField
               label="Open Graph image URL"
               uploadFolder="premium-tees/site/og"
+              guide="ogImage"
               value={settings.seo.ogImageUrl}
               onChange={(url) =>
                 setSettings((s) => (s ? { ...s, seo: { ...s.seo, ogImageUrl: url } } : s))

@@ -1,5 +1,5 @@
 import Image, { type ImageProps } from "next/image";
-import { normalizeImageUrl } from "@/lib/image-url";
+import { cloudinaryDisplayUrl, normalizeImageUrl } from "@/lib/image-url";
 
 /** Hosts allowed through Next.js image optimization (see next.config.ts). */
 const OPTIMIZED_HOSTS = new Set([
@@ -9,10 +9,29 @@ const OPTIMIZED_HOSTS = new Set([
   "lh3.googleusercontent.com",
 ]);
 
-function resolveSrc(src: ImageProps["src"]): ImageProps["src"] {
+function deliveryWidthFromSizes(sizes: string | undefined): number {
+  if (!sizes) return 1920;
+  if (sizes.includes("100vw")) return 2560;
+  const match = sizes.match(/(\d+)px/);
+  if (match) return Math.min(3840, Math.max(640, Number.parseInt(match[1], 10) * 2));
+  return 1920;
+}
+
+function resolveSrc(
+  src: ImageProps["src"],
+  sizes: string | undefined
+): ImageProps["src"] {
   if (typeof src !== "string") return src;
   const trimmed = src.trim();
-  return trimmed ? normalizeImageUrl(trimmed) : src;
+  if (!trimmed) return src;
+  const normalized = normalizeImageUrl(trimmed);
+  if (normalized.includes("res.cloudinary.com")) {
+    return cloudinaryDisplayUrl(normalized, {
+      width: deliveryWidthFromSizes(sizes),
+      quality: "auto:good",
+    });
+  }
+  return normalized;
 }
 
 function shouldOptimize(src: ImageProps["src"]): boolean {
@@ -34,17 +53,22 @@ export function RemoteImage({
   alt = "",
   ...props
 }: ImageProps) {
-  const resolved = resolveSrc(src);
+  const resolved = resolveSrc(src, props.sizes);
+  const isCloudinary =
+    typeof resolved === "string" && resolved.includes("res.cloudinary.com");
   const optimize =
-    typeof resolved === "string" && resolved.startsWith("http")
+    !isCloudinary &&
+    typeof resolved === "string" &&
+    resolved.startsWith("http")
       ? shouldOptimize(resolved)
-      : true;
+      : !isCloudinary;
 
   return (
     <Image
       {...props}
       src={resolved}
       alt={alt}
+      quality={props.quality ?? (isCloudinary ? undefined : 85)}
       unoptimized={unoptimized ?? !optimize}
     />
   );

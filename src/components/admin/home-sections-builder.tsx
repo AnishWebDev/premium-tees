@@ -620,6 +620,7 @@ function ContentCardsEditor({
                 <ImageUrlField
                   label="Image / GIF URL"
                   uploadFolder="premium-tees/cms/home"
+                  guide="cmsSection"
                   value={card.imageUrl ?? ""}
                   onChange={(imageUrl) => updateCard(index, { imageUrl })}
                   inputClassName="mt-1"

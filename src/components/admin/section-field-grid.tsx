@@ -134,6 +134,7 @@ export function SectionFieldGrid({
                 value={value}
                 onChange={(v) => onSetProp(key, v)}
                 uploadFolder="premium-tees/cms/sections"
+                guide={key === "posterImageUrl" ? "heroPoster" : "cmsSection"}
                 className="mt-0"
                 inputClassName="mt-1.5"
               />

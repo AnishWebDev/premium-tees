@@ -352,6 +352,7 @@ export function ProductForm({
                       value={img.url}
                       onChange={(url) => updateImage(index, "url", url)}
                       uploadFolder="premium-tees/products"
+                      guide="product"
                       hint="Upload or paste a public https image URL (Cloudinary, Pexels CDN, your CDN, etc.)"
                     />
                   </div>
@@ -434,6 +435,7 @@ export function ProductForm({
                       value={variant.colorImageUrl}
                       onChange={(url) => updateVariant(index, "colorImageUrl", url)}
                       uploadFolder="premium-tees/products/colors"
+                      guide="productColor"
                       placeholder="https://… photo for this color on PDP"
                       hint="Upload or paste URL — shown when shoppers pick this color on the product page."
                       previewSize="sm"
